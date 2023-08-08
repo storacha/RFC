@@ -2,7 +2,7 @@
 
 Customers using w3up from "serverless" functions must currently invoke and execute `access/claim` during
 every invocation of their function, wasting valuable time and network resources. We propose a solution involving
-the encoding of the `AgentDataExport` datastructure into a string suitable as the value of an environment variable.
+the encoding of the `AgentDataExport` datastructure into a string suitable to be used as the value of an environment variable.
 
 
 ## Problem
