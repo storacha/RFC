@@ -8,7 +8,7 @@ the encoding of the `AgentDataExport` datastructure into a string suitable as th
 ## Problem
 
 More than one potential customer is integrating with w3up from a "serverless"
-function (for example, from a [Next.js API Function](https://nextjs.org/learn/basics/api-routes).
+function (for example, from a [Next.js API Function](https://nextjs.org/learn/basics/api-routes)).
 These integrations have not been straightforward, in large part because `w3up-client` is currently
 designed to assume that clients are able to store delegations in durable storage (ie, 
 [IndexedDB](https://github.com/web3-storage/w3up/blob/main/packages/access-client/src/drivers/indexeddb.js)
