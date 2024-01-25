@@ -1,6 +1,10 @@
 ## Abstract
 
-Ucanto's `Result` type gives us the ability to use the TypeScript type system to specify the errors a function may return. We have started using `Result`s in a variety of different interfaces in our system, but have not been careful to catch and wrap runtime errors with specified error types in all cases. This has lead to functions that require callers to implement two different types of error handling - detection and handling of "error" `Result`s like `{error: {name: 'AnError', message: 'A message describing the error'}}` as well as standard `try...catch` error handling. We describe the tradeoffs and suggest that best practice is to coerce all errors into `Result` types in functions that return `Result`.
+Ucanto's `Result` type gives us the ability to use the TypeScript type system to specify the errors a function may return. 
+
+We have started using `Result`s in a variety of different interfaces in our system, but have not been careful to catch and wrap runtime errors with specified error types in all cases. This has lead to functions that require callers to implement two different types of error handling - detection and handling of "error" `Result`s like `{error: {name: 'AnError', message: 'A message describing the error'}}` as well as standard `try...catch` error handling. 
+
+We describe the tradeoffs and suggest that best practice is to coerce all errors into `Result` types in functions that return `Result`.
 
 ## `Ucanto.Result`
 
