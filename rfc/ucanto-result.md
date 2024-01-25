@@ -13,6 +13,8 @@ Ucanto `Result`s are described by the [UCAN invocation specification](https://gi
 Briefly, a `Ucanto.Result` is a TypeScript `Record` with EITHER an `ok` or `error` key. If `ok` is defined, `error` must be `undefined`, and vice-versa. Defining an function that returns `Result` allows us to specify possible error types for that function, which enables conveniences like IDE auto-complete and helps clients understand what types of errors they should expect to handle:
 
 ```typescript
+import * as Ucanto from '@ucanto/interface'
+
 interface PlanGetSuccess {
   updatedAt: ISO8601Date
   product: DID
@@ -28,7 +30,6 @@ interface PlansStorage {
   /**
    * Get plan information for a customer
    *
-   * @param account account DID
    */
   get: (
     account: AccountDID
@@ -44,6 +45,19 @@ async function getProductForAccount(plansStorage: PlansStorage, account: Account
     return null
   } else {
     throw result.error
+  }
+}
+
+// alternatively, Result.try can be used for a slightly different and arguably cleaner syntax
+async function getProductForAccount(plansStorage: PlansStorage, account: AccountDID): Promise<DID | null> {
+  try {
+    return Result.try(await plansStorage.get(account)).product
+  } catch (err) {
+    if (err.name === 'PlanNotFound') {
+      return null
+    } else {
+      throw err
+    }
   }
 }
 ```
@@ -72,7 +86,6 @@ interface CustomersStorage {
   /**
    * Get customer information
    *
-   * @param account account DID
    */
   get: (
     account: AccountDID
@@ -89,7 +102,6 @@ interface PIIStorage {
   /**
    * Get Personally Identifying Information about a customer
    *
-   * @param account account DID
    */
   get: (
     account: AccountDID
