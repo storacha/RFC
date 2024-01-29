@@ -61,9 +61,10 @@ keep it simple: dag-cbor encode just the index data we need to make range reques
 ```
 
 - `content` is the CAR CID that has been indexed, making this portable. the offsets declared are within that CAR.
-- `cid` is the Block CID
-- `offset` is the byte offset of the bytes of the block.
-- `length` is the byte lenth of the block bytes.
+- `includes` is an array of block index info, in the same order as they appear in the CAR.
+  - `cid` is the Block CID
+  - `offset` is the byte offset of the bytes of the block.
+  - `length` is the byte lenth of the block bytes.
 
 
 #### Encoded form
