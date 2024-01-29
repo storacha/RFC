@@ -1,0 +1,10 @@
+type BlockIndex struct {
+  cid: Link
+  offset: Integer
+  length: Integer
+} representation tuple
+
+type CarBlockIndex struct {
+  content: Link
+  includes: BlockIndex[]
+}
