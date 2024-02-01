@@ -16,7 +16,7 @@ We currently store an Multihash Sorted Index for each CAR as an external file.
 
 In the diagram below we want to know the offset and length of the block bytes sections, but all we are given is the offset of the `(len,cid,bytes)` tripple.
 
-![carv2-multihash-sorted-index](https://hackmd.io/_uploads/HJy7pbr96.svg)
+![carv2-multihash-sorted-index diagram](./multihash-sorted-index.svg)
 
 Parsing an index gives us a map from a block CID multihash to the offset of the block length varint.
 
