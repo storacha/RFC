@@ -1,38 +1,22 @@
 # Merkle References
 
-# Abstract
+## Abstract
 
-Inter Planetary Linked Data (IPLD) is a fundamental building block of the IPFS. IPLD Links (a.k.a CIDs) are quintessential, yet arguably suffer from a major design flaw.
+Inter Planetary Linked Data (IPLD) is a fundamental building block of the IPFS. IPLD Links (a.k.a CIDs) are quintessential, yet their design has drawbacks that we call out and propose to address.
 
-# Introduction
+## Introduction
 
-[Content identifiers (CIDs)][CID] claim that identify data not by _where it is stored_, but rather by the _content itself_. In our observation however, it moves addressing from "where content is stored" to "how content is stored" more specifically to how data is formatted / encoded. It is a significant improvement, but not quite as addressing by "what content is".
+[Content identifiers (CIDs)][CID] claim to identify data not by _where it is stored_, but rather by the _content itself_. In our observation it instead changes addressing from "where content is stored" to "how content is stored", more specifically to how data is formatted / encoded. It is a significant improvement, but it is not addressing by "what content is".
 
-Same data may be encoded differently depending on where it is stored, different yet when it is moved over the wire. It is also likely that encoding choices may evolve over time. Encoding choice affecting a content identifier is a major drawback and counter to goal of addressing content by "what content is".
+Same data may be encoded differently depending on where it is stored, different yet when it is moved over the wire. It is also likely that encoding choices may evolve over time. Encoding choice affecting data identifier is a major drawback and counter to goal of addressing by "what content is".
 
-Identifying data by how it is encoded has various problems and we will call out major ones to illustrate motivation for this proposal. Then we will define goals for the proposed data identifiers and proceed with the proposal.
-
-## Locality Problem
-
-In most programming languages we build data structures out of primitive data types (scalars) and more complex structures by nesting them into one another through [reference]s. In languages with managed memory we do not have to worry about whether sub-structure can be accessed, reference in itself implies access. Languages where we do need to worry about dereferencing tend to suffer from infamous [null pointer] problems.
-
-Data structures in IPLD suffer from similar problem to languages with [null pointer]s. We will refer to it as data "locality problem". Nested sub-structure can either be **local**, inlined in a parent structure, or be **external** referenced through an [IPLD Link]. Local sub-structure can always be dereferenced, external one however may not be in memory space and might require reading from disk, or another machine. In worse cases it may require calling other untrusted machines asking them if they can tell you which machine has it or if they know machine that may know. Possibility for errors is vast, and performance guarantees are intractable it can take a fraction of a microsecond or days to get hold of the data.
-
-## Sizing Problem
-
-**External** sub-structures might be coming from untrusted machines over the network, so there is the risk that time and resources spend may be wasted on getting a data that does not match identifier requested. To mitigate this risk **block size limit** of around 2MiB is imposed, that way time and resources wasted is within reason, and you wont waste hours fetching data to discover after that it does not match data identified in the request.
-
-Implication is that produced data must fit the established size limit so producer needs to device some strategy to **external**ize parts as necessary. This tends to affect the data model, a lot of time and effort goes into how to partition data to make desired read patterns efficient.
-
-Problem in disguise is that data producer must foresee how data will be consumed, which is not only difficult, but practically impossible because future is ofter full of surprises and shifting constraints.
+Identifying data by how it is encoded has various problems and we will call out major ones to illustrate motivation for this proposal. Then we will define goals for the proposed identifiers and proceed with the proposal.
 
 ### Encoding Problem
 
-Typically programs operate on data structures without consideration of what processor architecture program is going to run or how those data structures will be represented in memory, all of that is abstracted away. We worry about data encoding when storing data structures on disk or when we have to send them over the wire. In fact we have been able to negotiate content encoding over HTTP for decades.
+Commonly programs operate on data structures without consideration of what processor architecture program is run or how data structures are represented in memory, all of that is abstracted away. We worry about data encoding when storing it on disk or sending over the wire. In fact, we have been able to negotiate content encoding over HTTP for decades.
 
-#### Encoding affects identifiers
-
-In IPLD data encoding format affects data identifier, same data in [DAG-JSON] and in [DAG-CBOR] will have different identifiers so data structure like the one show below
+In IPLD data encoding format affects its identifier. For example consider following data structure
 
 ```json
 {
@@ -44,52 +28,58 @@ In IPLD data encoding format affects data identifier, same data in [DAG-JSON] an
 }
 ```
 
-Will be identified as `baguqeeralquuhz37rcfn4ns3fqhqytzsg3otzzwiopefvjl3rdibl5oajj2a` if use [DAG-JSON] encoding, however in [DAG-CBOR] encoding it will be identified as `bafyreigxswzurrj5kprt4d4ew7qar4k6kiuiykgpq4zpefofpaq5qeb4me`. So we do not really identify data by what data is, but rather how it is stored in memory or disk.
+It has a `baguqeeralquuhz37rcfn4ns3fqhqytzsg3otzzwiopefvjl3rdibl5oajj2a` content identifier in [DAG-JSON] encoding, however in [DAG-CBOR] encoding it is identified as `bafyreigxswzurrj5kprt4d4ew7qar4k6kiuiykgpq4zpefofpaq5qeb4me`. We do not really identify data by what data is, but rather identify some byte representation of it.
 
-#### Locality affects identifiers
+This is a problem because if we decide to change encoding all identifiers have to change. If we have data in [DAG-JSON] and someone asks for it in [DAG-CBOR] we won't even know we have it.
 
-Identifiers are also affected by how its pieces had been **external**ized. If in above structure we have chosen to make `message` sub-structure external in [DAG-JSON] it would have a different, `baguqeera7mpc5etnxh7yi4bn7eojrmmbegkfv3czapdcxizyl33f23gszrea` identifier and be represented like shown below:
+### Partitioning Problem
 
-```json
-{
-  message: {
-    "/": "baguqeeragpu2gbzhinp3otc7w5goc5o5afabg4htti3mtxhz7la6npabxtha"
-  }
-}
-```
+IPLD allow externalizing sub-structures through [IPLD Link]s. Unfortunately this also affects data identifier. In previous example if we have externalized `message` field data identifier would have been different, `baguqeera7mpc5etnxh7yi4bn7eojrmmbegkfv3czapdcxizyl33f23gszrea`.
 
-#### Dimensions affecting identifiers
+This is a problem because data partitioned for todays constraints may fail to meet constraints of tomorrow. Depending on use cases may benefit from different partitioning strategy.
 
-As we have established encoding affects data identifier, but also does sub-structure locality. In other words there are multiple dimensions of variability affecting data identifiers. Our last example could also have `baguqeera7mpc5etnxh7yi4bn7eojrmmbegkfv3czapdcxizyl33f23gszrea` identifier if outer structure was in [DAG-CBOR] and `message` was in [DAG-JSON].
+### Sizing Problem
 
-This introduces another level of complexity if store data in [DAG-CBOR] and you are asking me for the same data in [DAG-JSON] I may not even realize I have it. But even if I knew I had requested data and I encoded it in [DAG-JSON] external parts would have to still link to the [DAG-CBOR] identifiers or I would have to traverse whole DAG and re-encode it just to hand requested piece in requested format.
+Externalized sub-structures might be coming from untrusted machines over the network, so there is the risk that time and resources spend may be wasted on getting a data that does not match identifier requested. To mitigate this risk **block size limit** of around 2MiB is imposed, that way time and resources wasted is within reason, and you would not waste hours fetching data to discover that it does not match data identified in the request.
 
-# Goals
+Implication is that produced data must fit the established size limit and producer needs to device some strategy to partition it. This tends to affect the data model, a lot of time and effort goes into optimizing specific read patterns.
+
+Problem in disguise is that data producer must foresee how data will be consumed, which is not only difficult, but practically impossible because future is ofter full of surprises and shifting constraints.
+
+### Problem amplified
+
+As we have established encoding affects data identifier, and so does partitioning. Sizing constraint requires partitioning amplifying it further. There are multiple dimensions of variability that affecting data identifiers. Our example data could also have `baguqeera7mpc5etnxh7yi4bn7eojrmmbegkfv3czapdcxizyl33f23gszrea` identifier if outer structure was in [DAG-CBOR] and `message` was in [DAG-JSON].
+
+This another level of complexity, if we store data in [DAG-CBOR] and you are asking me for it in [DAG-JSON] I may not even realize I have it. But even if I knew I had requested data and I encoded it in [DAG-JSON] links still would be in [DAG-CBOR] or I would have to traverse the whole DAG to re-encode it just to hand requested piece in desired encoding.
+
+## Goals
 
 Now that we have outlined problems, we can enumerate what is desired to improve upon and why:
 
-1. Data structure SHOULD be identified by the same content identifier regardless of how parts its comprised of are stored. It SHOLUD NOT matter if some parts are local and other parts external. This will get us flexibility to choose make choices about which parts to inline vs externalize without affecting data identifier. It will give us flexibility to make different choices based on storage constraints. It will give us flexibility to make different choices during data transfer.
+1. Data structure SHOULD be identified by the same content identifier regardless of how parts its comprised of are stored. It SHOULD NOT matter if some parts are local and other parts external. This will get us flexibility to make choices about which parts to inline vs externalize without affecting data identifier. It will give us flexibility to make different choices based on storage constraints and possibly different choices during data transfer.
 
-1. Data structure SHOULD be identified by the same content identifier regardless of the data encoding. This will give us flexibility to choose encoding based on storage constraint. It will give us ability to negotiate content encoding during data transfer.
+1. Data structure SHOULD be identified by the same content identifier regardless of the data encoding. This will give us flexibility to choose encoding based on storage constraint and ability to negotiate content encoding during data transfer.
 
-# Approach
+## Approach
 
-At the high level merkle structures identify data structures by the root of the [reference tree], which is a binary merkle tree deterministically derived from the data structure itself.
+At the high level we propose to identify data structures by the root of the [reference tree], which is a binary merkle tree deterministically derived from the data structure itself.
 
 ### Data Types
 
-[IPLD data model] offers same data types as pretty much every mainstream programming language. We use same set of data types except for the [`Link`], which introduces outlined issues and a [`Null`], [which is generally a bad idea][billion dollar mistake], they are semantically anemic and alternative modelings are nearly always available, in distributed systems in particular [tombstoning] is more appropriate.
+[IPLD data model] offers same data types as pretty much every mainstream programming language. We use same set of data types except for the [`Link`], which is obsolete given that every piece of data can be canonically identified.
 
-## Reference Tree
+We also leave out [`Null`], [which is generally a bad idea][billion dollar mistake], they are semantically anemic and alternative modelings are nearly always available, in distributed systems in particular [tombstoning] is more appropriate.
 
-Reference tree is a binary [merkle tree] tree deterministically derived from the data structure. It is derived from the data structure according to the following algorithm:
+### Reference Tree
+
+Reference tree is a binary [merkle tree] deterministically derived from the data structure. It is derived according to the following algorithm:
 
 1. [Abstract data format], list of two or more nodes, is derived from the data structure.
-1. First node, an **operator**, denotes relation the rest of nodes, **operands** form. It is kept for the next final step.
+1. First node, an **operator**, denotes relation the rest of nodes, **operands** form. It is kept around for the final step.
 1. Operands are [merkle fold]ed into an **operand** (sub)tree.
 1. **Operator** node and **operand** (sub)tree are [merkle fold]ed into a tree that represents **reference tree** of the data.
 
-## Merkle Fold
+### Merkle Fold
 
 Merkle fold is a process of deriving [BAO] inspired binary [merkle tree] from the list of leaf nodes. Parent nodes in derived tree have exactly two children and the content of each parent node is the hash of its left child concatenated with the hash of its right child. When there's an odd number of nodes in a given level of the tree, the rightmost node is raised to the level above.
 
@@ -125,14 +115,14 @@ graph TB
 _{ }
 ```
 
-## Abstract data format
+### Abstract Data Format
 
 Abstract data format is a list of two or more nodes defined for each data type individually. Each node of the abstract data format is either:
 
-- leaf node represented by a byte array
-- [reference tree]
+- Leaf node represented by a byte array
+- [Reference tree]
 
-### Scalars
+#### Scalars
 
 | Type    | Format                                     |
 |---------|--------------------------------------------|
@@ -142,7 +132,7 @@ Abstract data format is a list of two or more nodes defined for each data type i
 | String  | [UTF-8]                                    |
 | Bytes   | Raw bytes                                  |
 
-### Boolean
+#### Boolean
 
 Booleans is represented as a [merkle fold] two leaf nodes. Left node is the cryptographic hash of the UTF-8 encoded string `merkle-structure:boolean/byte` and describes binary encoding format of the right node. Right node is a byte array containing a single byte either `1` for `true` or `0` for false.
 
@@ -166,7 +156,7 @@ bytes_bl6afhktctiibopldpshfthiitlivdkvox6x4rwqakj5ubhz33gca: 0x00
 bl6afhktctiibopldpshfthiitlivdkvox6x4rwqakj5ubhz33gca --> bytes_bl6afhktctiibopldpshfthiitlivdkvox6x4rwqakj5ubhz33gca
 ```
 
-### String
+#### String
 
 String is represented as a [merkle fold] of pair of leaf nodes. Left node is the cryptographic hash of the UTF-8 encoded string `merkle-structure:string/utf-8` and describes binary encoding format of the right node. Right node is string content encoded in UTF-8 encoding.
 
@@ -181,7 +171,7 @@ bytes_b2ip5bcmbwyfmckglvjbttorkwz4seqyqpyq425g6iyvyf2d6v2tq: 0x68 0x65 0x6C…0x
 b2ip5bcmbwyfmckglvjbttorkwz4seqyqpyq425g6iyvyf2d6v2tq --> bytes_b2ip5bcmbwyfmckglvjbttorkwz4seqyqpyq425g6iyvyf2d6v2tq
 ```
 
-### Integer
+#### Integer
 
 Integer is represented as a [merkle fold] of pair of leaf nodes. Left node is the cryptographic hash of the UTF-8 encoded string `merkle-structure:integer/leb128` and describes binary encoding format of the right node. Right node is [LEB128] encoded integer.
 
@@ -195,7 +185,7 @@ bytes_b4ob7njt6ngtc7723fryqym6uemvyvvfntjwphglwe3ytglbwhx4q: 0xC1 0x0F
 b4ob7njt6ngtc7723fryqym6uemvyvvfntjwphglwe3ytglbwhx4q --> bytes_b4ob7njt6ngtc7723fryqym6uemvyvvfntjwphglwe3ytglbwhx4q
 ```
 
-### Float
+#### Float
 
 Float is represented as a [merkle fold] of pair of leaf nodes. Left node is the cryptographic hash of the UTF-8 encoded string `merkle-structure:float/double-precision` and describes binary encoding format of the right node. Right node is a float encoded in [double-precision floating-point format].
 
@@ -209,7 +199,7 @@ bytes_bmjrgvd75uynefn3hljzkl2lg4xqthymoqolc22qwtxl2crew27fa: 0x9C 0xC4 0x20…0x
 bmjrgvd75uynefn3hljzkl2lg4xqthymoqolc22qwtxl2crew27fa --> bytes_bmjrgvd75uynefn3hljzkl2lg4xqthymoqolc22qwtxl2crew27fa
 ```
 
-### Bytes
+#### Bytes
 
 Bytes is represented as a [merkle fold] of pair of leaf nodes. Left node is the cryptographic hash of the UTF-8 encoded string `merkle-structure:bytes/raw` and describes binary encoding format of the right node. Right node is a byte array of the bytes.
 
@@ -223,7 +213,7 @@ bytes_b65rbugtff54dlisisdpkhlyhznhrzue3ulpe5nxdc5gj7fu3fc5q: 0x01 0x02 0x03 0x04
 b65rbugtff54dlisisdpkhlyhznhrzue3ulpe5nxdc5gj7fu3fc5q --> bytes_b65rbugtff54dlisisdpkhlyhznhrzue3ulpe5nxdc5gj7fu3fc5q
 ```
 
-### List
+#### List
 
 Lists are identified by a root of the binary merkle tree where left node is a hash of the list encoding format identifier and right node is a binary merkle tree built out of the list element identifiers.
 
@@ -258,7 +248,6 @@ bc4ajht5l245lsmtjm4coojywcwsxfuje7spocvk5mnw3snvtdhva_begdjb2jg3dj5rvpu2gcbcapmj
 state unit_begdjb2jg3dj5rvpu2gcbcapmjvviqr2kabdxl6rjnhehqgsbt7uq <<choice>>
 begdjb2jg3dj5rvpu2gcbcapmjvviqr2kabdxl6rjnhehqgsbt7uq --> unit_begdjb2jg3dj5rvpu2gcbcapmjvviqr2kabdxl6rjnhehqgsbt7uq
 ```
-
 
 ```mermaid
 stateDiagram-v2
@@ -304,7 +293,7 @@ bgc7ugo22pthcj2sjujuz2qzx5nxe7u2frqjmydtghi6krlxbn36q: 2
 bxivg3v6ugzpm7bzc6ls47k2vpo3scjb5ckwizek464ruwe54ehiq --> bgc7ugo22pthcj2sjujuz2qzx5nxe7u2frqjmydtghi6krlxbn36q: bgc…n36q
 ```
 
-### Map
+#### Map
 
 Map is represented as a [merkle fold] of pair of nodes. Left node is the cryptographic hash of the UTF-8 encoded string `merkle-structure:map/k+v/ref-tree` and describes format of the right node. Right node is a [merkle fold] of attributes sorted by natural sort, where attribute is a [merkle fold] of the key [reference tree] and value [reference tree].
 
@@ -377,7 +366,6 @@ b4djcedrli3x2zwp32w5ct4ssggonqc5bntazhyl66zs33nhgt2nq --> ba3uvrz66regqimh3ypdk5
 byv7b4vainvdglwtu4uaenazvl73iubt3uehj2k46o7edzr3t3hea: 3
 b4djcedrli3x2zwp32w5ct4ssggonqc5bntazhyl66zs33nhgt2nq --> byv7b4vainvdglwtu4uaenazvl73iubt3uehj2k46o7edzr3t3hea: byv…3hea
 ```
-
 
 ### Inclusion Proofs
 
@@ -501,3 +489,4 @@ Note that most addresses are never stored, or send across the wire. They are sim
 [Merkle tree]:https://en.wikipedia.org/wiki/Merkle_tree
 [CID]:https://docs.ipfs.tech/concepts/content-addressing/
 [IPLD Link]:https://ipld.io/docs/schemas/features/links/
+[`Null`]:https://ipld.io/docs/data-model/kinds/#null-kind
