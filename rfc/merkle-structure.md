@@ -2,7 +2,7 @@
 
 # Abstract
 
-Inter Planetary Linked Data (IPLD) is a fundamental building block of the IPFS. IPLD Links (a.k.a CIDs) are quintessential, yet arguably suffer from a major design flaw (on par with null pointers ?)
+Inter Planetary Linked Data (IPLD) is a fundamental building block of the IPFS. IPLD Links (a.k.a CIDs) are quintessential, yet arguably suffer from a major design flaw.
 
 # Introduction
 
