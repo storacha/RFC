@@ -10,7 +10,7 @@ Inter Planetary Linked Data (IPLD) is a fundamental building block of the IPFS. 
 
 Same data may be encoded differently depending on where it is stored, different yet when it is moved over the wire. It is also likely that encoding choices may evolve over time. Encoding choice affecting a content identifier is a major drawback and counter to goal of addressing content by "what content is".
 
-Identifying data by how it is encoded has various problems and we will call out major ones to illustrate motivation for this proposal. Then we will define goals for the proposed data identifiers and then proceed with the proposal.
+Identifying data by how it is encoded has various problems and we will call out major ones to illustrate motivation for this proposal. Then we will define goals for the proposed data identifiers and proceed with the proposal.
 
 ## Locality Problem
 
