@@ -66,9 +66,7 @@ At the high level we propose to identify data structures by the root of the [ref
 
 ### Data Types
 
-[IPLD data model] offers same data types as pretty much every mainstream programming language. We use same set of data types except for the [`Link`], which is obsolete given that every piece of data can be canonically identified.
-
-We also leave out [`Null`], [which is generally a bad idea][billion dollar mistake], they are semantically anemic and alternative modelings are nearly always available, in distributed systems in particular [tombstoning] is more appropriate.
+[IPLD data model] offers same data types as pretty much every mainstream programming language. We use same set of data types except for the [IPLD Link], which is obsolete since every piece of data can be canonically identified.
 
 ### Reference Tree
 
@@ -126,11 +124,26 @@ Abstract data format is a list of two or more nodes defined for each data type i
 
 | Type    | Format                                     |
 |---------|--------------------------------------------|
-| Boolean | Single byte `0` for `false`, `1 for`true` |
+| Null    | Empty byte array                           |
+| Boolean | Single byte `0` for `false`, `1 for`true`  |
 | Integer | [LEB128]                                   |
 | Float   | [Double-precision floating-point format]   |
 | String  | [UTF-8]                                    |
 | Bytes   | Raw bytes                                  |
+
+#### Null
+
+Null is represented as a [merkle fold] of two leaf nodes. Left node is the cryptographic hash of the UTF-8 encoded string `merkle-structure:null` and describes binary encoding format of the right node. Right node is a byte array containing zero bytes.
+
+```mermaid
+stateDiagram-v2
+bgcw577yqly5wcktxtcseninyl4u3sqwzrlqmdkugxrncr67x3xtq: null
+[*] --> bgcw577yqly5wcktxtcseninyl4u3sqwzrlqmdkugxrncr67x3xtq: bgc…3xtq
+bgcw577yqly5wcktxtcseninyl4u3sqwzrlqmdkugxrncr67x3xtq --> b3emgfhqkq6fxuygqrh4tmfyjwzoimk4acf6i4f7vqcwuw4jopmtq_bgcw577yqly5wcktxtcseninyl4u3sqwzrlqmdkugxrncr67x3xtq  : b3e…pmtq
+b3emgfhqkq6fxuygqrh4tmfyjwzoimk4acf6i4f7vqcwuw4jopmtq_bgcw577yqly5wcktxtcseninyl4u3sqwzrlqmdkugxrncr67x3xtq: merkle-structureːnull
+bytes_bgcw577yqly5wcktxtcseninyl4u3sqwzrlqmdkugxrncr67x3xtq:<br/>
+bgcw577yqly5wcktxtcseninyl4u3sqwzrlqmdkugxrncr67x3xtq --> bytes_bgcw577yqly5wcktxtcseninyl4u3sqwzrlqmdkugxrncr67x3xtq
+```
 
 #### Boolean
 
