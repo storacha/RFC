@@ -44,11 +44,11 @@ In IPLD data encoding format affects data identifier, same data in [DAG-JSON] an
 }
 ```
 
-Will be identified as ${await cid(json.link(inline))} if use [DAG-JSON] encoding, however in [DAG-CBOR] encoding it will be identified as ${await cid(CBOR.link(inline))}. So we do not really identify data by what data is, but rather how it is stored in memory or disk.
+Will be identified as `baguqeeralquuhz37rcfn4ns3fqhqytzsg3otzzwiopefvjl3rdibl5oajj2a` if use [DAG-JSON] encoding, however in [DAG-CBOR] encoding it will be identified as `bafyreigxswzurrj5kprt4d4ew7qar4k6kiuiykgpq4zpefofpaq5qeb4me`. So we do not really identify data by what data is, but rather how it is stored in memory or disk.
 
 #### Locality affects identifiers
 
-Identifiers are also affected by how its pieces had been **external**ized. If in above structure we have chosen to make `message` sub-structure external in [DAG-JSON] it would have a different, ${await cid(json.link({ message: await json.link(message) }))} identifier and be represented like shown below:
+Identifiers are also affected by how its pieces had been **external**ized. If in above structure we have chosen to make `message` sub-structure external in [DAG-JSON] it would have a different, `baguqeera7mpc5etnxh7yi4bn7eojrmmbegkfv3czapdcxizyl33f23gszrea` identifier and be represented like shown below:
 
 ```json
 {
@@ -60,7 +60,7 @@ Identifiers are also affected by how its pieces had been **external**ized. If in
 
 #### Dimensions affecting identifiers
 
-As we have established encoding affects data identifier, but also does sub-structure locality. In other words there are multiple dimensions of variability affecting data identifiers. Our last example could also have  ${await cid(json.link({ message: await json.link(message) }))} identifier if outer structure was in [DAG-CBOR] and `message` was in [DAG-JSON].
+As we have established encoding affects data identifier, but also does sub-structure locality. In other words there are multiple dimensions of variability affecting data identifiers. Our last example could also have `baguqeera7mpc5etnxh7yi4bn7eojrmmbegkfv3czapdcxizyl33f23gszrea` identifier if outer structure was in [DAG-CBOR] and `message` was in [DAG-JSON].
 
 This introduces another level of complexity if store data in [DAG-CBOR] and you are asking me for the same data in [DAG-JSON] I may not even realize I have it. But even if I knew I had requested data and I encoded it in [DAG-JSON] external parts would have to still link to the [DAG-CBOR] identifiers or I would have to traverse whole DAG and re-encode it just to hand requested piece in requested format.
 
@@ -500,3 +500,4 @@ Note that most addresses are never stored, or send across the wire. They are sim
 [tombstoning]:https://en.wikipedia.org/wiki/Tombstone_(data_store)
 [Merkle tree]:https://en.wikipedia.org/wiki/Merkle_tree
 [CID]:https://docs.ipfs.tech/concepts/content-addressing/
+[IPLD Link]:https://ipld.io/docs/schemas/features/links/
