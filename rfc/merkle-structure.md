@@ -1,304 +1,482 @@
+# Merkle References
+
 # Abstract
 
-Inter Planetary Linked Data (IPLD) is a fundamental building block of the IPFS. IPLD Links (a.k.a CIDs) are quintessential, yet I'd argue a major design flaw (on par with null pointers ?)
+Inter Planetary Linked Data (IPLD) is a fundamental building block of the IPFS. IPLD Links (a.k.a CIDs) are quintessential, yet arguably suffer from a major design flaw (on par with null pointers ?)
 
-## Problems
+# Introduction
 
-### Data Locality
+[Content identifiers (CIDs)][CID] claim that identify data not by _where it is stored_, but rather by the _content itself_. In our observation however, it moves addressing from "where content is stored" to "how content is stored" more specifically to how data is formatted / encoded. It is a significant improvement, but not quite as addressing by "what content is".
 
-In most programming languages we build data structures out of primitive data types and more complex structures by nesting them into one another through [reference]s. In languages with managed memory you do not worry about whether you can dereference sub-structure reference in itself is implies access to it. Languages where you do need to worry about dereferencing tend to suffer from [null pointer] problems.
+Same data may be encoded differently depending on where it is stored, different yet when it is moved over the wire. It is also likely that encoding choices may evolve over time. Encoding choice affecting a content identifier is a major drawback and counter to goal of addressing content by "what content is".
 
-Data structures in IPLD suffer from a similar set of problems as languages with
-[null pointer]s. In case of IPLD it is a locality problem. Nested sub-structures can either be **local**, inlined into a parent structure, or **external** linked using an IPLD link. Local references can always be dereferenced, but external references may require read from a disk, or another machine. In worse cases even searching the network to find machine that has it. Possibility of errors is inconvenient, but what's worse is the impact on the data model, imposing constraints of data exchange (block size) which are almost never universal.
+Identifying data by how it is encoded has various problems and we will call out major ones to illustrate motivation for this proposal. Then we will define goals for the proposed data identifiers and then proceed with the proposal.
 
-### Data Addressing
+## Locality Problem
 
-Another side effect of having both local and external references is that it affects data addressing. This is easier explained with an example so let us consider following structure with a nested substructure under name `message`:
+In most programming languages we build data structures out of primitive data types (scalars) and more complex structures by nesting them into one another through [reference]s. In languages with managed memory we do not have to worry about whether sub-structure can be accessed, reference in itself implies access. Languages where we do need to worry about dereferencing tend to suffer from infamous [null pointer] problems.
+
+Data structures in IPLD suffer from similar problem to languages with [null pointer]s. We will refer to it as data "locality problem". Nested sub-structure can either be **local**, inlined in a parent structure, or be **external** referenced through an [IPLD Link]. Local sub-structure can always be dereferenced, external one however may not be in memory space and might require reading from disk, or another machine. In worse cases it may require calling other untrusted machines asking them if they can tell you which machine has it or if they know machine that may know. Possibility for errors is vast, and performance guarantees are intractable it can take a fraction of a microsecond or days to get hold of the data.
+
+## Sizing Problem
+
+**External** sub-structures might be coming from untrusted machines over the network, so there is the risk that time and resources spend may be wasted on getting a data that does not match identifier requested. To mitigate this risk **block size limit** of around 2MiB is imposed, that way time and resources wasted is within reason, and you wont waste hours fetching data to discover after that it does not match data identified in the request.
+
+Implication is that produced data must fit the established size limit so producer needs to device some strategy to **external**ize parts as necessary. This tends to affect the data model, a lot of time and effort goes into how to partition data to make desired read patterns efficient.
+
+Problem in disguise is that data producer must foresee how data will be consumed, which is not only difficult, but practically impossible because future is ofter full of surprises and shifting constraints.
+
+### Encoding Problem
+
+Typically programs operate on data structures without consideration of what processor architecture program is going to run or how those data structures will be represented in memory, all of that is abstracted away. We worry about data encoding when storing data structures on disk or when we have to send them over the wire. In fact we have been able to negotiate content encoding over HTTP for decades.
+
+#### Encoding affects identifiers
+
+In IPLD data encoding format affects data identifier, same data in [DAG-JSON] and in [DAG-CBOR] will have different identifiers so data structure like the one show below
 
 ```json
 {
   "message": {
-    "from": "@gazala",
+    "from": "@gozala",
     "to": "@mikeal",
     "payload": "Hi"
   }
 }
 ```
 
-We could link to the `message` e.g. by creating [DAG-JSON] in which case it will have an address `baguqeeraljex7usivynmla6e6h2ah5otegcrxgcc3kturfknn26j3wf6xsjq` and the outer data structure will have address `baguqeerade2eyspg52ffd26o2obbrhaa6ztrnszcgosutmeblrr7cbrjcpfa`. If `message` is not externalized however, data structure will end up with an address `baguqeerade2eyspg52ffd26o2obbrhaa6ztrnszcgosutmeblrr7cbrjcpfa`.
+Will be identified as ${await cid(json.link(inline))} if use [DAG-JSON] encoding, however in [DAG-CBOR] encoding it will be identified as ${await cid(CBOR.link(inline))}. So we do not really identify data by what data is, but rather how it is stored in memory or disk.
 
-And this is just one dimension of variability, if we were to use [DAG-CBOR] encoding instead we would end up with `bafyreie7pbuqqem5fvmrh4wv4joy737tmgmoo5tn4q7qwocd2a52si2m6m` when `message` is externalized and with `bafyreie7pbuqqem5fvmrh4wv4joy737tmgmoo5tn4q7qwocd2a52si2m6m` otherwise.
+#### Locality affects identifiers
 
-And this is not the end, we could have a case where `message` is in [DAG-JSON] and rest is in [DAG-CBOR] in which case our data will be addressed `bafyreig5bmydxjpbq5j46hqs5cnay7xs4yef2nu4zts4rdmgxjzlsh4ume`.
-
-ℹ️ IPLD shifted question from where content is to how is it encoded. It is better problem to have, but still a problem because how you want to encode it will depend on deployed system and undoubtedly will vary from case to case basis. It is also very likely that choice of encoding will change over time and change in addresses is a major drawback.
-
-## Proposition
-
-Now that we have outlined problems lets enumerate what would we desire instead:
-
-1. Data structure to be addressed by its contents regardless of location, whether some parts are inlined (local) or external. This will give us flexibility to decide which parts to inline vs externalize when storing and decide differently when transferring it.
-2. Data structure to be addressed by its content regardless of the encoding. This will give us flexibility to choose different encoding on disk from encoding on wire. In fact, we gain ability to negotiate content encoding per data exchange.
-
-### Proposed Addressing
-
-IPLD data model offers same data types as pretty much every mainstream programming language. We can discard link type due to issues it introduces. We also drop `null` because it is a bad idea and in most cases custom representation of "absence of value" is better choice.
-
-### Addressing Scalar Data
-
-We address scalars by a cryptographic hash of the corresponding `Tag` byte followed by the binary encoded data in format described by the following table.
-
-> ℹ️ Please note that space efficiency is not goal here, in fact format does not matter at all we just need to pick one to derive hash.
-
-
-| Type           | Tag     | Format                                   |
-|----------------|---------|------------------------------------------|
-| False          | 0       | None                                     |
-| True           | 1       | None                                     |
-| Integer        | 2       | [LEB 128]                                |
-| Float          | 3       | [Double-precision floating-point format] |
-| String         | 4       | [UTF-8]                                  |
-| Bytes          | 5       |  N/A                                     |
-
-#### Addressing Boolean
-
-Booleans do not get binary encoded, we just hash the tag.
-
-| Value   | Address                                                 |
-|---------|---------------------------------------------------------|
-| `true`  | `bjp2relzuivkmko66f25yzuvx4piwacwwghbyljoxztrdy54fiwna` |
-| `false` | `bny2axhh7wn5jrhffittlw6akfr4jahj7wm3tq5ufcgrqmf5puaoq` |
-
-#### Addressing Integer
-
-Integers are encoded in [LEB128] format and tagged with `2`.
-
-| Value   | Address                                                 |
-|---------|---------------------------------------------------------|
-| `0`     | `btg7f564iziqbhpmoj2ydl7kc2usfi2h6tl5hbwf2tqoedgsiytua` |
-| `1`     | `bexp5fhajmf64zgcsfaoagds3ga32gofeoevefiq4sb7slhdeckqa` |
-| `256`   | `bskmgiyoeuaccoji2qimqns7g5u7j7ucfvrpxjnoy56mkkgnrm7yq` |
-| `-1`     | `bwdgoybc53reak7fbnpignhs4rsmjpv5eqrhbsy6cezjnnlwchxqa` |
-| `-513`   | `bc4duwmz7vdcl6yuuai4snpjz2unny35isvumosfsj7skjezblj2a` |
-
-#### Addressing Float
-
-Floats are encoded in [Double-precision floating-point format] and tagged with `3`.
-
-| Value         | Address                                                 |
-|---------------|---------------------------------------------------------|
-| `0.1`         | `bixjlmywz2sik5g4te5m4sefsnonioqdf3zra6swauorduzpeboga` |
-| `1.304`       | `brmzhywazs3x5ynjtnk5icismafpvjyocxttizxihzcgyuieu5qsq` |
-| `-1.17`       | `banjjdbtqjuuesi2zpke2rzbv2yed6xcy6cpptqhyvu3obdrf4zcq` |
-| `0.033333333` | `btkyl6yra4jixuyzj4hafden6xmty7diqf3py6qtgqyym333yiwqa` |
-
-#### Addressing String
-
-Strings are encoded in [UTF-8] and tagged with `4`.
-
-#### Addressing Bytes
-
-Bytes are not encoded, just tagged with `5`.
-
-### Addressing Composite Data
-
-Composite data is constructed out of scalars or other composite data. We can view all composite data as a sequence of element addresses. We can derive perfectly balanced binary tree from sequence elements if we add some empty nodes to make number of leaves `n**2`.
-
-By representing lists and maps as binary merkle trees we gain ability to create inclusion proofs for anything nested within the data structure no matter how deep. All on needs to do is show path from the root to the sibling of the target data.
-
-#### Addressing Lists
-
-Lists addresses are roots of the binary merkle tree assembled from the list element addresses. When number of elements is not `n**2` we count extra blank leaves to roundup to a next power of two.
-
-Blank leaves are addressed by the hash of empty payload `b4oymiquy7qobjgx36tejs35zeqt24qpemsnzgtfeswmrw6csxbkq`
-
-For example a following list
-
-```json
-[1, 2, 3]
-```
-
-We derive a following binary merkle tree
-
-```mermaid
-stateDiagram-v2
-A: 1
-B: 2
-C: 3
-AB: [1, 2]
-
-AB --> A: bexp..ckqa
-AB --> B: bkd..rpkxa
-
-C_: [3]
-C_ --> C: b52..4ozq
-C_ --> [*]: b4o..xbkq
-
-ABC: [1, 2, 3]
-ABC --> AB: b5x..t4rq
-ABC --> C_: bcv..5ke6a
-
-[*] --> ABC: bps..7rza
-```
-
-You may also observe another interesting property of this construction, if we were to derive address for `[1, 2]` and `[3]` those would be `b5x..t4rq` and `bcv..5ke6a` like those branches which implies that you can take addresses for same sized two lists and derive address for their concatenation without having to recompute it all.
-
-> ⚠️ It however also implies that address of `[1, 2, 3]` and `[[1, 2], [3]]` is the same which may not be a good idea. It is fairly trivial to change this behavior by tagging nodes different from lists, but then we'll lose concatenation property.
->
-> Making a right decesion requires some careful deliberation.
-
-#### Addressing Attributes
-
-Attributes represent key value relation and also have addresses that are computed by hashing tag `7` followed by the address of the `key`, followed by the address of the `value`.
-
-For example consider following example:
-
-```json
-"hello": "world"
-```
-
-```mermaid
-stateDiagram-v2
-K: "hello"
-V: "world"
-
-A --> K: bak..65qa
-A --> V: bgy..ou5q
-A: hello=world
-[*] --> A: bql..6hsa
-```
-
-#### Addressing Maps
-
-Map addresses are derived as an address of the sorted list of the map attributes. In other words we first derive attribute addresses, sort those addresses and compute address of that sorted attribute list.
-
-So lets consider our original example
+Identifiers are also affected by how its pieces had been **external**ized. If in above structure we have chosen to make `message` sub-structure external in [DAG-JSON] it would have a different, ${await cid(json.link({ message: await json.link(message) }))} identifier and be represented like shown below:
 
 ```json
 {
-  "message": {
-    "from": "@gazala",
-    "to": "@mikeal",
-    "payload": "Hi"
+  message: {
+    "/": "baguqeeragpu2gbzhinp3otc7w5goc5o5afabg4htti3mtxhz7la6npabxtha"
   }
 }
 ```
 
+#### Dimensions affecting identifiers
+
+As we have established encoding affects data identifier, but also does sub-structure locality. In other words there are multiple dimensions of variability affecting data identifiers. Our last example could also have  ${await cid(json.link({ message: await json.link(message) }))} identifier if outer structure was in [DAG-CBOR] and `message` was in [DAG-JSON].
+
+This introduces another level of complexity if store data in [DAG-CBOR] and you are asking me for the same data in [DAG-JSON] I may not even realize I have it. But even if I knew I had requested data and I encoded it in [DAG-JSON] external parts would have to still link to the [DAG-CBOR] identifiers or I would have to traverse whole DAG and re-encode it just to hand requested piece in requested format.
+
+# Goals
+
+Now that we have outlined problems, we can enumerate what is desired to improve upon and why:
+
+1. Data structure SHOULD be identified by the same content identifier regardless of how parts its comprised of are stored. It SHOLUD NOT matter if some parts are local and other parts external. This will get us flexibility to choose make choices about which parts to inline vs externalize without affecting data identifier. It will give us flexibility to make different choices based on storage constraints. It will give us flexibility to make different choices during data transfer.
+
+1. Data structure SHOULD be identified by the same content identifier regardless of the data encoding. This will give us flexibility to choose encoding based on storage constraint. It will give us ability to negotiate content encoding during data transfer.
+
+# Approach
+
+At the high level merkle structures identify data structures by the root of the [reference tree], which is a binary merkle tree deterministically derived from the data structure itself.
+
+### Data Types
+
+[IPLD data model] offers same data types as pretty much every mainstream programming language. We use same set of data types except for the [`Link`], which introduces outlined issues and a [`Null`], [which is generally a bad idea][billion dollar mistake], they are semantically anemic and alternative modelings are nearly always available, in distributed systems in particular [tombstoning] is more appropriate.
+
+## Reference Tree
+
+Reference tree is a binary [merkle tree] tree deterministically derived from the data structure. It is derived from the data structure according to the following algorithm:
+
+1. [Abstract data format], list of two or more nodes, is derived from the data structure.
+1. First node, an **operator**, denotes relation the rest of nodes, **operands** form. It is kept for the next final step.
+1. Operands are [merkle fold]ed into an **operand** (sub)tree.
+1. **Operator** node and **operand** (sub)tree are [merkle fold]ed into a tree that represents **reference tree** of the data.
+
+## Merkle Fold
+
+Merkle fold is a process of deriving [BAO] inspired binary [merkle tree] from the list of leaf nodes. Parent nodes in derived tree have exactly two children and the content of each parent node is the hash of its left child concatenated with the hash of its right child. When there's an odd number of nodes in a given level of the tree, the rightmost node is raised to the level above.
+
+```mermaid
+graph TB
+parent(root) --> A(leaf)
+parent --> B(leaf)
+
+parent3(root) --> parent2(node)
+parent2 --> a(leaf)
+parent2 --> b(leaf)
+parent3 --> c(leaf)
+
+parent4(root) --> parent5(node)
+parent4 --> parent6(node)
+parent5 --> ch51(leaf)
+parent5 --> ch52(leaf)
+parent6 --> ch61(leaf)
+parent6 --> ch62(leaf)
+```
+
+Merkle fold of a single leaf is a leaf itself
+
+```mermaid
+graph TB
+only(leaf)
+``````
+
+Merkle fold of zero leaves is an empty hash (hash of zero bytes)
+
+```mermaid
+graph TB
+_{ }
+```
+
+## Abstract data format
+
+Abstract data format is a list of two or more nodes defined for each data type individually. Each node of the abstract data format is either:
+
+- leaf node represented by a byte array
+- [reference tree]
+
+### Scalars
+
+| Type    | Format                                     |
+|---------|--------------------------------------------|
+| Boolean | Single byte `0` for `false`, `1 for`true` |
+| Integer | [LEB128]                                   |
+| Float   | [Double-precision floating-point format]   |
+| String  | [UTF-8]                                    |
+| Bytes   | Raw bytes                                  |
+
+### Boolean
+
+Booleans is represented as a [merkle fold] two leaf nodes. Left node is the cryptographic hash of the UTF-8 encoded string `merkle-structure:boolean/byte` and describes binary encoding format of the right node. Right node is a byte array containing a single byte either `1` for `true` or `0` for false.
+
 ```mermaid
 stateDiagram-v2
-[*] --> Root: bec..bv4a
-Root: {message}
-Root --> MSG: bxn..nlxq
-Root --> Root_: b4o..xbkq
-Root_: ⏺
-
-MSG: message={from, to, payload}
-MSG --> MSG_K: byy..wqpa
-MSG --> MSG_V: bnp..xhiq
-MSG_K: message
-MSG_V: {from, to, payload}
-MSG_V --> payload_from: bxj..ae7a
-payload_from: {payload, from}
-
-payload_from --> payload: bak..kesa
-payload_from --> from: bgw..p6gq
-from: from="@gazala"
-to_ --> to: byy..xtcq
-to_: {to}
-to: to="@mikeal"
-MSG_V --> to_: bfy..midq
-
-
-to_ --> _:  b4o..xbkq
-_: ⏺
-payload: payload="Hi"
-
-payload --> payload_k: bqg..oxga
-payload --> payload_v: btz..gqa
-payload_k: payload
-payload_v: "Hi"
-
-from --> from_k: b5v..hraq
-from_k: from
-from --> from_v: bge..bhtq
-from_v: "@gozala"
-
-to --> to_k: bcf..wozla
-to_k: to
-to --> to_v: bmr..ymqq
-to_v: "@mikeal"
+bd5gsrluwlf2unzhgd3jidzhmwclpyohd3ccm7yqqhc4tn6fejmaa: true
+[*] --> bd5gsrluwlf2unzhgd3jidzhmwclpyohd3ccm7yqqhc4tn6fejmaa: bd5…jmaa
+bd5gsrluwlf2unzhgd3jidzhmwclpyohd3ccm7yqqhc4tn6fejmaa --> b3vl45yjmn2x6ggu7n52xfg4zgt4qsiwxzdosjidt2hjuhdyd35oq_bd5gsrluwlf2unzhgd3jidzhmwclpyohd3ccm7yqqhc4tn6fejmaa  : b3v…35oq
+b3vl45yjmn2x6ggu7n52xfg4zgt4qsiwxzdosjidt2hjuhdyd35oq_bd5gsrluwlf2unzhgd3jidzhmwclpyohd3ccm7yqqhc4tn6fejmaa: merkle-structureːboolean/byte
+bytes_bd5gsrluwlf2unzhgd3jidzhmwclpyohd3ccm7yqqhc4tn6fejmaa: 0x01
+bd5gsrluwlf2unzhgd3jidzhmwclpyohd3ccm7yqqhc4tn6fejmaa --> bytes_bd5gsrluwlf2unzhgd3jidzhmwclpyohd3ccm7yqqhc4tn6fejmaa
 ```
+
+```mermaid
+stateDiagram-v2
+bl6afhktctiibopldpshfthiitlivdkvox6x4rwqakj5ubhz33gca: false
+[*] --> bl6afhktctiibopldpshfthiitlivdkvox6x4rwqakj5ubhz33gca: bl6…3gca
+bl6afhktctiibopldpshfthiitlivdkvox6x4rwqakj5ubhz33gca --> b3vl45yjmn2x6ggu7n52xfg4zgt4qsiwxzdosjidt2hjuhdyd35oq_bl6afhktctiibopldpshfthiitlivdkvox6x4rwqakj5ubhz33gca  : b3v…35oq
+b3vl45yjmn2x6ggu7n52xfg4zgt4qsiwxzdosjidt2hjuhdyd35oq_bl6afhktctiibopldpshfthiitlivdkvox6x4rwqakj5ubhz33gca: merkle-structureːboolean/byte
+bytes_bl6afhktctiibopldpshfthiitlivdkvox6x4rwqakj5ubhz33gca: 0x00
+bl6afhktctiibopldpshfthiitlivdkvox6x4rwqakj5ubhz33gca --> bytes_bl6afhktctiibopldpshfthiitlivdkvox6x4rwqakj5ubhz33gca
+```
+
+### String
+
+String is represented as a [merkle fold] of pair of leaf nodes. Left node is the cryptographic hash of the UTF-8 encoded string `merkle-structure:string/utf-8` and describes binary encoding format of the right node. Right node is string content encoded in UTF-8 encoding.
+
+
+```mermaid
+stateDiagram-v2
+b2ip5bcmbwyfmckglvjbttorkwz4seqyqpyq425g6iyvyf2d6v2tq: "hello world"
+[*] --> b2ip5bcmbwyfmckglvjbttorkwz4seqyqpyq425g6iyvyf2d6v2tq: b2i…v2tq
+b2ip5bcmbwyfmckglvjbttorkwz4seqyqpyq425g6iyvyf2d6v2tq --> bpedmjxitfak5zao5jiabw4ngew6bi3mv4y2fh5li2tdaisujt2ma_b2ip5bcmbwyfmckglvjbttorkwz4seqyqpyq425g6iyvyf2d6v2tq  : bpe…t2ma
+bpedmjxitfak5zao5jiabw4ngew6bi3mv4y2fh5li2tdaisujt2ma_b2ip5bcmbwyfmckglvjbttorkwz4seqyqpyq425g6iyvyf2d6v2tq: merkle-structureːstring/utf-8
+bytes_b2ip5bcmbwyfmckglvjbttorkwz4seqyqpyq425g6iyvyf2d6v2tq: 0x68 0x65 0x6C…0x72 0x6C 0x64
+b2ip5bcmbwyfmckglvjbttorkwz4seqyqpyq425g6iyvyf2d6v2tq --> bytes_b2ip5bcmbwyfmckglvjbttorkwz4seqyqpyq425g6iyvyf2d6v2tq
+```
+
+### Integer
+
+Integer is represented as a [merkle fold] of pair of leaf nodes. Left node is the cryptographic hash of the UTF-8 encoded string `merkle-structure:integer/leb128` and describes binary encoding format of the right node. Right node is [LEB128] encoded integer.
+
+```mermaid
+stateDiagram-v2
+b4ob7njt6ngtc7723fryqym6uemvyvvfntjwphglwe3ytglbwhx4q: 1985
+[*] --> b4ob7njt6ngtc7723fryqym6uemvyvvfntjwphglwe3ytglbwhx4q: b4o…hx4q
+b4ob7njt6ngtc7723fryqym6uemvyvvfntjwphglwe3ytglbwhx4q --> b3txd3gwyvlgf7oqtiijwjatz5rq2vlcznuqmsz6nmhq7skt262yq_b4ob7njt6ngtc7723fryqym6uemvyvvfntjwphglwe3ytglbwhx4q  : b3t…62yq
+b3txd3gwyvlgf7oqtiijwjatz5rq2vlcznuqmsz6nmhq7skt262yq_b4ob7njt6ngtc7723fryqym6uemvyvvfntjwphglwe3ytglbwhx4q: merkle-structureːinteger/leb128
+bytes_b4ob7njt6ngtc7723fryqym6uemvyvvfntjwphglwe3ytglbwhx4q: 0xC1 0x0F
+b4ob7njt6ngtc7723fryqym6uemvyvvfntjwphglwe3ytglbwhx4q --> bytes_b4ob7njt6ngtc7723fryqym6uemvyvvfntjwphglwe3ytglbwhx4q
+```
+
+### Float
+
+Float is represented as a [merkle fold] of pair of leaf nodes. Left node is the cryptographic hash of the UTF-8 encoded string `merkle-structure:float/double-precision` and describes binary encoding format of the right node. Right node is a float encoded in [double-precision floating-point format].
+
+```mermaid
+stateDiagram-v2
+bmjrgvd75uynefn3hljzkl2lg4xqthymoqolc22qwtxl2crew27fa: 18.033
+[*] --> bmjrgvd75uynefn3hljzkl2lg4xqthymoqolc22qwtxl2crew27fa: bmj…27fa
+bmjrgvd75uynefn3hljzkl2lg4xqthymoqolc22qwtxl2crew27fa --> b46btqxqak3bstb7pmf2kkbl2ht6zat2xub5lovb4oavki4uysd2q_bmjrgvd75uynefn3hljzkl2lg4xqthymoqolc22qwtxl2crew27fa  : b46…sd2q
+b46btqxqak3bstb7pmf2kkbl2ht6zat2xub5lovb4oavki4uysd2q_bmjrgvd75uynefn3hljzkl2lg4xqthymoqolc22qwtxl2crew27fa: merkle-structureːfloat/double-precision
+bytes_bmjrgvd75uynefn3hljzkl2lg4xqthymoqolc22qwtxl2crew27fa: 0x9C 0xC4 0x20…0x08 0x32 0x40
+bmjrgvd75uynefn3hljzkl2lg4xqthymoqolc22qwtxl2crew27fa --> bytes_bmjrgvd75uynefn3hljzkl2lg4xqthymoqolc22qwtxl2crew27fa
+```
+
+### Bytes
+
+Bytes is represented as a [merkle fold] of pair of leaf nodes. Left node is the cryptographic hash of the UTF-8 encoded string `merkle-structure:bytes/raw` and describes binary encoding format of the right node. Right node is a byte array of the bytes.
+
+```mermaid
+stateDiagram-v2
+b65rbugtff54dlisisdpkhlyhznhrzue3ulpe5nxdc5gj7fu3fc5q: 0x01 0x02 0x03 0x04
+[*] --> b65rbugtff54dlisisdpkhlyhznhrzue3ulpe5nxdc5gj7fu3fc5q: b65…fc5q
+b65rbugtff54dlisisdpkhlyhznhrzue3ulpe5nxdc5gj7fu3fc5q --> bswtrjg6daexjgv3ubromjfq5kthk4ucph6dwulbotajlz5fdw6rq_b65rbugtff54dlisisdpkhlyhznhrzue3ulpe5nxdc5gj7fu3fc5q  : bsw…w6rq
+bswtrjg6daexjgv3ubromjfq5kthk4ucph6dwulbotajlz5fdw6rq_b65rbugtff54dlisisdpkhlyhznhrzue3ulpe5nxdc5gj7fu3fc5q: merkle-structureːbytes/raw
+bytes_b65rbugtff54dlisisdpkhlyhznhrzue3ulpe5nxdc5gj7fu3fc5q: 0x01 0x02 0x03 0x04
+b65rbugtff54dlisisdpkhlyhznhrzue3ulpe5nxdc5gj7fu3fc5q --> bytes_b65rbugtff54dlisisdpkhlyhznhrzue3ulpe5nxdc5gj7fu3fc5q
+```
+
+### List
+
+Lists are identified by a root of the binary merkle tree where left node is a hash of the list encoding format identifier and right node is a binary merkle tree built out of the list element identifiers.
+
+List is represented as a [merkle fold] of pair of nodes. Left node is the cryptographic hash of the UTF-8 encoded string `merkle-structure:list/item/ref-tree` and describes format of the right node. Right node is a [merkle fold] of [reference tree]s derived from the list elements.
+
+```mermaid
+stateDiagram-v2
+bwwooaxibglmzjgenm4fgrbcbu7tcorrm4epsn6m2imvxhqaauupa: [1, 2, 3]
+[*] --> bwwooaxibglmzjgenm4fgrbcbu7tcorrm4epsn6m2imvxhqaauupa: bww…uupa
+bwwooaxibglmzjgenm4fgrbcbu7tcorrm4epsn6m2imvxhqaauupa --> bc4ajht5l245lsmtjm4coojywcwsxfuje7spocvk5mnw3snvtdhva_bwwooaxibglmzjgenm4fgrbcbu7tcorrm4epsn6m2imvxhqaauupa: bc4…dhva
+bc4ajht5l245lsmtjm4coojywcwsxfuje7spocvk5mnw3snvtdhva_bwwooaxibglmzjgenm4fgrbcbu7tcorrm4epsn6m2imvxhqaauupa: merkle-structureːlist/item/ref-tree
+bwwooaxibglmzjgenm4fgrbcbu7tcorrm4epsn6m2imvxhqaauupa --> b64km4bdakn5zq5x5btlfnia6ve2qmdf4vym4yrhs7gmq3alkiqvq: b64…iqvq
+b64km4bdakn5zq5x5btlfnia6ve2qmdf4vym4yrhs7gmq3alkiqvq: (1, 2, 3)
+b64km4bdakn5zq5x5btlfnia6ve2qmdf4vym4yrhs7gmq3alkiqvq --> bfpdjqzf5ggayajbovvqfzz4yob5kesh7vqwmsjgegfhwp7uwqy3a: bfp…qy3a
+bfpdjqzf5ggayajbovvqfzz4yob5kesh7vqwmsjgegfhwp7uwqy3a: (1, 2)
+bltgczabyrmquahj4bkddzkonss6d4kxgjr7sydtpcupvw7dgtfta: 1
+bfpdjqzf5ggayajbovvqfzz4yob5kesh7vqwmsjgegfhwp7uwqy3a --> bltgczabyrmquahj4bkddzkonss6d4kxgjr7sydtpcupvw7dgtfta: blt…tfta
+bgc7ugo22pthcj2sjujuz2qzx5nxe7u2frqjmydtghi6krlxbn36q: 2
+bfpdjqzf5ggayajbovvqfzz4yob5kesh7vqwmsjgegfhwp7uwqy3a --> bgc7ugo22pthcj2sjujuz2qzx5nxe7u2frqjmydtghi6krlxbn36q: bgc…n36q
+byv7b4vainvdglwtu4uaenazvl73iubt3uehj2k46o7edzr3t3hea: 3
+b64km4bdakn5zq5x5btlfnia6ve2qmdf4vym4yrhs7gmq3alkiqvq --> byv7b4vainvdglwtu4uaenazvl73iubt3uehj2k46o7edzr3t3hea: byv…3hea
+```
+
+Right node of the empty list is [merkle-fold] of zero elements
+
+```mermaid
+stateDiagram-v2
+begdjb2jg3dj5rvpu2gcbcapmjvviqr2kabdxl6rjnhehqgsbt7uq: []
+[*] --> begdjb2jg3dj5rvpu2gcbcapmjvviqr2kabdxl6rjnhehqgsbt7uq: beg…t7uq
+begdjb2jg3dj5rvpu2gcbcapmjvviqr2kabdxl6rjnhehqgsbt7uq --> bc4ajht5l245lsmtjm4coojywcwsxfuje7spocvk5mnw3snvtdhva_begdjb2jg3dj5rvpu2gcbcapmjvviqr2kabdxl6rjnhehqgsbt7uq: bc4…dhva
+bc4ajht5l245lsmtjm4coojywcwsxfuje7spocvk5mnw3snvtdhva_begdjb2jg3dj5rvpu2gcbcapmjvviqr2kabdxl6rjnhehqgsbt7uq: merkle-structureːlist/item/ref-tree
+state unit_begdjb2jg3dj5rvpu2gcbcapmjvviqr2kabdxl6rjnhehqgsbt7uq <<choice>>
+begdjb2jg3dj5rvpu2gcbcapmjvviqr2kabdxl6rjnhehqgsbt7uq --> unit_begdjb2jg3dj5rvpu2gcbcapmjvviqr2kabdxl6rjnhehqgsbt7uq
+```
+
+
+```mermaid
+stateDiagram-v2
+bnxhvhxestniwdvllxh5cbvjphldncqmv7f7kmnsbzqjgnfel7ozq: [hi]
+[*] --> bnxhvhxestniwdvllxh5cbvjphldncqmv7f7kmnsbzqjgnfel7ozq: bnx…7ozq
+bnxhvhxestniwdvllxh5cbvjphldncqmv7f7kmnsbzqjgnfel7ozq --> bc4ajht5l245lsmtjm4coojywcwsxfuje7spocvk5mnw3snvtdhva_bnxhvhxestniwdvllxh5cbvjphldncqmv7f7kmnsbzqjgnfel7ozq: bc4…dhva
+bc4ajht5l245lsmtjm4coojywcwsxfuje7spocvk5mnw3snvtdhva_bnxhvhxestniwdvllxh5cbvjphldncqmv7f7kmnsbzqjgnfel7ozq: merkle-structureːlist/item/ref-tree
+bkvgjhk3q5m7eoi7nbdw6gmhnws23vyk2hjtvbhikpppza5zttreq: "hi"
+bnxhvhxestniwdvllxh5cbvjphldncqmv7f7kmnsbzqjgnfel7ozq --> bkvgjhk3q5m7eoi7nbdw6gmhnws23vyk2hjtvbhikpppza5zttreq: bkv…treq
+```
+
+```mermaid
+stateDiagram-v2
+bmnlrm2y57d5fgil7vyts2nzpghdfogmbi5bh4uc7dbafpgztpcqa: [Point, [x, 1], [y, 2]]
+[*] --> bmnlrm2y57d5fgil7vyts2nzpghdfogmbi5bh4uc7dbafpgztpcqa: bmn…pcqa
+bmnlrm2y57d5fgil7vyts2nzpghdfogmbi5bh4uc7dbafpgztpcqa --> bc4ajht5l245lsmtjm4coojywcwsxfuje7spocvk5mnw3snvtdhva_bmnlrm2y57d5fgil7vyts2nzpghdfogmbi5bh4uc7dbafpgztpcqa: bc4…dhva
+bc4ajht5l245lsmtjm4coojywcwsxfuje7spocvk5mnw3snvtdhva_bmnlrm2y57d5fgil7vyts2nzpghdfogmbi5bh4uc7dbafpgztpcqa: merkle-structureːlist/item/ref-tree
+bmnlrm2y57d5fgil7vyts2nzpghdfogmbi5bh4uc7dbafpgztpcqa --> b7hgpaf5ivrsqunsl57rotkyvpyj7d3f62h6j4wchdv4ykvpbgita: b7h…gita
+b7hgpaf5ivrsqunsl57rotkyvpyj7d3f62h6j4wchdv4ykvpbgita: (Point, [x, 1], [y, 2])
+b7hgpaf5ivrsqunsl57rotkyvpyj7d3f62h6j4wchdv4ykvpbgita --> bwjfnqzuno7uainfl4tzzi2mq2ejzyqf4h3o7knrbmmlhea5luwaa: bwj…uwaa
+bwjfnqzuno7uainfl4tzzi2mq2ejzyqf4h3o7knrbmmlhea5luwaa: (Point, [x, 1])
+baqopfzcuxg7c6w7yymk5te2e3f7rjltub6njicwzvelcxeglfo2a: "Point"
+bwjfnqzuno7uainfl4tzzi2mq2ejzyqf4h3o7knrbmmlhea5luwaa --> baqopfzcuxg7c6w7yymk5te2e3f7rjltub6njicwzvelcxeglfo2a: baq…fo2a
+b6kvwbhxcgdiwps2cy54qa3e25tdh6yloydu757wpybv4fi2a3dfa: [x, 1]
+bwjfnqzuno7uainfl4tzzi2mq2ejzyqf4h3o7knrbmmlhea5luwaa --> b6kvwbhxcgdiwps2cy54qa3e25tdh6yloydu757wpybv4fi2a3dfa: b6k…3dfa
+b6kvwbhxcgdiwps2cy54qa3e25tdh6yloydu757wpybv4fi2a3dfa --> bc4ajht5l245lsmtjm4coojywcwsxfuje7spocvk5mnw3snvtdhva_b6kvwbhxcgdiwps2cy54qa3e25tdh6yloydu757wpybv4fi2a3dfa: bc4…dhva
+bc4ajht5l245lsmtjm4coojywcwsxfuje7spocvk5mnw3snvtdhva_b6kvwbhxcgdiwps2cy54qa3e25tdh6yloydu757wpybv4fi2a3dfa: merkle-structureːlist/item/ref-tree
+b6kvwbhxcgdiwps2cy54qa3e25tdh6yloydu757wpybv4fi2a3dfa --> b5pfvoepwo575ppdq54utkmqhfmbdfwa6mmzx2luvbqszhlhxwpyq: b5p…wpyq
+b5pfvoepwo575ppdq54utkmqhfmbdfwa6mmzx2luvbqszhlhxwpyq: (x, 1)
+blhessiutlddrl7zivzhecgnnjehezvhxghlp3w24rnhfwptr62wa: "x"
+b5pfvoepwo575ppdq54utkmqhfmbdfwa6mmzx2luvbqszhlhxwpyq --> blhessiutlddrl7zivzhecgnnjehezvhxghlp3w24rnhfwptr62wa: blh…62wa
+bltgczabyrmquahj4bkddzkonss6d4kxgjr7sydtpcupvw7dgtfta: 1
+b5pfvoepwo575ppdq54utkmqhfmbdfwa6mmzx2luvbqszhlhxwpyq --> bltgczabyrmquahj4bkddzkonss6d4kxgjr7sydtpcupvw7dgtfta: blt…tfta
+beukqisxts7ujqex2pezbsedqu3ps7upqtjjq6jkcjt6o4aa5llua: [y, 2]
+b7hgpaf5ivrsqunsl57rotkyvpyj7d3f62h6j4wchdv4ykvpbgita --> beukqisxts7ujqex2pezbsedqu3ps7upqtjjq6jkcjt6o4aa5llua: beu…llua
+beukqisxts7ujqex2pezbsedqu3ps7upqtjjq6jkcjt6o4aa5llua --> bc4ajht5l245lsmtjm4coojywcwsxfuje7spocvk5mnw3snvtdhva_beukqisxts7ujqex2pezbsedqu3ps7upqtjjq6jkcjt6o4aa5llua: bc4…dhva
+bc4ajht5l245lsmtjm4coojywcwsxfuje7spocvk5mnw3snvtdhva_beukqisxts7ujqex2pezbsedqu3ps7upqtjjq6jkcjt6o4aa5llua: merkle-structureːlist/item/ref-tree
+beukqisxts7ujqex2pezbsedqu3ps7upqtjjq6jkcjt6o4aa5llua --> bxivg3v6ugzpm7bzc6ls47k2vpo3scjb5ckwizek464ruwe54ehiq: bxi…ehiq
+bxivg3v6ugzpm7bzc6ls47k2vpo3scjb5ckwizek464ruwe54ehiq: (y, 2)
+ba3uvrz66regqimh3ypdk5oagsriotfm4crg7z462kpcksaz3mk3q: "y"
+bxivg3v6ugzpm7bzc6ls47k2vpo3scjb5ckwizek464ruwe54ehiq --> ba3uvrz66regqimh3ypdk5oagsriotfm4crg7z462kpcksaz3mk3q: ba3…mk3q
+bgc7ugo22pthcj2sjujuz2qzx5nxe7u2frqjmydtghi6krlxbn36q: 2
+bxivg3v6ugzpm7bzc6ls47k2vpo3scjb5ckwizek464ruwe54ehiq --> bgc7ugo22pthcj2sjujuz2qzx5nxe7u2frqjmydtghi6krlxbn36q: bgc…n36q
+```
+
+### Map
+
+Map is represented as a [merkle fold] of pair of nodes. Left node is the cryptographic hash of the UTF-8 encoded string `merkle-structure:map/k+v/ref-tree` and describes format of the right node. Right node is a [merkle fold] of attributes sorted by natural sort, where attribute is a [merkle fold] of the key [reference tree] and value [reference tree].
+
+```mermaid
+stateDiagram-v2
+bh36wnfqmtfpzeuzjbbzgzwad2o5k24g2h45tdnzwlmu5g2zv6r5q: {message}
+[*] --> bh36wnfqmtfpzeuzjbbzgzwad2o5k24g2h45tdnzwlmu5g2zv6r5q: bh3…6r5q
+bh36wnfqmtfpzeuzjbbzgzwad2o5k24g2h45tdnzwlmu5g2zv6r5q --> bctsusf43mtwpk26fdbuezqrxqkqfccqsojfxiop3lk33a63zr5la_bh36wnfqmtfpzeuzjbbzgzwad2o5k24g2h45tdnzwlmu5g2zv6r5q: bct…r5la
+bctsusf43mtwpk26fdbuezqrxqkqfccqsojfxiop3lk33a63zr5la_bh36wnfqmtfpzeuzjbbzgzwad2o5k24g2h45tdnzwlmu5g2zv6r5q: merkle-structureːmap/k+v/ref-tree
+brtcu4tzavuqsg2225b3wljixstrc3ncwsv7fj2ugl6h7ru5upk3a: message → {from, payload, to}
+bh36wnfqmtfpzeuzjbbzgzwad2o5k24g2h45tdnzwlmu5g2zv6r5q --> brtcu4tzavuqsg2225b3wljixstrc3ncwsv7fj2ugl6h7ru5upk3a: brt…pk3a
+bfg2vsqxqsezfri672vr7rmapx4kxuliqvqsu6tadximgiiowbjtq: "message"
+brtcu4tzavuqsg2225b3wljixstrc3ncwsv7fj2ugl6h7ru5upk3a --> bfg2vsqxqsezfri672vr7rmapx4kxuliqvqsu6tadximgiiowbjtq: bfg…bjtq
+bqlqke2x7vzuyfnmrz76bvbjystdytqjt5qa5nk7vhanz2tgd6qta: {from, payload, to}
+brtcu4tzavuqsg2225b3wljixstrc3ncwsv7fj2ugl6h7ru5upk3a --> bqlqke2x7vzuyfnmrz76bvbjystdytqjt5qa5nk7vhanz2tgd6qta: bql…6qta
+bqlqke2x7vzuyfnmrz76bvbjystdytqjt5qa5nk7vhanz2tgd6qta --> bctsusf43mtwpk26fdbuezqrxqkqfccqsojfxiop3lk33a63zr5la_bqlqke2x7vzuyfnmrz76bvbjystdytqjt5qa5nk7vhanz2tgd6qta: bct…r5la
+bctsusf43mtwpk26fdbuezqrxqkqfccqsojfxiop3lk33a63zr5la_bqlqke2x7vzuyfnmrz76bvbjystdytqjt5qa5nk7vhanz2tgd6qta: merkle-structureːmap/k+v/ref-tree
+bqlqke2x7vzuyfnmrz76bvbjystdytqjt5qa5nk7vhanz2tgd6qta --> bnwwigko5rok3gdvfoutercs5odwjg7fowmctmg2mzvj4ys6hae2q: bnw…ae2q
+bnwwigko5rok3gdvfoutercs5odwjg7fowmctmg2mzvj4ys6hae2q: (from, payload, to)
+bnwwigko5rok3gdvfoutercs5odwjg7fowmctmg2mzvj4ys6hae2q --> b7333nh7pbgoqqgiwhjhfi5awdarndrie7yqc3bvpgpeam6cpwb5a: b73…wb5a
+b7333nh7pbgoqqgiwhjhfi5awdarndrie7yqc3bvpgpeam6cpwb5a: (from, payload)
+bschspxtqysrtju3vjos2qyjksx5btg7i5b3qtpykk6rdoqqijolq: from → "gozala"
+b7333nh7pbgoqqgiwhjhfi5awdarndrie7yqc3bvpgpeam6cpwb5a --> bschspxtqysrtju3vjos2qyjksx5btg7i5b3qtpykk6rdoqqijolq: bsc…jolq
+b4favdqvcabhqzapq7u342wdjiomsjkigrtwrz3kx2al5ir7rpmpa: "from"
+bschspxtqysrtju3vjos2qyjksx5btg7i5b3qtpykk6rdoqqijolq --> b4favdqvcabhqzapq7u342wdjiomsjkigrtwrz3kx2al5ir7rpmpa: b4f…pmpa
+b2pxmqhmw744blm6cjllkcc6pc34o4ei2k5g3k6k332k2rtrxafmq: "gozala"
+bschspxtqysrtju3vjos2qyjksx5btg7i5b3qtpykk6rdoqqijolq --> b2pxmqhmw744blm6cjllkcc6pc34o4ei2k5g3k6k332k2rtrxafmq: b2p…afmq
+b2w2bpvpvugjoflsgyqoq3e46pbd4ubqdtesujy2febabpvjeaqza: payload → "hi"
+b7333nh7pbgoqqgiwhjhfi5awdarndrie7yqc3bvpgpeam6cpwb5a --> b2w2bpvpvugjoflsgyqoq3e46pbd4ubqdtesujy2febabpvjeaqza: b2w…aqza
+byidymun6ikangmxhzxcafpq3xxwpkiawfnwobrx6qmjbalwumf6q: "payload"
+b2w2bpvpvugjoflsgyqoq3e46pbd4ubqdtesujy2febabpvjeaqza --> byidymun6ikangmxhzxcafpq3xxwpkiawfnwobrx6qmjbalwumf6q: byi…mf6q
+bkvgjhk3q5m7eoi7nbdw6gmhnws23vyk2hjtvbhikpppza5zttreq: "hi"
+b2w2bpvpvugjoflsgyqoq3e46pbd4ubqdtesujy2febabpvjeaqza --> bkvgjhk3q5m7eoi7nbdw6gmhnws23vyk2hjtvbhikpppza5zttreq: bkv…treq
+b5raywmp6ufhuu3voy24na7fwghxpgkzjpigme7gdj56ikpwvt5cq: to → "mikeal"
+bnwwigko5rok3gdvfoutercs5odwjg7fowmctmg2mzvj4ys6hae2q --> b5raywmp6ufhuu3voy24na7fwghxpgkzjpigme7gdj56ikpwvt5cq: b5r…t5cq
+b3l37snttnejelpinu5yf665h6gipstmwnz724cwbjilfm7lxbfrq: "to"
+b5raywmp6ufhuu3voy24na7fwghxpgkzjpigme7gdj56ikpwvt5cq --> b3l37snttnejelpinu5yf665h6gipstmwnz724cwbjilfm7lxbfrq: b3l…bfrq
+bdvjuzbamcoxuvnws2p2xpk6t6f5n55urxin26oa5akiakxsu7eda: "mikeal"
+b5raywmp6ufhuu3voy24na7fwghxpgkzjpigme7gdj56ikpwvt5cq --> bdvjuzbamcoxuvnws2p2xpk6t6f5n55urxin26oa5akiakxsu7eda: bdv…7eda
+```
+
+Note that maps keys can also be arbitrary data structures
+
+```mermaid
+stateDiagram-v2
+bxth63v735fyz67w6id63udsjv35ye6rdzbea7k4hmlj5yrcojvbq: {{x}}
+[*] --> bxth63v735fyz67w6id63udsjv35ye6rdzbea7k4hmlj5yrcojvbq: bxt…jvbq
+bxth63v735fyz67w6id63udsjv35ye6rdzbea7k4hmlj5yrcojvbq --> bctsusf43mtwpk26fdbuezqrxqkqfccqsojfxiop3lk33a63zr5la_bxth63v735fyz67w6id63udsjv35ye6rdzbea7k4hmlj5yrcojvbq: bct…r5la
+bctsusf43mtwpk26fdbuezqrxqkqfccqsojfxiop3lk33a63zr5la_bxth63v735fyz67w6id63udsjv35ye6rdzbea7k4hmlj5yrcojvbq: merkle-structureːmap/k+v/ref-tree
+bxztyn6j5zmwunmyvbhjwllt7k3lx2zfyy7wwr5lfuz72xby4ca6a: {x} → {y}
+bxth63v735fyz67w6id63udsjv35ye6rdzbea7k4hmlj5yrcojvbq --> bxztyn6j5zmwunmyvbhjwllt7k3lx2zfyy7wwr5lfuz72xby4ca6a: bxz…ca6a
+bkju7hsnqretr3ofms7vxaa27hxvfui2m3cqi3wckazneaizwfkiq: {x}
+bxztyn6j5zmwunmyvbhjwllt7k3lx2zfyy7wwr5lfuz72xby4ca6a --> bkju7hsnqretr3ofms7vxaa27hxvfui2m3cqi3wckazneaizwfkiq: bkj…fkiq
+bkju7hsnqretr3ofms7vxaa27hxvfui2m3cqi3wckazneaizwfkiq --> bctsusf43mtwpk26fdbuezqrxqkqfccqsojfxiop3lk33a63zr5la_bkju7hsnqretr3ofms7vxaa27hxvfui2m3cqi3wckazneaizwfkiq: bct…r5la
+bctsusf43mtwpk26fdbuezqrxqkqfccqsojfxiop3lk33a63zr5la_bkju7hsnqretr3ofms7vxaa27hxvfui2m3cqi3wckazneaizwfkiq: merkle-structureːmap/k+v/ref-tree
+b4jvkz7x22jzroshmht5v7tfxrysswxjmqounovinczotmkzz3lhq: x → 2
+bkju7hsnqretr3ofms7vxaa27hxvfui2m3cqi3wckazneaizwfkiq --> b4jvkz7x22jzroshmht5v7tfxrysswxjmqounovinczotmkzz3lhq: b4j…3lhq
+blhessiutlddrl7zivzhecgnnjehezvhxghlp3w24rnhfwptr62wa: "x"
+b4jvkz7x22jzroshmht5v7tfxrysswxjmqounovinczotmkzz3lhq --> blhessiutlddrl7zivzhecgnnjehezvhxghlp3w24rnhfwptr62wa: blh…62wa
+bgc7ugo22pthcj2sjujuz2qzx5nxe7u2frqjmydtghi6krlxbn36q: 2
+b4jvkz7x22jzroshmht5v7tfxrysswxjmqounovinczotmkzz3lhq --> bgc7ugo22pthcj2sjujuz2qzx5nxe7u2frqjmydtghi6krlxbn36q: bgc…n36q
+byrk22kgqpixi76zeb2bemnul7i7vxbix6u6pe7v4k2kupbu4syra: {y}
+bxztyn6j5zmwunmyvbhjwllt7k3lx2zfyy7wwr5lfuz72xby4ca6a --> byrk22kgqpixi76zeb2bemnul7i7vxbix6u6pe7v4k2kupbu4syra: byr…syra
+byrk22kgqpixi76zeb2bemnul7i7vxbix6u6pe7v4k2kupbu4syra --> bctsusf43mtwpk26fdbuezqrxqkqfccqsojfxiop3lk33a63zr5la_byrk22kgqpixi76zeb2bemnul7i7vxbix6u6pe7v4k2kupbu4syra: bct…r5la
+bctsusf43mtwpk26fdbuezqrxqkqfccqsojfxiop3lk33a63zr5la_byrk22kgqpixi76zeb2bemnul7i7vxbix6u6pe7v4k2kupbu4syra: merkle-structureːmap/k+v/ref-tree
+b4djcedrli3x2zwp32w5ct4ssggonqc5bntazhyl66zs33nhgt2nq: y → 3
+byrk22kgqpixi76zeb2bemnul7i7vxbix6u6pe7v4k2kupbu4syra --> b4djcedrli3x2zwp32w5ct4ssggonqc5bntazhyl66zs33nhgt2nq: b4d…t2nq
+ba3uvrz66regqimh3ypdk5oagsriotfm4crg7z462kpcksaz3mk3q: "y"
+b4djcedrli3x2zwp32w5ct4ssggonqc5bntazhyl66zs33nhgt2nq --> ba3uvrz66regqimh3ypdk5oagsriotfm4crg7z462kpcksaz3mk3q: ba3…mk3q
+byv7b4vainvdglwtu4uaenazvl73iubt3uehj2k46o7edzr3t3hea: 3
+b4djcedrli3x2zwp32w5ct4ssggonqc5bntazhyl66zs33nhgt2nq --> byv7b4vainvdglwtu4uaenazvl73iubt3uehj2k46o7edzr3t3hea: byv…3hea
+```
+
 
 ### Inclusion Proofs
 
 In the example above if we want to proove that our structure `bec..bv4a` contains string `"Hi"` we share the addresses of the siblings leading to the root. In the illustration below hashes for blue nodes constitute the proof, if we combine green node and sibling from the proof we can derive pink node and so on reaching the root.
 
 ```mermaid
-stateDiagram-v2
+graph TD
+
+_((" ")) -- "bh3…6r5q" --> object
+object["{message}"]
+
+object -- "bct…r5la" --> obj_tag(merkle-structureːmap/k+v/ref-tree)
+object -- "brt…pk3a" --> message("message → {from, payload, to}")
+message -- "bfg…bjtq" --> key("'message'")
+message -- "bql…6qta" --> val("{from, payload, to}")
+val -- "bct…r5la" --> val_tag("merkle-structureːmap/k+v/ref-tree")
+val -- "bnw…ae2q" --> val_fold("(from, payload, to)")
+val_fold -- "b73…wb5a" --> left("(from, payload)")
+left -- "bsc…jolq" --> from("from → 'gozala'")
+left -- "b2w…aqza" --> payload("payload → 'hi'")
+
+from -- "b4f…pmpa" --> from_k("'from'")
+from -- "b2p…afmq" --> from_v("'gozala'")
+
+payload -- "byi…mf6q" --> payload_k("'payload'")
+payload -- "bkv…treq" --> payload_v("'hi'")
+
+val_fold -- "b5r…t5cq" --> to("to → 'mikeal'")
+to -- "b3l…bfrq" --> to_k("'to'")
+to -- "bdv…7eda" --> to_v("'mikea'")
+
+payload_v:::subject
+payload:::derive
+left:::derive
+val_fold:::derive
+val:::derive
+message:::derive
+object:::subject
+payload_k:::proof
+from:::proof
+to:::proof
+val_tag:::proof
+key:::proof
+obj_tag:::proof
+
 classDef proof fill:#4dabf7,stroke-width:2px,stroke:white
 classDef derive fill:#e599f7,stroke-width:2px,stroke:white
 classDef subject fill:#099268
-
-[*] --> Root: bec..bv4a
-Root: {message}
-Root --> MSG: bxn..nlxq
-Root --> Root_: b4o..xbkq
-Root_: ⏺
-
-MSG: message={from, to, payload}
-MSG --> MSG_K: byy..wqpa
-MSG --> MSG_V: bnp..xhiq
-MSG_K: message
-MSG_V: {from, to, payload}
-MSG_V --> payload_from: bxj..ae7a
-payload_from: {payload, from}
-
-payload_from --> payload: bak..kesa
-payload_from --> from: bgw..p6gq
-from: from="@gazala"
-to_ --> to: byy..xtcq
-to_: {to}
-to: to="@mikeal"
-MSG_V --> to_: bfy..midq
-
-
-to_ --> _:  b4o..xbkq
-_: ⏺
-payload: payload="Hi"
-
-payload --> payload_k: bqg..oxga
-payload --> payload_v: btz..gqa
-payload_k: payload
-payload_v: "Hi"
-
-from --> from_k: b5v..hraq
-from_k: from
-from --> from_v: bge..bhtq
-from_v: "@gozala"
-
-to --> to_k: bcf..wozla
-to_k: to
-to --> to_v: bmr..ymqq
-to_v: "@mikeal"
-
-class payload_k proof
-class from proof
-class to_ proof
-class MSG_K proof
-class Root_ proof
-class payload derive
-class payload_from derive
-class MSG_V derive
-class MSG derive
-class Root derive
-class payload_v: subject
 ```
 
 ### Transport Flexibility
 
 It is worth calling out that above merkle trees are just visualization of how address of the root is derived. Yet all other addresss are valid and data could be indexed by it if so desired. Put it differently granularity of the index is no longer baked it at the creation, instead it is a choice that varous actors can make when coming across the data.
 
-We also gained flexibility in terms exchange packet sizes. Peer could ask to send around X `bytes` for `bec..bv4a`, sender can traverse the tree and pack substructures until desired packet size is met and send it over. Recepient is still able to verify that received data indeed corresponds to `bec..bv4a`. 
+We also gained flexibility in terms exchange packet sizes. Peer could ask to send around X `bytes` for `bec..bv4a`, sender can traverse the tree and pack substructures until desired packet size is met and send it over. Recepient is still able to verify that received data indeed corresponds to `bec..bv4a`.
+
+
+```mermaid
+graph TD
+
+_((" ")) -- "bh3…6r5q" --> object
+object["{message}"]
+
+object -- "bct…r5la" --> obj_tag(merkle-structureːmap/k+v/ref-tree)
+object -- "brt…pk3a" --> message("message → {from, payload, to}")
+message -- "bfg…bjtq" --> key("'message'")
+message -- "bql…6qta" --> val("{from, payload, to}")
+val -- "bct…r5la" --> val_tag("merkle-structureːmap/k+v/ref-tree")
+val -- "bnw…ae2q" --> val_fold("(from, payload, to)")
+val_fold -- "b73…wb5a" --> left("(from, payload)")
+left -- "bsc…jolq" --> from("from → 'gozala'")
+left -- "b2w…aqza" --> payload("payload → 'hi'")
+
+from -- "b4f…pmpa" --> from_k("'from'")
+from -- "b2p…afmq" --> from_v("'gozala'")
+
+payload -- "byi…mf6q" --> payload_k("'payload'")
+payload -- "bkv…treq" --> payload_v("'hi'")
+
+val_fold -- "b5r…t5cq" --> to("to → 'mikeal'")
+to -- "b3l…bfrq" --> to_k("'to'")
+to -- "bdv…7eda" --> to_v("'mikea'")
+
+object:::first
+message:::first
+obj_tag:::first
+key:::first
+val:::first
+val_tag:::second
+val_fold:::second
+left:::second
+to:::second
+to_k:::second
+to_v:::second
+
+classDef third fill:#4dabf7,stroke-width:2px,stroke:white
+classDef second fill:#e599f7,stroke-width:2px,stroke:white
+classDef first fill:#099268
+```
 
 ### Codec Flexibility
 
@@ -306,15 +484,19 @@ We have descried how addresses for data are computed not how data sholud be enco
 
 Note that most addresses are never stored, or send across the wire. They are simply derived from data. Only case where you want to send addresses is when you're doing a partial sync and want to reference  subtree without having to transmit it.
 
-
-[data locality]:#data-locality
-[Data Addressing]:#data-addressing
+[abstract data format]:#abstract-data-format
+[reference tree]:#reference-tree
+[merkle fold]:#merkle-fold
 [reference]:https://en.wikipedia.org/wiki/Reference_(computer_science)
 [null pointer]:https://en.wikipedia.org/wiki/Null_pointer
-[Single-precision floating-point format]:https://en.wikipedia.org/wiki/Single-precision_floating-point_format#IEEE_754_single-precision_binary_floating-point_format:_binary32
 [Double-precision floating-point format]:https://en.wikipedia.org/wiki/Double-precision_floating-point_format
-[Variable Integer]:#
-[multiformats]:https://multiformats.io/
-[Unsigned Variable Integer]:https://github.com/multiformats/unsigned-varint
-[LEB 128]:https://en.wikipedia.org/wiki/LEB128
 [UTF-8]:https://en.wikipedia.org/wiki/UTF-8
+[DAG-JSON]:https://ipld.io/specs/codecs/dag-json/spec
+[DAG-CBOR]:https://ipld.io/specs/codecs/dag-cbor/spec/
+[IPLD Data Model]:https://ipld.io/docs/data-model/kinds/
+[LEB128]:https://en.wikipedia.org/wiki/LEB128
+[BAO]:https://github.com/oconnor663/bao/blob/master/docs/spec.md
+[billion dollar mistake]:https://www.infoq.com/presentations/Null-References-The-Billion-Dollar-Mistake-Tony-Hoare/
+[tombstoning]:https://en.wikipedia.org/wiki/Tombstone_(data_store)
+[Merkle tree]:https://en.wikipedia.org/wiki/Merkle_tree
+[CID]:https://docs.ipfs.tech/concepts/content-addressing/
