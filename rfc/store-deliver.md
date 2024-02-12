@@ -57,9 +57,7 @@ To offer verifiability, `store/add` invocation should be associated with `store/
 
 ### store/delivery of not previously stored content
 
-Taking into account the above, we can look at the following diagram and flow walkthrough:
-
-![store-deliver-0](./store-deliver/store-deliver-0.svg)
+Taking into account the above, we can look at the following flow walkthrough and diagram:
 
 1. client invokes `store/add`
 
@@ -145,11 +143,11 @@ Taking into account the above, we can look at the following diagram and flow wal
 }
 ```
 
+![store-deliver-0](./store-deliver/store-deliver-0.svg)
+
 ### store/delivery of previously stored content
 
-We can look at the following diagram and flow walkthrough:
-
-![store-deliver-1](./store-deliver/store-deliver-1.svg)
+The following flow walkthrough and diagram illustrate this case:
 
 1. client invokes `store/add`
 
@@ -199,11 +197,11 @@ We can look at the following diagram and flow walkthrough:
 }
 ```
 
+![store-deliver-1](./store-deliver/store-deliver-1.svg)
+
 ### store/delivery of not stored content
 
-We can look at the following diagram and flow walkthrough:
-
-![store-deliver-2](./store-deliver/store-deliver-2.svg)
+The following flow walkthrough and diagram illustrate this case:
 
 1. client invokes `store/add`
 
@@ -266,6 +264,8 @@ We can look at the following diagram and flow walkthrough:
   }
 }
 ```
+
+![store-deliver-2](./store-deliver/store-deliver-2.svg)
 
 ## Other notes
 
