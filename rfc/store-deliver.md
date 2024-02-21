@@ -6,7 +6,7 @@
 
 ## Abstract
 
-`store/*` protocol is missing verifiability for content actually uploaded to the provided presigned URL. This factor together with intention to create a proof of delivery makes critical the introduction of a new capability in the `store/*` namespace. In this RFC, we propose `store/deliver`.
+`store/*` protocol is missing verifiability for content actually uploaded to the provided presigned URL. This factor together with intention to create a proof of delivery makes critical the introduction of a new capability in the `store/*` namespace. In this RFC, we propose `store/deliver` and `store/confirm` capabilities.
 
 ## Introduction
 
@@ -45,17 +45,49 @@ If the service is receptive to store this data, a presigned URL is returned in t
 
 Note that content requested to store, may already be stored. If that is the case, the service may issue receipt with `"status": "done"`.
 
-On their schedule, the agent can post the bytes using the presigned URL. However, both the agent and the service never sign a receipt stating that this content is now stored. This is where `store/deliver` can help.
+On their schedule, the agent can post the bytes using the presigned URL. However, both the agent and the service never sign a receipt stating that this content is now stored. This is where `store/deliver` and `store/confirm` can help. In short, we can see `store/deliver` as a way for the agent to sign that they did the work, and `store/confirm` for the service to sign that the bytes were received, stored and can now be retrieved.
 
-While not relevant for verifiability, it is also important pointing out that the service MAY need to run some data computation, issue billing events or write indexes for retrievability. Today, web3.storage operated store service relies on "S3 Bucket events" to achieve this, but it should not be assumed that all stores web3.storage will rely on will provide such features.
+While not relevant for verifiability, it is also important pointing out that the service MAY need to run some data computation, issue billing events or write indexes for retrievability asynchronously. Today, web3.storage operated store service relies on "S3 Bucket events" to achieve this, but it should not be assumed that all stores web3.storage will rely on will provide such features.
 
-## store/delivery capability
+## New capabilities
+
+### `store/deliver` capability
+
+After the agent handled the asynchronous task of posting the bytes, the agent can invoke `store/deliver` to notify the service that the bytes were delivered. This invocation in the future MAY include a challenge for the service based on the posted data.
+
+```json
+{
+  "can": "store/deliver",
+  "with": "did:key:abc...",
+  "nb": {
+    "link": "bag...",
+    "url": "https://..."
+  }
+}
+```
+
+### `store/confirm` capability
+
+Wwhen the service handles the invocation of `store/deliver`, and potentially, after some asynchronous computations/verifications, the service invokes `store/confirm` in order to issue a signed receipt that the flow is now finished.
+
+```json
+{
+  "can": "store/confirm",
+  "with": "did:key:abc...",
+  "nb": {
+    "link": "bag...",
+    "url": "https://..."
+  }
+}
+```
+
+## Common flows
 
 Aiming to introduce verifiability into content storing, as well as to pave the way for a future proof of delivery, `store/deliver` capability is proposed. It would also make services not tied with store put events to execute side effects.
 
-To offer verifiability, `store/add` invocation should be associated with `store/deliver` via [effect]s. `store/deliver` would be invoked by the client to notify the service that content was stored, and the the service should also sign a confirmation that it is true.
+To offer verifiability, `store/add` invocation should be associated with `store/deliver` and `store/confirm` via [effect]s. `store/deliver` would be invoked by the client to notify the service that content was stored, and the the service should also sign a confirmation that it is true via `store/confirm`.
 
-### store/delivery of not previously stored content
+### `store/deliver` of not previously delivered content
 
 Taking into account the above, we can look at the following flow walkthrough and diagram:
 
@@ -72,7 +104,7 @@ Taking into account the above, we can look at the following flow walkthrough and
 }
 ```
 
-2. service issues `store/add` receipt with presigned URL and effect for `store/deliver` that may be invoked in the future by the service
+2. service issues `store/add` receipt with presigned URL, effect for `store/deliver` task that MAY be invoked in the future by the agent and `store/confirm` tasks that MAY be invoked in the future by the service.
 
 ```json
 {
@@ -86,8 +118,8 @@ Taking into account the above, we can look at the following flow walkthrough and
     }
   },
   "fx": {
-    "join": { "/": "bafy...storeDeliverService" },
-    "fork": []
+    "join": { "/": "bafy...storeConfirm" },
+    "fork": [{ "/": "bafy...storeDeliver" }]
   },
 }
 ```
@@ -118,7 +150,7 @@ Taking into account the above, we can look at the following flow walkthrough and
     }
   },
   "fx": {
-    "join": { "/": "bafy...storeDeliverService" },
+    "join": { "/": "bafy...storeConfirm" },
     "fork": []
   },
 }
@@ -126,11 +158,11 @@ Taking into account the above, we can look at the following flow walkthrough and
 
 6. service may perform some other work
 
-7. service issues `store/deliver` receipt
+7. service issues `store/confirm` receipt
 
 ```json
 {
-  "ran": "bafy...storeDeliverService",
+  "ran": "bafy...storeConfirm",
   "out": {
     "ok": {
       "link": "bag..."
@@ -145,7 +177,7 @@ Taking into account the above, we can look at the following flow walkthrough and
 
 ![store-deliver-0](./store-deliver/store-deliver-0.svg)
 
-### store/delivery of previously stored content
+### `store/deliver` of previously delivered content
 
 The following flow walkthrough and diagram illustrate this case:
 
@@ -162,7 +194,7 @@ The following flow walkthrough and diagram illustrate this case:
 }
 ```
 
-2. service issues `store/add` receipt with done status and effect for `store/deliver` that may be invoked in the future by the service (or was already invoked)
+2. service issues `store/add` receipt with done status and effect for `store/confirm` that may be invoked in the future by the service (or was already invoked)
 
 ```json
 {
@@ -174,17 +206,17 @@ The following flow walkthrough and diagram illustrate this case:
     }
   },
   "fx": {
-    "join": { "/": "bafy...storeDeliverService" },
+    "join": { "/": "bafy...storeConfirm" },
     "fork": []
   },
 }
 ```
 
-3. service issues `store/deliver` receipt (may have happened before 1-2, or after for a concurrent operation)
+3. service issues `store/confirm` receipt (may have happened before 1-2, or after for a concurrent operation)
 
 ```json
 {
-  "ran": "bafy...storeDeliverService",
+  "ran": "bafy...storeConfirm",
   "out": {
     "ok": {
       "link": "bag..."
@@ -199,7 +231,7 @@ The following flow walkthrough and diagram illustrate this case:
 
 ![store-deliver-1](./store-deliver/store-deliver-1.svg)
 
-### store/delivery of not stored content
+### `store/deliver` of not delivered content
 
 The following flow walkthrough and diagram illustrate this case:
 
@@ -216,7 +248,7 @@ The following flow walkthrough and diagram illustrate this case:
 }
 ```
 
-2. service issues `store/add` receipt with presigned URL and effect for `store/deliver` that may be invoked in the future by the service
+2. service issues `store/add` receipt with presigned URL, effect for `store/deliver` task that MAY be invoked in the future by the agent and `store/confirm` tasks that MAY be invoked in the future by the service.
 
 ```json
 {
@@ -230,8 +262,8 @@ The following flow walkthrough and diagram illustrate this case:
     }
   },
   "fx": {
-    "join": { "/": "bafy...storeDeliverService" },
-    "fork": []
+    "join": { "/": "bafy...storeConfirm" },
+    "fork": [{ "/": "bafy...storeDeliver" }]
   },
 }
 ```
@@ -251,7 +283,7 @@ The following flow walkthrough and diagram illustrate this case:
 }
 ```
 
-5. service verifies if content was delivered by user, and issues receipt stating that content was not stored
+5. service checks if content was delivered by user, and issues receipt stating that content was not stored
 
 ```json
 {
@@ -271,7 +303,7 @@ The following flow walkthrough and diagram illustrate this case:
 
 This proposal also opens the possibility for bucket decentralization, so that we could even have Storefront to find a write target for the write. For instance, when storefront receives a `store/add` request, it could allocate it to a "Hot Storage" Saturn Node by requesting a Saturn Node for a presigned URL before returning to the client the presigned URL. Once it can get a presigned URL to write, the `store/add` receipt could also include a fork task from a task from "Hot Storage" Saturn Node, which will be performed when this node receives the content offered.
 
-We assume this is a problem out of scope of this RFC, but worth ellaboring it. Given `store/add` may be a NOP pointing to a `store/deliver` receipt that was already handled (i.e. when client A tries to store content `bag...a` that was previously stored by client B), a `store/deliver` receipt will not be issued for each `store/add`, but only for the first one. In other words, store services will only run `store/deliver` one time per CID stored. As a result, if `store` wants to do computation in this data, or create some indexes, they will always output the same result. However, billing requirements may be different. Today, they are handled at `store/add` handler level, but we could also introduce a new capability to execute code that should also run when this is the first time a given client allocated store for given content (e.g. `store/allocate`, which would be also an effect of `store/add` and would be used to track billing, etc).
+We assume this is a problem out of scope of this RFC, but worth ellaboring it. Given `store/add` may be a NOP pointing to a `store/confirm` receipt that was already handled (i.e. when client A tries to store content `bag...a` that was previously stored by client B), a `store/confirm` receipt will not be issued for each `store/add`, but only for the first one. In other words, store services will only run `store/confirm` one time per CID stored. As a result, if `store` wants to do computation in this data, or create some indexes, they will always output the same result. However, billing requirements may be different. Today, they are handled at `store/add` handler level, but we could also introduce a new capability to execute code that should also run when this is the first time a given client allocated store for given content (e.g. `store/allocate`, which would be also an effect of `store/add` and would be used to track billing, etc).
 
 [Protocol Labs]: https://protocol.ai/
 [Vasco Santos]: https://github.com/vasco-santos
