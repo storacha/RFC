@@ -1,11 +1,11 @@
 # Abstract
 
-Services that have adopted UCANs are able to server requests to customers of their customers directly, reducing operational costs and complexity.
+Services that have adopted UCANs are able to serve requests to customers of their customers directly, reducing operational costs and complexity.
 
 However integrating with systems that have not adopted ucans can be challenging and forces following trade-offs:
 
 1. Privileged proxy services need to be introduced to allow requests from such actors.
-2. It is impossible to provide provable trace of accountibility in [recieipts](https://github.com/ucan-wg/invocation#225-receipt).
+2. It is impossible to provide provable trace of accountability in [receipts](https://github.com/ucan-wg/invocation#225-receipt).
 
 In practice service is forced to introduce a less secure backdoor into the system.
 
@@ -59,7 +59,7 @@ When outside system is hired to do run some long-lived task it can be shared a "
 - 💚 The `did:key:zBridge` actor could be operated by third party or even outside system itself.
 - 💚 Outside system does not need to understand or worry about UCANs.
 - 💔 Impossible to hold outsyde system accountable.
-- 💔 No redelgation
+- 💔 No redelegation
 
 
 ## PKI Bridge
@@ -96,6 +96,6 @@ The `did:key:zBridge` actor dispatches UCAN invocation to a UCAN enabled system 
 - 💚 The `did:key:zBridge` actor could be operated by anyone.
 - 💚 Outside system does not need to understand or worry about UCANs.
 - 💚 Outside system can be held accountable thanks to captured signatures.
-- 💔 Can not take advantage of redelgation
+- 💔 Can not take advantage of redelegation
 
 
