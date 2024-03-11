@@ -68,7 +68,7 @@ After the agent handled the asynchronous task of posting the bytes, the agent ca
 
 ### `store/confirm` capability
 
-Wwhen the service handles the invocation of `store/deliver`, and potentially, after some asynchronous computations/verifications, the service invokes `store/confirm` in order to issue a signed receipt that the flow is now finished.
+When the service handles the invocation of `store/deliver`, and potentially, after some asynchronous computations/verifications, the service invokes `store/confirm` in order to issue a signed receipt that the flow is now finished.
 
 ```json
 {
