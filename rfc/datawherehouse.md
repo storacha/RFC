@@ -11,7 +11,7 @@
 TL;DR
 
 1. We're missing a mapping of Data CID -> target URI (Bucket, Saturn Node, etc).
-2. We don't want clients to create location claims for internal bucket URLs because we might change the location in the future (reputation hit for client).
+2. We don't want clients to create location claims tight with internal bucket URLs because we might change the location in the future (reputation hit for client).
 3. We don't have bucket events in Cloudflare, so need the client to tell us when it has uploaded something to the provided write target.
 4. We want freeway code to be usable in Saturn nodes, so ideally it uses only content claims to discover locations.
 5. We want this information available as soon as content is written so that read interfaces can serve the content right away.
@@ -20,7 +20,7 @@ TL;DR
 
 > 1. We're missing a mapping of Data CID -> target URI (Bucket, Saturn Node, etc).
 
-We considered at first location claims would be the solution here. But when we got closer to put that into practise we realized this was not a good idea. We need this mapping so that w3s Read/Write Interfaces can discover where the bytes are. Where the bytes are stored may actually be private write targets (for instance, a R2 bucket), which location is not public. We consider that locations claims MUST be retrievable, have public access and not heavily rate limited. Finally, some read interfaces (for instance Roundabout, Freeway) require some information encoded in the URI (like bucket name), which would not be available in a public URL of R2 bucket. All things considered, Location claims should include URIs like `https://bafy...data.ipfs.w3s.link`, and we need a mapping of `bafy...data` to where its bytes are actually stored internally.
+We considered at first location claims directly to data bytes would be the solution here. But when we got closer to put that into practise we realized this was not a good idea. We need this mapping so that w3s Read/Write Interfaces can discover where the bytes are. Where the bytes are stored may actually be private write targets (for instance, a R2 bucket), which location is not public. We consider that location claims MUST be retrievable, have public access and not heavily rate limited. Finally, some read interfaces (for instance Roundabout, Freeway) require some information encoded in the URI (like bucket name), which would not be available in a public URL of R2 bucket. All things considered, Location claims should include URIs like `https://bafy...data.ipfs.w3s.link`, and we need a mapping of `bafy...data` to where its bytes are actually stored internally.
 
 > 2. We don't want clients to create location claims for internal bucket URLs because we might change the location in the future (reputation hit for client).
 
@@ -36,9 +36,7 @@ Actually we can even extend on this point by saying that today we have no verifi
     * Confirms successful transfer of data.
     * Effect linked by `store/add` receipt.
     * Can be batched with other invocations like `filecoin/offer`
-* Handler writes to carwhere
-    * CAR CID -> bucket mapping table 
-* Materialize location claims on demand for CAR CID from data in table. Short lived so we can change location and not have to revoke 1,000's of UCANs.
+* Handler writes to location claims with encoded information
 
 The following diagram presents the described flow, and is illustrated with the following steps:
 
@@ -46,7 +44,7 @@ The following diagram presents the described flow, and is illustrated with the f
 2. Service issues a receipt stating the URI of a write target for the client to write those bytes
 3. Client writes the bytes into the write target
 4. Client notifies the service that the bytes were written to the provided write target
-5. Service verifies that the bytes are stored in the provided write target
+5. Service verifies that the bytes are stored in the provided write target and writes a claim about it.
 6. Service issues a receipt stating bytes are being stored by the service.
 
 ![datawherehouse1](./datawherehouse/datawherehouse-1.svg)
@@ -59,7 +57,75 @@ On the other side of things, the next diagram presents the flow when a client wa
 
 ![datawherehouse2](./datawherehouse/datawherehouse-2.svg)
 
-## carwhere store design
+## Location claims
+
+Content claims service is currently deployed implementing the [content claims spec](https://github.com/web3-storage/specs/pull/86). Among other claims, it provides [Location Claims](https://hackmd.io/IiKMDqoaSM61TjybSxwHog?view#Location-Claims) which MAY be used to claim that the bytes that hash to a given CID are available in a given URL.
+
+In w3s the service is responsible to deciding the write target, therefore service SHOULD be responsible for claiming the location of the bytes.
+
+While thinking about using location claims to record where bytes are stored by the service, there are a few characteristics we want to have:
+- location claim MUST resolve to a public and fetchable URLs
+- location in location claim SHOULD (ideally) not change recurrently given it MAY impact negatively the reputation of a party
+
+Read interfaces MAY have some requirements other than the CID to better, such as knowing bucket name, region, etc. 
+
+As a way to store the location of this bytes, we discussed relying on a "private" location claims concept, or even on location claims for a gateway that have hints as encoded params in the URL that the read interface can decide if want to try to use. This would allow us to already have the infra and datastores we have, leaving the decentralization of content claims for a completely different problem.
+
+### _private_ location claims
+
+_private_ location claims would enable us to not expose these claims directly to the user, given their sole purpose at the moment is internal routing. This would enable queries of w3s read/write interfaces to know where the bytes for a CID are stored.
+
+With this building block we can issue claims that MAY not be public and fetchable URLs, as well as not have worries on a potential future data migration.
+
+A _private_ location claim MAY look like:
+
+```json
+{
+  "op": "assert/datawherehouse",
+  "rsc": "https://web3.storage",
+  "input": {
+    "content" : CID /* CAR CID */, 
+    "location": "`https://<BUCKET_NAME>.<REGION>.web3.storage/<CID>/<CID>.car`",
+    "range"   : [ start, end ] /* Optional: Byte Range in URL
+  }
+}
+```
+
+Note that we could actually make this location URL publicly available in R2 custom domain, if we would like it. Of course this would still not be a good reason to make it public, given moving the data to a different location would lead to invalid claims. But can actually be a good idea for a transition period for decentralized write nodes.
+
+### location claims with encoded params
+
+On the other side, we could also rely on a known resolvable location and encode the needed information as part of the URL. This would allow w3s service to just issue claims point to the gateway with extra hints that they can use for a "fast lane".
+
+A location claim MAY look like:
+
+```json
+{
+  "op": "assert/location",
+  "rsc": "https://web3.storage",
+  "input": {
+    "content" : CID /* CAR CID */, 
+    "location": "`https:<CID>.dag.w3s.link?bucket=<bucketName>&region=<region>`",
+    "range"   : [ start, end ] /* Optional: Byte Range in URL
+  }
+}
+```
+
+The public IPFS HTTP Gateway could decide if it wants to use the HINTs or any other discovery method. Therefore, this location should be able to still be fetachable on the future when content is somewhere else.
+
+We do not need to have an internal "private" claim for storing this data. Once we move to a decentralized write target approach, likely they will have public locations we can just stick here, which means we could just rely on location claims issued by the service (even though revocation would become a concern on data moving around).
+
+In case we issue further claims with different query parameters, the service can still look at their date and attempt latest first, without real need to revoke them given the URL will still resolve to the data.
+
+Also note that we do not really need to do any change in `dag.w3s.link`. The service can call content claims and see what are the hints. For optimization purpuses we can however check and try them first.
+
+## Proposal
+
+Location claims with encoded params seems to be the simplest solution and also puts us into the future direction where write targets may actually have public URLs. Therefore, relying on `location claims with encoded params` can solve all the requirements while better position us for future. In addition, it is also the easy solution to implement.
+
+## Deprecated
+
+### Store design
 
 carwhere is a store that enables a `store/*` implementer to map CAR CIDs to one or more locations where they are written (and confirmed!).
 
@@ -71,11 +137,11 @@ From a price standpoint, as well as ease of storage migration, Bucket store will
 
 Proposal: Bucket Store
 
-## Bucket data Location URIs
+### Bucket data Location URIs
 
 Defining the format of data locations for these target locations is critical to have a mapping of these locations to the buckets to fulfill all requirements of read interfaces (See https://hackmd.io/5qyJwDORTc6B-nqZSmzmWQ#Read-Use-cases). 
 
-### URIs in well known write targets
+#### URIs in well known write targets
 
 Typically, objects in S3 buckets can be located via following URIs:
 - S3 URI (e.g. `s3://<BUCKET_NAME>/<CID>/<CID>.car`)
@@ -96,7 +162,7 @@ However, R2 object locations have different patterns, instead of following S3 pa
 
 Note that a data location URI may not be readable from all actors, as some may be behind a given set of permissions/capabilities.
 
-### URI Patterns
+#### URI Patterns
 
 The main pattern that we can identify is to have URLs that can be accessed by any HTTP client. Except for S3 URIs and given the correct setup/keys is available, all other URLs are fetch'able. Therefore, we can assume as an advantage that claim is directly fetchable without any pre-knowledge.
 
@@ -116,7 +182,7 @@ Alternatively, we can require `<CUSTOM_DOMAIN>` to become bucket name, in order 
 
 The Public Object URL for Dev should not be adopted, as it is heavily rate limited, we do not know what CF may do with it in the future, and also does not even have information about the Bucket name.
 
-### Proposal
+#### Proposal
 
 Nothing prevents us from claiming multiple location URIs for a given content, however we may need to also be careful on having multiple claims for the same location as if it is not fully available it MAY be ranked badly in whatever reputation system we may create. However, some smart clients MAY benefit of cost savings or faster retrievals if they have extra information encoded in the URI.
 
@@ -127,6 +193,6 @@ In conclusion, this document proposes that w3up clients, once they successfully 
     - `https://<CUSTOM_DOMAIN>.web3.storage/<CID>/<CID>.car`
     - `https://<ACCOUNT_ID>.r2.cloudflarestorage.com/<BUCKET_NAME>/<CID>/<CID>`
 
-## Materialize location claims
+### Materialize location claims
 
 Extend materialized location claims to include carwhere locations short lived. We will need to align on how these claims will look like.
