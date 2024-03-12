@@ -31,7 +31,7 @@ Generally a work item would move from inception to completion through a pipeline
 
     Items that are of ambiguous _certainty_ SHOULD be accompanied by an [RFC](https://github.com/web3-storage/rfc) - a PR that allows others to comment in an open and structured way on the item. For example, an RFC may be a new idea or a way of achieving a goal that could be done in multiple ways. An RFC allows others to validate the idea, question or assumption to determine with more certainty if it should be worked on.
     
-    All members SHOULD read RFC documents and provide feedback to allow the author to determine validity of the work item and adjust or clean up if necessary.
+    All members MAY read RFC documents and provide feedback to allow the author to determine validity of the work item and adjust or clean up if necessary.
 
 2. **Stack** - prioritized work items. _Unlike_ a conventional stack, items are added at a position that denotes their relative priority, however, as per a conventional stack, items are usually "popped" from the top.
 
