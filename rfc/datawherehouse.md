@@ -10,7 +10,7 @@
 
 TL;DR
 
-1. We're missing a mapping of Data CID -> target URI (Bucket, Saturn Node, etc).
+1. We're missing a mapping of Blob CID -> target URI (Bucket, Saturn Node, etc).
 2. We don't want clients to create location claims tight with internal bucket URLs because we might change the location in the future (reputation hit for client).
 3. We don't have bucket events in Cloudflare, so need the client to tell us when it has uploaded something to the provided write target.
 4. We want freeway code to be usable in Saturn nodes, so ideally it uses only content claims to discover locations.
@@ -18,13 +18,13 @@ TL;DR
 
 ### Extended details
 
-> 1. We're missing a mapping of Data CID -> target URI (Bucket, Saturn Node, etc).
+> 1. We're missing a mapping of Blob CID -> target URI (Bucket, Saturn Node, etc).
 
-We considered at first location claims directly to data bytes would be the solution here. But when we got closer to put that into practise we realized this was not a good idea. We need this mapping so that w3s Read/Write Interfaces can discover where the bytes are. Where the bytes are stored may actually be private write targets (for instance, a R2 bucket), which location is not public. We consider that location claims MUST be retrievable, have public access and not heavily rate limited. Finally, some read interfaces (for instance Roundabout, Freeway) require some information encoded in the URI (like bucket name), which would not be available in a public URL of R2 bucket. All things considered, Location claims should include URIs like `https://bafy...data.ipfs.w3s.link`, and we need a mapping of `bafy...data` to where its bytes are actually stored internally.
+When facing this problem in the begining, we considered to issue location claim direct to the bytes (i.e. `r2://...`). But when we got closer to put that into practise we realized this was not a good idea. We need this mapping so that w3s Read/Write Interfaces can discover where the bytes are. Where the bytes are stored may actually be private write targets (for instance, a R2 bucket), which location is not public. We consider that location claims MUST be retrievable, have public access and not heavily rate limited. Finally, some read interfaces (for instance Roundabout, Freeway) require some information encoded in the URI (like bucket name), which would not be available in a public URL of R2 bucket. All things considered, Location claims should include URIs like `https://bafy...blob.ipfs.w3s.link`, and we need a mapping of `bafy...blob` to where its bytes are actually stored internally.
 
 > 2. We don't want clients to create location claims for internal bucket URLs because we might change the location in the future (reputation hit for client).
 
-Extending on the first point, making location claims to include "private/unavailable" URIs will make it harder for the service to move data to other places, given it would need to revoke a bunch of claims and re-write them with new location.
+Extending on the first point, making location claims to include "private/unavailable" URIs will make it harder for the service to move blob to other places, given it would need to revoke a bunch of claims and re-write them with new location.
 
 > 3. We don't have bucket events in Cloudflare, so need the client to tell us when it has uploaded something to the provided write target.
 
@@ -32,40 +32,73 @@ Actually we can even extend on this point by saying that today we have no verifi
 
 ## High level flow of proposed solution
 
-* Simulate bucket event by having client submit `store/deliver` invocation.
-    * Confirms successful transfer of data.
-    * Effect linked by `store/add` receipt.
-    * Can be batched with other invocations like `filecoin/offer`
-* Handler writes to location claims with encoded information
+* Client stores some blob with web3.storage
+* Client requests this blob to be published with `store/publish`
+* Service handler verifies requested blob was stored on the client space, issues a location claim with encoded information for location and returns it to the client
+  * Can be batched with other invocations like `filecoin/offer`
 
 The following diagram presents the described flow, and is illustrated with the following steps:
 
 1. Client requests to store some bytes with the storefront service
 2. Service issues a receipt stating the URI of a write target for the client to write those bytes
 3. Client writes the bytes into the write target
-4. Client notifies the service that the bytes were written to the provided write target
-5. Service verifies that the bytes are stored in the provided write target and writes a claim about it.
-6. Service issues a receipt stating bytes are being stored by the service.
+4. Client requests service to serve written bytes under given stored CID
+5. Service verifies that the bytes are stored in the provided write target/space and writes a claim about it.
+6. Service issues a receipt stating bytes are being stored by the service on a given location claim.
 
 ![datawherehouse1](./datawherehouse/datawherehouse-1.svg)
 
-On the other side of things, the next diagram presents the flow when a client wants to read some data, and is illustrated with the following steps:
+On the other side of things, the next diagram presents the flow when a client wants to read some blob, and is illustrated with the following steps:
 
-1. Client request to read some bytes by the CID of the data
-2. Service discovers where the requested bytes are stored relying on content claims service and the materialized claims from `datawherehouse`
-3. Service serves data stored on the discovered location.
+1. Client request to read some bytes by the CID of the blob
+2. Service discovers where the requested bytes are stored relying on content claims service to find location claim from the service.
+3. Service serves blob stored on the discovered location target.
 
 ![datawherehouse2](./datawherehouse/datawherehouse-2.svg)
 
-## Location claims
+## `store/publish` capability
+
+After some blob being stored with web3.storage, a client MAY request this blob to be available under given CID. Service MUST verify that it has bytes corresponding to that CID and it was stored on the provided client space. If so, service SHOULD respond with location claim from which read can be performed.
+
+This method enables the service to handle private data in the future, and likely should allow client to specify TTL for the produced read URL, as well as even consider future where this read URI might require permission (e.g. ucan authorization).
+
+This capability can be specified as follows:
+
+```json
+{
+  "op": "store/publish",
+  "rsc": "did:key:abc...",
+  "input": {
+    "link": { "/": "bafy...BLOBCID" }, // typically a CAR
+    "url": "https://..." // write target presignedurl previously provided
+  }
+}
+```
+
+Return on success the following receipt:
+
+```json
+{
+  "ran": "bafy...storePublish",
+  "out": {
+    "ok": {
+      "link" : { "/": "bafy...BLOBCID" }, // typically a CAR
+      "location": "`https://w3s.link/ipfs/bafy...BLOBCID?origin=r2://region/bucketName/key"
+    }
+  },
+  "fx": {},
+}
+```
+
+## Location claims encoding location hints
 
 Content claims service is currently deployed implementing the [content claims spec](https://github.com/web3-storage/specs/pull/86). Among other claims, it provides [Location Claims](https://hackmd.io/IiKMDqoaSM61TjybSxwHog?view#Location-Claims) which MAY be used to claim that the bytes that hash to a given CID are available in a given URL.
 
-In w3s the service is responsible to deciding the write target, therefore service SHOULD be responsible for claiming the location of the bytes.
+In w3s the service is responsible to deciding the write target, therefore service SHOULD be responsible for claiming the location of the blob on user request to have it published.
 
 While thinking about using location claims to record where bytes are stored by the service, there are a few characteristics we want to have:
 - location claim MUST resolve to a public and fetchable URLs
-- location in location claim SHOULD (ideally) not change recurrently given it MAY impact negatively the reputation of a party
+- location in location claim SHOULD (ideally) not change recurrently given it MAY impact negatively the reputation of a party. However, we should consider letting client choose how long the location claim should be valid for.
 
 Read interfaces MAY have some requirements other than the CID to better, such as knowing bucket name, region, etc. 
 
@@ -81,8 +114,8 @@ A _private_ location claim MAY look like:
 
 ```json
 {
-  "op": "assert/datawherehouse",
-  "rsc": "https://web3.storage",
+  "op": "assert/location",
+  "rsc": "did:web:private.web3.storage",
   "input": {
     "content" : CID /* CAR CID */, 
     "location": "`https://<BUCKET_NAME>.<REGION>.web3.storage/<CID>/<CID>.car`",
@@ -102,7 +135,7 @@ A location claim MAY look like:
 ```json
 {
   "op": "assert/location",
-  "rsc": "https://web3.storage",
+  "rsc": "did:web:web3.storage",
   "input": {
     "content" : { "/": "bafy...BLOBCID" }, // typically a CAR
     "location": "`https://w3s.link/ipfs/bafy...BLOBCID?origin=r2://region/bucketName/key",
@@ -123,19 +156,9 @@ Also note that we do not really need to do any change in `dag.w3s.link`. The ser
 
 Location claims with encoded params seems to be the simplest solution and also puts us into the future direction where write targets may actually have public URLs. Therefore, relying on `location claims with encoded params` can solve all the requirements while better position us for future. In addition, it is also the easy solution to implement.
 
-## Deprecated
+---
 
-### Store design
-
-carwhere is a store that enables a `store/*` implementer to map CAR CIDs to one or more locations where they are written (and confirmed!).
-
-The store should be indexed and queryable by CAR CID, but should also support multiple entries with CAR CID. Therefore, we have two potential solutions for this Store:
-- Bucket store with format as `${carCid}/${bucketName}/${region}/${key}`. So, quite similar to current Dudewhere indexes. E.g. `bag.../carpark-prod-0/auto/bag.../bag....key`
-- DynamoDB store where partition key is `${carCid}` and `${bucketName}/${region}/${key}`
-
-From a price standpoint, as well as ease of storage migration, Bucket store will be way cheaper. However, dynamoDB will be faster for high throughputs. Given the index read will likely be one of the less costly parts of reading content, it MAY not make a big difference to read from the indexes. Specially as we will have full content cached later on.
-
-Proposal: Bucket Store
+## Deprecated research on data location URIs
 
 ### Bucket data Location URIs
 
@@ -192,7 +215,3 @@ In conclusion, this document proposes that w3up clients, once they successfully 
 - R2
     - `https://<CUSTOM_DOMAIN>.web3.storage/<CID>/<CID>.car`
     - `https://<ACCOUNT_ID>.r2.cloudflarestorage.com/<BUCKET_NAME>/<CID>/<CID>`
-
-### Materialize location claims
-
-Extend materialized location claims to include carwhere locations short lived. We will need to align on how these claims will look like.
