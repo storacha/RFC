@@ -58,7 +58,7 @@ On the other side of things, the next diagram presents the flow when a client wa
 
 ## `store/publish` capability
 
-After some blob being stored with web3.storage, a client MAY request this blob to be available under given CID. Service MUST verify that it has bytes corresponding to that CID and it was stored on the provided client space. If so, service SHOULD respond with location claim from which read can be performed.
+After some blob being stored with web3.storage, a client MAY request this blob to be available under given CID. Service MUST verify that it has bytes corresponding to that CID and it was stored on the provided client space. If so, service MUST issue a location claim to the content claims service. Moreover, the service SHOULD respond with location claim from which read can be performed.
 
 This method enables the service to handle private data in the future, and likely should allow client to specify TTL for the produced read URL, as well as even consider future where this read URI might require permission (e.g. ucan authorization).
 
@@ -67,9 +67,9 @@ This capability can be specified as follows:
 ```json
 {
   "op": "store/publish",
-  "rsc": "did:key:abc...",
+  "rsc": "did:key:abc...space",
   "input": {
-    "link": { "/": "bafy...BLOBCID" }, // typically a CAR
+    "link": { "/": "bafy...BLOBCID" }, // RAW CID - go from CAR <-> RAW CID it's just switching a codec byte
     "url": "https://..." // write target presignedurl previously provided
   }
 }
@@ -82,8 +82,25 @@ Return on success the following receipt:
   "ran": "bafy...storePublish",
   "out": {
     "ok": {
-      "link" : { "/": "bafy...BLOBCID" }, // typically a CAR
+      "link" : { "/": "bafy...BLOBCID" }, // RAW CID - go from CAR <-> RAW CID it's just switching a codec byte
       "location": "`https://w3s.link/ipfs/bafy...BLOBCID?origin=r2://region/bucketName/key"
+    }
+  },
+  "fx": {},
+}
+```
+
+TODO: Should return the actual location claim? How would we do that?
+
+On the event of failure, it should state error behind it:
+
+```json
+{
+  "ran": "bafy...storePublish",
+  "out": {
+    "error": {
+      "name": "ContentNotFoundError",
+      "link" : { "/": "bafy...BLOBCID" }
     }
   },
   "fx": {},
@@ -115,9 +132,10 @@ A _private_ location claim MAY look like:
 ```json
 {
   "op": "assert/location",
+  "aud": "did:key:abc...space",
   "rsc": "did:web:private.web3.storage",
   "input": {
-    "content" : CID /* CAR CID */, 
+    "content" : CID /* // RAW CID */, 
     "location": "`https://<BUCKET_NAME>.<REGION>.web3.storage/<CID>/<CID>.car`",
     "range"   : [ start, end ] /* Optional: Byte Range in URL
   }
@@ -135,9 +153,10 @@ A location claim MAY look like:
 ```json
 {
   "op": "assert/location",
+  "aud": "did:key:abc...space",
   "rsc": "did:web:web3.storage",
   "input": {
-    "content" : { "/": "bafy...BLOBCID" }, // typically a CAR
+    "content" : { "/": "bafy...BLOBCID" }, // // RAW CID
     "location": "`https://w3s.link/ipfs/bafy...BLOBCID?origin=r2://region/bucketName/key",
     "range"   : [ start, end ] /* Optional: Byte Range in URL
   }
