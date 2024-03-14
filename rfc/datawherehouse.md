@@ -104,8 +104,8 @@ A location claim MAY look like:
   "op": "assert/location",
   "rsc": "https://web3.storage",
   "input": {
-    "content" : CID /* CAR CID */, 
-    "location": "`https:<CID>.dag.w3s.link?bucket=<bucketName>&region=<region>`",
+    "content" : { "/": "bafy...BLOBCID" }, // typically a CAR
+    "location": "`https://w3s.link/ipfs/bafy...BLOBCID?origin=r2://region/bucketName/key",
     "range"   : [ start, end ] /* Optional: Byte Range in URL
   }
 }
