@@ -285,7 +285,7 @@ This is provided in the form of shell commands (more specifically using `bash` a
 
 Exact repo path are provided as examples and may not result in a precise command for everyone. To account for this, `$PATH_PREFIX` should equal the path prefix that is required to reach a given repo from your current directory. For instance, while writing this, this means `PATH_PREFIX=~/ghq/github.com`.
 
-A given `ORG` is assumed to exist in the one's filesystem beforehand. If not a [git clone](https://git-scm.com/docs/git-clone) targeting `https://github.com/w3s-project/$REPO` is RECOMMENDED (see the [Repository Overview](#repository-overview) for specific values for `REPO`).
+A given `ORG` is assumed to exist in the one's filesystem beforehand. If not a [git clone](https://git-scm.com/docs/git-clone) targeting `https://github.com/w3s-project/$REPO` is RECOMMENDED (see the [Repository Overview](#repository-migration-overview) for specific values for `REPO`).
 
 #### Partial org migration
 
