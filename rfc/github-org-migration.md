@@ -100,7 +100,9 @@ It SHOULD NOT be migrated.
 
 - [x] [DEPRECATED-saturn](https://github.com/filecoin-saturn/DEPRECATED-saturn)
 
-An historical artefact of an initial Filecoin Saturn implementation. It SHOULD NOT be migrated.
+An historical artefact of an initial Filecoin Saturn implementation. 
+It SHOULD be archived.
+It SHOULD NOT be migrated.
 
 - [ ] [browser-client](https://github.com/filecoin-saturn/browser-client)
 - [ ] [L1-node](https://github.com/filecoin-saturn/L1-node)
