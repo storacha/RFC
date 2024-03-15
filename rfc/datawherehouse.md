@@ -11,10 +11,10 @@
 TL;DR
 
 1. We're missing a mapping of Blob CID -> target URI (Bucket, Saturn Node, etc).
-2. We don't want clients to create location claims tight with internal bucket URLs because we might change the location in the future (reputation hit for client).
-3. We don't have bucket events in Cloudflare, so need the client to tell us when it has uploaded something to the provided write target.
+2. We don't want clients to create location claims because they have no control over the location and consequently are in no position to make such claims.
+3. We SHOULD NOT assume that user uploading a content implies thy want it to publicly available for everyone to read. User should signal that intention explicitly via invocation. Not to mention that we do not have bucket events in Cloudflare and require client to tell us when upload was complete.
 4. We want freeway code to be usable in Saturn nodes, so ideally it uses only content claims to discover locations.
-5. We want this information available as soon as content is written so that read interfaces can serve the content right away.
+5. We want this information to be available as soon as possible so that read interfaces can serve the content immediately.
 
 ### Extended details
 
