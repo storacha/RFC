@@ -12,7 +12,7 @@
 
 ## Abstract
 
-Formalize a process for merging the [Filecoin Saturn](https://github.com/filecoin-saturn) and the [Web3 Storage](https://github.com/web3-storage) orgs into [w3s](https://github.com/w3s-project).
+Formalize a process for merging the [Filecoin Saturn](https://github.com/filecoin-saturn), [NFT.Storage](https://github.com/nftstorage), and [Web3 Storage](https://github.com/web3-storage) orgs into [w3s](https://github.com/w3s-project).
 
 Ensure a common understanding on how repositories should be migrated on a case-by-case basis.
 
@@ -52,7 +52,7 @@ CI pipelines SHALL be individually checked to make sure nothing breaks or relies
 We have a total of 60 candidate repositories to migrate.
 We SHOULD migrate repos one-by-one with an opportunistic approach after we have established it is safe to do so.
 
-The following repos lists were computed with: `curl -Ls -H "Accept: application/vnd.github+json" -H "Authorization: Bearer $GITHUB_TOKEN" -H "X-GitHub-Api-Version: 2022-11-28" https://api.github.com/orgs/$ORG/repos | jq -r '.[] | "- [ ] [" + .name + "](" + .html_url + ")"' | pbcopy`, where `$ORG ∈ {"web3-storage", "filecoin-saturn"}` and where `GITHUB_TOKEN` is a token with access to both orgs. Further reference [here](https://docs.github.com/en/rest/repos/repos?apiVersion=2022-11-28#list-organization-repositories).
+The following repos lists were computed with: `curl -Ls -H "Accept: application/vnd.github+json" -H "Authorization: Bearer $GITHUB_TOKEN" -H "X-GitHub-Api-Version: 2022-11-28" https://api.github.com/orgs/$ORG/repos | jq -r '.[] | "- [ ] [" + .name + "](" + .html_url + ")"' | pbcopy`, where `$ORG ∈ {"web3-storage", "nftstorage", "filecoin-saturn"}` and where `GITHUB_TOKEN` is a token with access to both orgs. Further reference [here](https://docs.github.com/en/rest/repos/repos?apiVersion=2022-11-28#list-organization-repositories).
 
 ### [Web3 Storage](https://github.com/web3-storage)
 
@@ -95,6 +95,39 @@ It SHOULD NOT be migrated.
 - [ ] [ucanto-name-system](https://github.com/web3-storage/ucanto-name-system)
 - [ ] [alt-gateway](https://github.com/web3-storage/alt-gateway)
 - [ ] [link.web3.storage](https://github.com/web3-storage/link.web3.storage)
+
+### [NFT.Storage](https://github.com/nftstorage)
+
+- [ ] [nft.storage](https://github.com/nftstorage/nft.storage)
+- [ ] [go-client](https://github.com/nftstorage/go-client)
+- [ ] [java-client](https://github.com/nftstorage/java-client)
+- [ ] [php-client](https://github.com/nftstorage/php-client)
+- [ ] [python-client](https://github.com/nftstorage/python-client)
+- [ ] [ruby-client](https://github.com/nftstorage/ruby-client)
+- [ ] [rust-client](https://github.com/nftstorage/rust-client)
+- [ ] [eip721-subgraph](https://github.com/nftstorage/eip721-subgraph)
+- [ ] [ipfs-cluster](https://github.com/nftstorage/ipfs-cluster)
+- [ ] [nft.storage-tools](https://github.com/nftstorage/nft.storage-tools)
+- [ ] [js-client](https://github.com/nftstorage/js-client)
+- [ ] [dagcargo](https://github.com/nftstorage/dagcargo)
+- [ ] [carbites](https://github.com/nftstorage/carbites)
+- [ ] [carbites-cli](https://github.com/nftstorage/carbites-cli)
+- [ ] [nft.storage-example-next.js](https://github.com/nftstorage/nft.storage-example-next.js)
+- [ ] [ipnftx](https://github.com/nftstorage/ipnftx)
+- [ ] [nfts-growth-initiatives](https://github.com/nftstorage/nfts-growth-initiatives)
+- [ ] [consul-cluster-go-ipfs](https://github.com/nftstorage/consul-cluster-go-ipfs)
+- [ ] [metaplex-auth](https://github.com/nftstorage/metaplex-auth)
+- [ ] [ipnft](https://github.com/nftstorage/ipnft)
+- [ ] [backup](https://github.com/nftstorage/backup)
+- [ ] [gateway-load-simulator](https://github.com/nftstorage/gateway-load-simulator)
+- [ ] [gateway-read-test-lambda](https://github.com/nftstorage/gateway-read-test-lambda)
+- [ ] [ucan.storage](https://github.com/nftstorage/ucan.storage)
+- [ ] [etl-dotstorage](https://github.com/nftstorage/etl-dotstorage)
+- [ ] [checkup](https://github.com/nftstorage/checkup)
+- [ ] [niftysave](https://github.com/nftstorage/niftysave)
+- [ ] [nft-upload-tools](https://github.com/nftstorage/nft-upload-tools)
+- [ ] [assemble-cars-lambda](https://github.com/nftstorage/assemble-cars-lambda)
+- [ ] [ipfs-check](https://github.com/nftstorage/ipfs-check)
 
 ### [Filecoin Saturn](https://github.com/filecoin-saturn)
 
