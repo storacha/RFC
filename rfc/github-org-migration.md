@@ -85,7 +85,11 @@ It SHOULD NOT be migrated.
 - [ ] [parse-link-header](https://github.com/web3-storage/parse-link-header)
 - [ ] [js-replica](https://github.com/web3-storage/js-replica)
 - [ ] [w3up-archived](https://github.com/web3-storage/w3up-archived)
-- [ ] [upload-protocol](https://github.com/web3-storage/upload-protocol)
+- [x] [upload-protocol](https://github.com/web3-storage/upload-protocol)
+
+It SHOULD be archived.
+It SHOULD NOT be migrated.
+
 - [ ] [ucanto](https://github.com/web3-storage/ucanto)
 - [ ] [w3up](https://github.com/web3-storage/w3up)
 - [ ] [ucanto-name-system](https://github.com/web3-storage/ucanto-name-system)
