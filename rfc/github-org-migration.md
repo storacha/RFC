@@ -70,7 +70,12 @@ The following repos lists were computed with: `curl -Ls -H "Accept: application/
 - [ ] [example-forum-dapp](https://github.com/web3-storage/example-forum-dapp)
 - [ ] [fauna-dump](https://github.com/web3-storage/fauna-dump)
 - [ ] [db-migration-pipeline](https://github.com/web3-storage/db-migration-pipeline)
-- [ ] [fauna-dumpify](https://github.com/web3-storage/fauna-dumpify)
+- [x] [fauna-dumpify](https://github.com/web3-storage/fauna-dumpify)
+
+Old DB migrations of old products.
+It SHOULD be archived.
+It SHOULD NOT be migrated.
+
 - [ ] [admin.storage](https://github.com/web3-storage/admin.storage)
 - [ ] [hydra-booster](https://github.com/web3-storage/hydra-booster)
 - [ ] [ipns-publisher](https://github.com/web3-storage/ipns-publisher)
