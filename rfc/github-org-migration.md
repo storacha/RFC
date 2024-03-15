@@ -146,7 +146,7 @@ We assume your Git remote is called `origin`.
 **Note: Run with caution, as this section is being validated**
 
 In this scenario, one is attempting to do a local migration on all local repos for a particular `ORG`.
-We assume your Git remote is called `origin`.
+We assume your Git remote is called `origin` and that ssh authentication is the desired method (if you want to switch authentication look [here](https://docs.github.com/en/get-started/getting-started-with-git/managing-remote-repositories#switching-remote-urls-from-https-to-ssh)).
 
 1. Check your remotes for all repos within an `ORG` to make sure you're not missing anything: `find "$PATH_PREFIX/$ORG" -maxdepth 1 -type d ! -path "$PATH_PREFIX/$ORG" | xargs -pI{} git -C {} remote -v`;
 2. Move the `ORG` into its new filesystem path: `mv "$PATH_PREFIX/$ORG" "$PATH_PREFIX/w3s-project"`;
