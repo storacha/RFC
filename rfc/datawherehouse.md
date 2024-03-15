@@ -35,7 +35,6 @@ Actually we can even extend on this point by saying that today we have no verifi
 * Client stores some blob with web3.storage
 * Client requests this blob to be published with `store/publish`
 * Service handler verifies requested blob was stored on the client space, issues a location claim with encoded information for location and returns it to the client
-  * Can be batched with other invocations like `filecoin/offer`
 
 The following diagram presents the described flow, and is illustrated with the following steps:
 
@@ -69,7 +68,7 @@ This capability can be specified as follows:
   "op": "store/publish",
   "rsc": "did:key:abc...space",
   "input": {
-    "link": { "/": "bafy...BLOBCID" }, // RAW CID - go from CAR <-> RAW CID it's just switching a codec byte
+    "content": { "/": "bafy...BLOBCID" }, // RAW CID - go from CAR <-> RAW CID it's just switching a codec byte
     "url": "https://..." // write target presignedurl previously provided
   }
 }
@@ -82,7 +81,7 @@ Return on success the following receipt:
   "ran": "bafy...storePublish",
   "out": {
     "ok": {
-      "link" : { "/": "bafy...BLOBCID" }, // RAW CID - go from CAR <-> RAW CID it's just switching a codec byte
+      "content" : { "/": "bafy...BLOBCID" }, // RAW CID - go from CAR <-> RAW CID it's just switching a codec byte
       "location": "`https://w3s.link/ipfs/bafy...BLOBCID?origin=r2://region/bucketName/key"
     }
   },
@@ -92,7 +91,7 @@ Return on success the following receipt:
 
 TODO: Should return the actual location claim? How would we do that?
 
-On the event of failure, it should state error behind it:
+On the event of failure, it should state error behind it, such as:
 
 ```json
 {
@@ -100,12 +99,28 @@ On the event of failure, it should state error behind it:
   "out": {
     "error": {
       "name": "ContentNotFoundError",
-      "link" : { "/": "bafy...BLOBCID" }
+      "content" : { "/": "bafy...BLOBCID" }
     }
   },
   "fx": {},
 }
 ```
+
+or
+
+```json
+{
+  "ran": "bafy...storePublish",
+  "out": {
+    "error": {
+      "name": "ContentNotAllocatedError",
+      "content" : { "/": "bafy...BLOBCID" }
+    }
+  },
+  "fx": {},
+}
+```
+
 
 ## Location claims encoding location hints
 
@@ -115,34 +130,11 @@ In w3s the service is responsible to deciding the write target, therefore servic
 
 While thinking about using location claims to record where bytes are stored by the service, there are a few characteristics we want to have:
 - location claim MUST resolve to a public and fetchable URLs
-- location in location claim SHOULD (ideally) not change recurrently given it MAY impact negatively the reputation of a party. However, we should consider letting client choose how long the location claim should be valid for.
+- location in location claim SHOULD should change within the commitment window of the claim given it MAY impact negatively the reputation of a party. However, client SHOULD be able to choose how long the location claim is valid for.
 
 Read interfaces MAY have some requirements other than the CID to better, such as knowing bucket name, region, etc. 
 
-As a way to store the location of this bytes, we discussed relying on a "private" location claims concept, or even on location claims for a gateway that have hints as encoded params in the URL that the read interface can decide if want to try to use. This would allow us to already have the infra and datastores we have, leaving the decentralization of content claims for a completely different problem.
-
-### _private_ location claims
-
-_private_ location claims would enable us to not expose these claims directly to the user, given their sole purpose at the moment is internal routing. This would enable queries of w3s read/write interfaces to know where the bytes for a CID are stored.
-
-With this building block we can issue claims that MAY not be public and fetchable URLs, as well as not have worries on a potential future data migration.
-
-A _private_ location claim MAY look like:
-
-```json
-{
-  "op": "assert/location",
-  "aud": "did:key:abc...space",
-  "rsc": "did:web:private.web3.storage",
-  "input": {
-    "content" : CID /* // RAW CID */, 
-    "location": "`https://<BUCKET_NAME>.<REGION>.web3.storage/<CID>/<CID>.car`",
-    "range"   : [ start, end ] /* Optional: Byte Range in URL
-  }
-}
-```
-
-Note that we could actually make this location URL publicly available in R2 custom domain, if we would like it. Of course this would still not be a good reason to make it public, given moving the data to a different location would lead to invalid claims. But can actually be a good idea for a transition period for decentralized write nodes.
+As a way to store the location of this bytes, we discussed relying on a "private" location claims concept, or even on location claims for a gateway that have hints as encoded params in the URL that the read interface can decide if want to try to use. This would allow us to already have the infra and datastores we have, leaving the decentralization of content claims for a completely different problem. We decided for encoded params on location claim given it also puts us into the future direction where write targets may actually have public URLs.
 
 ### location claims with encoded params
 
@@ -158,7 +150,7 @@ A location claim MAY look like:
   "input": {
     "content" : { "/": "bafy...BLOBCID" }, // // RAW CID
     "location": "`https://w3s.link/ipfs/bafy...BLOBCID?origin=r2://region/bucketName/key",
-    "range"   : [ start, end ] /* Optional: Byte Range in URL
+    "range"   : [ start, end ] /* Byte Range in URL
   }
 }
 ```
@@ -169,11 +161,7 @@ We do not need to have an internal "private" claim for storing this data. Once w
 
 In case we issue further claims with different query parameters, the service can still look at their date and attempt latest first, without real need to revoke them given the URL will still resolve to the data.
 
-Also note that we do not really need to do any change in `dag.w3s.link`. The service can call content claims and see what are the hints. For optimization purpuses we can however check and try them first.
-
-## Proposal
-
-Location claims with encoded params seems to be the simplest solution and also puts us into the future direction where write targets may actually have public URLs. Therefore, relying on `location claims with encoded params` can solve all the requirements while better position us for future. In addition, it is also the easy solution to implement.
+Also note that we do not really need to do any change in `w3s.link`. The service can call content claims and see what are the hints. For optimization purpuses we can however check and try them first.
 
 ---
 
