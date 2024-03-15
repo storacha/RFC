@@ -71,11 +71,9 @@ The following repos lists were computed with: `curl -Ls -H "Accept: application/
 - [ ] [fauna-dump](https://github.com/web3-storage/fauna-dump)
 - [ ] [db-migration-pipeline](https://github.com/web3-storage/db-migration-pipeline)
 - [x] [fauna-dumpify](https://github.com/web3-storage/fauna-dumpify)
-
-Old DB migrations of old products.
-It SHOULD be archived.
-It SHOULD NOT be migrated.
-
+    - Old DB migrations for old products;
+    - It SHOULD be archived;
+    - It SHOULD NOT be migrated.
 - [ ] [admin.storage](https://github.com/web3-storage/admin.storage)
 - [ ] [hydra-booster](https://github.com/web3-storage/hydra-booster)
 - [ ] [ipns-publisher](https://github.com/web3-storage/ipns-publisher)
@@ -86,10 +84,8 @@ It SHOULD NOT be migrated.
 - [ ] [js-replica](https://github.com/web3-storage/js-replica)
 - [ ] [w3up-archived](https://github.com/web3-storage/w3up-archived)
 - [x] [upload-protocol](https://github.com/web3-storage/upload-protocol)
-
-It SHOULD be archived.
-It SHOULD NOT be migrated.
-
+    - It SHOULD be archived.
+    - It SHOULD NOT be migrated.
 - [ ] [ucanto](https://github.com/web3-storage/ucanto)
 - [ ] [w3up](https://github.com/web3-storage/w3up)
 - [ ] [ucanto-name-system](https://github.com/web3-storage/ucanto-name-system)
@@ -132,9 +128,7 @@ It SHOULD NOT be migrated.
 - [ ] [ai-artwork-uploader](https://github.com/web3-storage/ai-artwork-uploader)
 - [ ] [sst-monorepo](https://github.com/web3-storage/sst-monorepo)
 - [ ] [w3infra](https://github.com/web3-storage/w3infra)
-
-Will need to check what happens to the [seed.run](https://seed.run/) infra with a new mini project (SST + seed.run) in the new org and migrate this repo there.
-
+    - Will need to check what happens to the [seed.run](https://seed.run/) infra with a new mini project (SST + seed.run) in the new org and migrate this repo there.
 - [ ] [w3notes](https://github.com/web3-storage/w3notes)
 - [ ] [w3ui-swc-minify-bug](https://github.com/web3-storage/w3ui-swc-minify-bug)
 - [ ] [file-space](https://github.com/web3-storage/file-space)
@@ -146,9 +140,7 @@ Will need to check what happens to the [seed.run](https://seed.run/) infra with 
 - [ ] [w3link-csp-report-api](https://github.com/web3-storage/w3link-csp-report-api)
 - [ ] [backup](https://github.com/web3-storage/backup)
 - [ ] [w3filecoin-infra](https://github.com/web3-storage/w3filecoin-infra)
-
-Will need to check what happens to the [seed.run](https://seed.run/) infra with a new mini project (SST + seed.run) in the new org and migrate this repo there.
-
+    - Will need to check what happens to the [seed.run](https://seed.run/) infra with a new mini project (SST + seed.run) in the new org and migrate this repo there.
 - [ ] [w3up-docs](https://github.com/web3-storage/w3up-docs)
 - [ ] [backup-infra](https://github.com/web3-storage/backup-infra)
 - [ ] [w3clock](https://github.com/web3-storage/w3clock)
@@ -238,11 +230,9 @@ Will need to check what happens to the [seed.run](https://seed.run/) infra with 
 ### [Filecoin Saturn](https://github.com/filecoin-saturn)
 
 - [x] [DEPRECATED-saturn](https://github.com/filecoin-saturn/DEPRECATED-saturn)
-
-An historical artefact of an initial Filecoin Saturn implementation. 
-It SHOULD be archived.
-It SHOULD NOT be migrated.
-
+    - An historical artefact of an initial Filecoin Saturn implementation. 
+    - It SHOULD be archived.
+    - It SHOULD NOT be migrated.
 - [ ] [browser-client](https://github.com/filecoin-saturn/browser-client)
 - [ ] [L1-node](https://github.com/filecoin-saturn/L1-node)
 - [ ] [homepage](https://github.com/filecoin-saturn/homepage)
