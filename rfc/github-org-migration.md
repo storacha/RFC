@@ -51,6 +51,7 @@ CI pipelines SHALL be individually checked to make sure nothing breaks or relies
 
 We have a total of 203 candidate repositories to migrate.
 We SHOULD migrate repos one-by-one with an opportunistic approach after we have established it is safe to do so.
+Once a repository is successfully migrated, it will be marked as [x].
 
 The following repos lists were computed with: `curl -Ls -H "Accept: application/vnd.github+json" -H "Authorization: Bearer $GITHUB_TOKEN" -H "X-GitHub-Api-Version: 2022-11-28" https://api.github.com/orgs/$ORG/repos\?per_page\=100\&page\=$PAGE | jq -r '.[] | "- [ ] [" + .name + "](" + .html_url + ")"' |`, where `$ORG ∈ {"web3-storage", "nftstorage", "filecoin-saturn"}`, `GITHUB_TOKEN` is a token with access to all orgs, and `$PAGE ∈ [1,2]`. Further reference [here](https://docs.github.com/en/rest/repos/repos?apiVersion=2022-11-28#list-organization-repositories).
 
@@ -70,7 +71,7 @@ The following repos lists were computed with: `curl -Ls -H "Accept: application/
 - [ ] [example-forum-dapp](https://github.com/web3-storage/example-forum-dapp)
 - [ ] [fauna-dump](https://github.com/web3-storage/fauna-dump)
 - [ ] [db-migration-pipeline](https://github.com/web3-storage/db-migration-pipeline)
-- [x] [fauna-dumpify](https://github.com/web3-storage/fauna-dumpify)
+- [ ] [fauna-dumpify](https://github.com/web3-storage/fauna-dumpify)
     - Old DB migrations for old products;
     - It SHOULD be archived;
     - It SHOULD NOT be migrated.
@@ -83,7 +84,7 @@ The following repos lists were computed with: `curl -Ls -H "Accept: application/
 - [ ] [parse-link-header](https://github.com/web3-storage/parse-link-header)
 - [ ] [js-replica](https://github.com/web3-storage/js-replica)
 - [ ] [w3up-archived](https://github.com/web3-storage/w3up-archived)
-- [x] [upload-protocol](https://github.com/web3-storage/upload-protocol)
+- [ ] [upload-protocol](https://github.com/web3-storage/upload-protocol)
     - It SHOULD be archived.
     - It SHOULD NOT be migrated.
 - [ ] [ucanto](https://github.com/web3-storage/ucanto)
@@ -229,7 +230,7 @@ The following repos lists were computed with: `curl -Ls -H "Accept: application/
 
 ### [Filecoin Saturn](https://github.com/filecoin-saturn)
 
-- [x] [DEPRECATED-saturn](https://github.com/filecoin-saturn/DEPRECATED-saturn)
+- [ ] [DEPRECATED-saturn](https://github.com/filecoin-saturn/DEPRECATED-saturn)
     - An historical artefact of an initial Filecoin Saturn implementation. 
     - It SHOULD be archived.
     - It SHOULD NOT be migrated.
