@@ -45,11 +45,12 @@ Additionally, it is RECOMMENDED to perform the [post-migration instructions](#po
 
 CI pipelines SHALL be individually checked to make sure nothing breaks or relies on a particular repo naming structure.
 
-## Repository Overview
+## Repository Migration Overview
 
 **Note: This section is under construction and it is where the bulk of work of this spec will go**
 
 We have a total of 60 candidate repositories to migrate.
+We SHOULD migrate repos one-by-one with an opportunistic approach after we have established it is safe to do so.
 
 The following repos lists were computed with: `curl -Ls -H "Accept: application/vnd.github+json" -H "Authorization: Bearer $GITHUB_TOKEN" -H "X-GitHub-Api-Version: 2022-11-28" https://api.github.com/orgs/$ORG/repos | jq -r '.[] | "- [ ] [" + .name + "](" + .html_url + ")"' | pbcopy`, where `$ORG ∈ {"web3-storage", "filecoin-saturn"}` and where `GITHUB_TOKEN` is a token with access to both orgs. Further reference [here](https://docs.github.com/en/rest/repos/repos?apiVersion=2022-11-28#list-organization-repositories).
 
