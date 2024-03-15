@@ -29,6 +29,7 @@ Local Migration is defined as the act of moving a repo into the post-migration f
 ## Out of scope
 
 - Tidying up local Git state post-migration (i.e. removing old remotes, and branches);
+- Defining a method to authenticate with Github;
 - TBD
 
 ## Migration consequences and Failure scenarios
