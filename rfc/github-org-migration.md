@@ -35,11 +35,9 @@ Local Migration is defined as the act of moving a repo into the post-migration f
 
 According to [Transferring a repository](https://docs.github.com/en/repositories/creating-and-managing-repositories/transferring-a-repository): 
 
-```
-"When you transfer a repository, its issues, pull requests, wiki, stars, and watchers are also transferred. If the transferred repository contains webhooks, services, secrets, or deploy keys, they will remain associated after the transfer is complete. Git information about commits, including contributions, is preserved.".
-(...)
-"All links to the previous repository location are automatically redirected to the new location. When you use git clone, git fetch, or git push on a transferred repository, these commands will redirect to the new repository location or URL. However, to avoid confusion, we strongly recommend updating any existing local clones to point to the new repository URL."
-```
+> "When you transfer a repository, its issues, pull requests, wiki, stars, and watchers are also transferred. If the transferred repository contains webhooks, services, secrets, or deploy keys, they will remain associated after the transfer is complete. Git information about commits, including contributions, is preserved.".
+> (...)
+> "All links to the previous repository location are automatically redirected to the new location. When you use git clone, git fetch, or git push on a transferred repository, these commands will redirect to the new repository location or URL. However, to avoid confusion, we strongly recommend updating any existing local clones to point to the new repository URL."
 
 This ensures migration disruptions are minimal and that we can keep operating normally and migrate on a repo-by-repo basis. Still, it is crucial to look at each repo individually to ascertain migration consequences which may impact other systems outside of Github and our local development machines.
 Additionally, it is RECOMMENDED to perform the [post-migration instructions](#post-migration-instructions) below.
