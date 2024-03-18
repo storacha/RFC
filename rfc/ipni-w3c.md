@@ -6,7 +6,7 @@
 
 ## Goals
 
-A user can use a CID that identifies data stored on w3c to lookup the location where the data can be retrieved and content claims describing that data.
+A user can use a CID that identifies data stored on w3s to lookup the location where the data can be retrieved and content claims describing that data.
 
 The data's location can change and content claims about the data can change, at anytime during the data's storage lifetime, and queried for the data CIDs will be able to get the most locations and claims.
 
