@@ -6,17 +6,15 @@
 
 ## Goals
 
-A user can use a CID that identifies data stored on w3s to lookup the location where the data can be retrieved and content claims describing that data.
-
-The data's location can change and content claims about the data can change, at anytime during the data's storage lifetime, and queried for the data CIDs will be able to get the most locations and claims.
+A user can use a multihash that identifies data stored on w3s to lookup the location where the data can be retrieved and content claims describing that data. w3s can update content claims if necessary without having to republish data multihashes.
 
 This RFC describes how IPNI indexing can be used to lookup data locations and content claims for any CID within a CAR stored in w3c.
 
 ## Abstract
 
-A user stores data as a CAR file. This CAR contains a set of multihashes for individual pieces of data within the CAR. 
+A user stores content as opaque blobs containing series of blocks addressed by multihashes. Currently, these blocks are collected into a CAR file for storage as one body of data.
 
-The user creates a an external CAR index [CARx-index](https://github.com/web3-storage/RFC/pull/9/files) that contains tuples of (CID, offset, length) of any items they intend to make individually retrievable from the car.
+The user creates an external CAR index [CARx-index](https://github.com/web3-storage/RFC/pull/9/files) that contains tuples of (multihash, offset, length) of any items the user intends to make individually retrievable from the car.
 
 With an [inclusion claim](https://hackmd.io/@gozala/content-claims?utm_source=preview-mode&utm_medium=rec#Inclusion-Claims), the user who created the CAR asserts that CAR contains a given set of multihashes, transitively, via the CARx-index.
 
@@ -37,26 +35,26 @@ We publish ad-hoc batches of multihashes to IPNI. This proposal aims to align ou
 
 ### Motivation
 
-- Align IPNI advertisement entries with CAR block sets, so that these CIDs can be queried to get the location of the CARx-index and CAR data.
+- Align IPNI advertisement entries with CAR block sets, so that these multihashes can be queried to get the location of the CARx-index and CAR data.
   - This exposes our block-to-car indexes. Anyone could use IPNI to find which CAR a block is in.
   -   The context id bytes provide the CAR CID for any block look up. The CAR CID can then be used to find the CAR index via our content-claims API.
   - We could delete the IPNI records by CAR CID if the CAR is deleted.
 - Make IPNI advertising an explicit UCAN capability that clients can invoke rather than a side-effect of bucket events
-  - With this we are free to write CARs anywhere. The user's agent invokes a `ipni/offer` capability to ask us to publish an IPNI advertisement for the blocks in their CAR.
+  - With this we are free to write CARs anywhere. The user's agent invokes a `ipni/offer` capability to ask us to publish an IPNI advertisement for the blocks of data stored.
+  - w3s commits to user that it can serve data from a particular location, and user redelegates thst to IPNI to create advertsiement.
   - This empowers the user to opt-in or out as they need, and allows us to bill for the (small) cost of running that service.
-- Provide a way to retrieve a CAR index, that has (CID, offset, length) tuples, without retrieving the CAR file.
+- Provide a way to retrieve a CAR index, that has (multihash, offset, length) tuples, without retrieving the CAR file.
     - Eliminates the need to rely on the CARPark database. Block location information can now be stored on the w3s network.
     - Clients can request specific data item and only receive data for that item.
 - Put the source inclusion claim in the IPNI advert metadata.
-  - We have to sign IPNI Adverts as the provider. Providing a signed source claim allows more nuanced reputation decisions.
+  - Identifies the source of the stored data, which is the client.
 
-Question: Is there a specific use case for the inclusion claim in the metadata?
 
 ### Quick IPNI primer
 
 IPNI ingests and replicates billions of signed provider claims for where individual block CIDs can be retrieved from.
 
-Users can query IPNI servers for any CID, and it provides a set of provider addresses and transport info, along with a provider specific `ContextID` and optional metadata.
+Users can query IPNI servers for any multihash, and it provides a set of provider addresses and transport info, along with a provider specific `ContextID` and optional metadata.
 
 For example: <http://cid.contact> hosts an IPNI server that Protocol Labs maintains.
 
@@ -95,7 +93,7 @@ curl https://cid.contact/cid/bafybeicawc3qwtlecld6lmtvsndimoz3446xyaprgsxvhd3aap
 ]}]}
 ```
 
-web3.storage publishes the blocks it can provide by encoding a batch of multihashes as an IPLD object and writing it to a bucket as an `Advertisement`, addressed by it's CID.
+web3.storage publishes the blocks it can provide by encoding a batch of multihashes as an IPLD object and writing it to a bucket as an `Advertisement`, addressed by it's multihash.
 
 An `Advertisement` includes `Provider` info which claims that the batch of multihashes are available via bitswap or HTTP, and are signed by the providers PeerID private key; Each advert is a claim that this peer will provide that batch of multihashes.
 
@@ -103,11 +101,13 @@ Advertisements also include a CID link to any previous ones from the same provid
 
 The latest `head` CID of the advert list can be broadcast over [gossipsub], to be replicated and indexed by all listeners, or sent via HTTP to specific IPNI servers as a notification to pull and index the latest ads from you at their earliest convenience.
 
-The advert `ContextID` allows providers to specify a custom grouping key for multiple adverts. You can update or remove multiple adverts by specifying the same `ContextID`. The value is an opaque byte array as far as IPNI is concerned, and is provided in the query response. The ContextID also serves as a key that refers metadata, and is used to update or delete that metadata. Updating metadata changes the metadata returned by IPNI lookups for all CIDs that were advertised with that context ID.
+The advert `ContextID` allows providers to specify a custom grouping key for multiple adverts. You can update or remove multiple adverts by specifying the same `ContextID`. The value is an opaque byte array as far as IPNI is concerned, and is provided in the query response. The ContextID also serves as a key that refers metadata, and is used to update or delete that metadata. Updating metadata changes the metadata returned by IPNI lookups for all multihashes that were advertised with that context ID.
 
 A `Metadata` field is also available for provider specific retrieval hints, that a user should send to the provider when making a request for the block, but the mechanism here is unclear _(HTTP headers? bitswap?)_.
 
 Regardless, it is a field we can use to include the location of the claims bucket. The provider has to sign the IPNI advert with the peerID key that should be used to secure the libp2p connection when retrieving the block.
+
+**Reader-Privacy**: IPNI provides optional reader privacy that prevents observers, including IPNI, from knowing what multihashes clients are querying and what provider information and metadata they lookup. This privacy is available to all clients querying IPNI, that implement the client side of the privacy protocol.
 
 ### How web3.storage integrates IPNI today
 
@@ -148,7 +148,9 @@ flowchart TD
 ## Proposal
 Provide a ipni/offer UCAN ability to submit the location of a CAR and a CARx-index that a user has stored with w3s, to make the them discoverable via IPFS implementations and other IPNI consumers.
 
-The ipni/offer is optional, and if not invoked the user's data is not indexed.
+The ipni/offer is optional, and if not invoked, then the user's data is not indexed.
+
+If opting-in to IPNI indexing, the CAR file and the CARx-index are created by the client. The client may choose which multihashes they want indexed and specify this in the ipni/offer request.
 
 ### Indexing stored data
 
@@ -156,13 +158,16 @@ The ipni/offer is optional, and if not invoked the user's data is not indexed.
 sequenceDiagram
     actor Alice
     Alice->>w3s: put CAR + CARx-index
+    activate w3s
+    w3s-->>w3s: create location claims
+    w3s-->>w3s: create/store claims bucket
+    w3s-->>Alice: location claims
+    deactivate w3s
     activate Alice
-    Alice-->>Alice: create location claims
-    Alice->>w3s: ipni/offer (inc, loc claims)
+    Alice->>w3s: ipni/offer (inclucion, locations CIDs)
     deactivate Alice
     activate w3s
     w3s-->>w3s: fetch & verify CARx-index
-    w3s-->>w3s: create/store claims bucket
     w3s-->>w3s: write advertisement
     w3s-)ipni: publish head (CID)
     deactivate w3s
@@ -171,23 +176,10 @@ sequenceDiagram
     ipni-->>ipni: index entries
     deactivate ipni
 ```
-Invoke `ipni/offer` with the CID for an [inclusion claim] that associates a CAR CID with a CARx-index CID.
 
-**UCAN invocation** example
-
-```json
-{
-  "iss": "did:key:zAlice",
-  "aud": "did:web:web3.storage",
-  "att": [{
-    "can": "ipni/offer",
-    "with": "did:key:space", // users space DID
-    "nb": {
-        "inclusion": CID   // inclusion claim CID
-    }
-  }]
-}
-```
+- User uploads their CAR and CARx-index to w3s to the pre-signed PUT url.
+- w3s creates the location claims for the CAR and CARx-index after fetching and verifying the content was uploaded
+  - What triggers the claims creation, polling storage location?
 
 **Location claims** example
 
@@ -212,6 +204,27 @@ Invoke `ipni/offer` with the CID for an [inclusion claim] that associates a CAR 
 }
 ```
 
+- User checks CAR status and gets UCAN delegation for `assert/location` where subject `with` field is a provider DID (did:web:web3.storage), issuer is a provider DID, and audience is space DID.
+- User wants to publish to IPNI, so they invoke delegated assert/location capability.
+- Invoke `ipni/offer` with the CID for an [inclusion claim] that associates a CAR CID with a CARx-index CID.
+
+**UCAN invocation** example
+
+```json
+{
+  "iss": "did:key:Alice",
+  "aud": "did:web:web3.storage",
+  "att": [{
+    "can": "ipni/offer",
+    "with": "did:key:space", // users space DID
+    "nb": {
+        "inclusion": CID   // inclusion claim CID
+        "location:": CID   // location claim CID
+    }
+  }]
+}
+```
+
 **Inclusion claim** example
 
 ```json
@@ -221,13 +234,19 @@ Invoke `ipni/offer` with the CID for an [inclusion claim] that associates a CAR 
 }
 ```
 
-When `ipni/offer` is invoked, encoded inclusion claim and encoded location claims for the CAR and the CARx-index are all sent with the invocation.
+The w3s service fetches the CAR he CARx-index and parses the index to verify the multihashes are included in the CAR. see: [Verifying the CARv2 Index](#verifying-the-carv2-index). These files are likely cached locally from when the location claims were created.
 
-_Alternatively, the w3s service could create the location claims. The user would still need to provide the locations, so might as well do this as a location claim. If w3s moves the data, then it can replace the location claims with new ones_
+After CAR verification, the w3s service creates the location claims for the CAR and the CARx-index.
 
-The service must fetch he CARx-index and parse it to find the set of multihashes included in the CAR. see: [Verifying the CARv2 Index](#verifying-the-carv2-index)
+The w3s service then creates a new claims bucket, writes the location claims into the claims bucket, and stores the claims bucket in the user's storage space.
 
-_Alternatively the service could generate the CARx-index and store it, but it would be better to have the clients do that work of generating and storing the index._
+Finally the w3s service creates a new IPNI advertisement and sends a announcement to IPNI.
+
+
+Note:
+- Authority over what the data is belongs to the client.
+- Authouity over where the data is stored belongs to w3s.
+
 
 Questions:
 1. Is another claim needed to identify the CID of each location claim?
@@ -265,10 +284,13 @@ type EntryChunk struct {
     Next optional Link
 }
 ```
-- `Addresses` the most recent value of this is returned with lookups for any CID in any advertisement. It will contain the multiaddr form of URL claims service? TBD.
+
+- `ProviderID` libp2p peer ID of w3s service that creates advertisements.
+- `Addresses` the most recent value of this is returned with lookups for any CID in any advertisement. It will contain the multiaddr form of the claims service URL. This is where the the content claims bucket is retrieved from when presented with the bucket CID.
+- `Signature` Signature over all ad created using private key matching `ProviderID`.
 - `ContextID` must be the byte encoded form of the CAR CID.
 - `Entries` must be the CID of an `EntryChunk` for a subset (or all) of the multihashes in the CAR.
-- `Metadata` encodes the location of the content claims bucket and the inclusion claim that ties the CAR CID to the CARx-index CID. 
+- `Metadata` encodes the CID of the content claims bucket. Possibly the CARx-index location claim as an optimization, to be added later. 
 - `IsRm` is used when removing all advertisement(s) that have that context ID and deleting all associated multihash indexes from IPNI.
 
 See: [Encoding the IPNI Advertisement](#encoding-the-ipni-advertisement)
@@ -279,7 +301,7 @@ The w3s service is responsible for creating advertisements. Having users publish
 
 #### Encoding the IPNI Advertisement
 
-The set of multihashes within one CAR must be encoded as 1 Advertisement, having 1 or more `EntryChunk` blocks. `EntryChunk` blocks include an array of multihashes.
+The set of multihashes within one CAR must be encoded as 1 Advertisement, having 1 or more `EntryChunk` blocks. `EntryChunk` blocks are an array of multihashes with a link to a next block, if there is one.
 
 The `EntryChunk` serves a similar purpose as [HTTP chunking](https://en.wikipedia.org/wiki/Chunked_transfer_encoding). A typical block will have 16k multihashes in it.
 
@@ -301,7 +323,7 @@ All multihashes must be sorted in ascending order before being split into chunks
 ```mermaid
 sequenceDiagram
     actor Alice
-    Alice->>ipni: query (CID)
+    Alice->>ipni: query (multihash)
     activate ipni
     ipni-->>Alice: claims location, CAR CID
     deactivate ipni
@@ -317,8 +339,8 @@ sequenceDiagram
     w3s-->>Alice: CARx-index
     deactivate w3s
     activate Alice
-    Alice-->>Alice: read offset/range for CID(s)
-    Alice->>w3s: get data (CAR URL, data CID, offset, len)
+    Alice-->>Alice: read offset/range for multihashes(s)
+    Alice->>w3s: get data (CAR URL, data multihash, offset, len)
     deactivate Alice
     activate w3s
     w3s-->>w3s: fetch CAR
