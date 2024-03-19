@@ -12,25 +12,35 @@
 
 ## Abstract
 
-Formalize a process for merging the [Filecoin Saturn](https://github.com/filecoin-saturn), [NFT.Storage](https://github.com/nftstorage), and [Web3 Storage](https://github.com/web3-storage) orgs into [w3s](https://github.com/w3s-project).
+Formalizes a process of migrating the [Filecoin Saturn](https://github.com/filecoin-saturn), [NFT.Storage](https://github.com/nftstorage), and [Web3 Storage](https://github.com/web3-storage) orgs into [w3s](https://github.com/w3s-project).
 
-Ensure a common understanding on how repositories should be migrated on a case-by-case basis.
-
-Provides recommendations and fixes to make this migration process as smooth and bulletproof for everyone.
+Goals:
+- To ensure a common understanding on how repositories should be migrated on a case-by-case basis;
+- To achieve cost-savings across orgs by only billing a single one;
+- To ensure all repo-dependant systems continue operating transparently;
+    - i.e. to provide recommendations/fixes to make the migration process as smooth and bulletproof as possible;
+    - If such a goal is not possible, then the secondary goal is to provide the necessary changes to either prevent the system from stopping its operation or to recover it.
+- To consolidate repos while minimizing maintenance complexity;
+    - e.g. keeping project tracking as simple as possible.
 
 ## Language
 
 The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT", "SHOULD", "SHOULD NOT", "RECOMMENDED", "MAY", and "OPTIONAL" in this document are to be interpreted as described in [RFC2119](https://datatracker.ietf.org/doc/html/rfc2119).
 
-Migration is defined as the act of transferring ownership from either the [Filecoin Saturn](https://github.com/filecoin-saturn) or [Web3 Storage](https://github.com/web3-storage) orgs into [w3s](https://github.com/w3s-project) and ensuring all dependent systems continue operating transparently. If such a goal is not possible, then the necessary changes to either prevent the system from stopping its operation or recover it will be proposed.
+Source orgs: [Filecoin Saturn](https://github.com/filecoin-saturn), [NFT.Storage](https://github.com/nftstorage), [Web3 Storage](https://github.com/web3-storage).
+Final org: [w3s](https://github.com/w3s-project).
 
-Local Migration is defined as the act of moving a repo into the post-migration filesystem path while ensuring its [Git remote](https://git-scm.com/docs/git-remote) matches a path in the [w3s](https://github.com/w3s-project) org.
+Migration is defined as either:
+- transferring repo ownership from a source org into the final org;
+- forking a source repo in the source org into the final org.
+
+Local Migration is defined as the act of moving a repo into the post-migration filesystem path while ensuring its [Git remote](https://git-scm.com/docs/git-remote) matches a path in the final org.
 
 ## Out of scope
 
 - Tidying up local Git state post-migration (i.e. removing old remotes, and branches);
 - Defining a standard method to authenticate with Github;
-- TBD
+- Settling on a specific Github billing plan;
 
 ## Migration consequences and Failure scenarios
 
