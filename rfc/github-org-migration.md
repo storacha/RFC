@@ -59,17 +59,18 @@ CI pipelines SHALL be individually checked to make sure nothing breaks or relies
 
 **Note: This section is under construction and it is where the bulk of work of this spec will go**
 
-We have a total of 203 candidate repositories to migrate.
+We have a total of 193 candidate repositories to migrate (out of a total of 203 of which 10 were already archived).
 We SHOULD migrate repos one-by-one with an opportunistic approach after we have established it is safe to do so.
 Once a repository is successfully migrated, it will be marked as [x].
 
-The following repos lists were computed with: `curl -Ls -H "Accept: application/vnd.github+json" -H "Authorization: Bearer $GITHUB_TOKEN" -H "X-GitHub-Api-Version: 2022-11-28" https://api.github.com/orgs/$ORG/repos\?per_page\=100\&page\=$PAGE | jq -r '.[] | "- [ ] [" + .name + "](" + .html_url + ")"'`, where `$ORG ∈ {"web3-storage", "nftstorage", "filecoin-saturn"}`, `GITHUB_TOKEN` is a token with access to all orgs, and `$PAGE ∈ [1,2]`. Further reference [here](https://docs.github.com/en/rest/repos/repos?apiVersion=2022-11-28#list-organization-repositories).
+The following repos lists were computed with: `curl -Ls -H "Accept: application/vnd.github+json" -H "Authorization: Bearer $GITHUB_TOKEN" -H "X-GitHub-Api-Version: 2022-11-28" https://api.github.com/orgs/$ORG/repos\?per_page\=100\&page\=$PAGE | jq -r '.[] | select(.archived|not) | "- [ ] [" + .name + "](" + .html_url + ")"'`, where `$ORG ∈ {"web3-storage", "nftstorage", "filecoin-saturn"}`, `GITHUB_TOKEN` is a token with access to all orgs, and `$PAGE ∈ [1,2]`. Further reference [here](https://docs.github.com/en/rest/repos/repos?apiVersion=2022-11-28#list-organization-repositories).
 
 ### [Web3 Storage](https://github.com/web3-storage)
 
 - [ ] [ipfs-car](https://github.com/web3-storage/ipfs-car)
 - [ ] [web3.storage](https://github.com/web3-storage/web3.storage)
-- [ ] [web3-file](https://github.com/web3-storage/web3-file)
+- [x] [web3-file](https://github.com/web3-storage/web3-file)
+    - already archived.
 - [ ] [go-w3s-client](https://github.com/web3-storage/go-w3s-client)
 - [ ] [wrangler-action](https://github.com/web3-storage/wrangler-action)
 - [ ] [add-to-web3](https://github.com/web3-storage/add-to-web3)
@@ -113,27 +114,32 @@ The following repos lists were computed with: `curl -Ls -H "Accept: application/
 - [ ] [w3link](https://github.com/web3-storage/w3link)
 - [ ] [dagula](https://github.com/web3-storage/dagula)
 - [ ] [dagula-gateway](https://github.com/web3-storage/dagula-gateway)
-- [ ] [fast-unixfs-exporter](https://github.com/web3-storage/fast-unixfs-exporter)
+- [x] [fast-unixfs-exporter](https://github.com/web3-storage/fast-unixfs-exporter)
+    - already archived.
 - [ ] [telemetry-grafana-agent](https://github.com/web3-storage/telemetry-grafana-agent)
 - [ ] [handlebars.js](https://github.com/web3-storage/handlebars.js)
-- [ ] [w3up-client](https://github.com/web3-storage/w3up-client)
+- [x] [w3up-client](https://github.com/web3-storage/w3up-client)
+    - already archived.
 - [ ] [w3up-client-examples](https://github.com/web3-storage/w3up-client-examples)
 - [ ] [cf-management](https://github.com/web3-storage/cf-management)
 - [ ] [js-libp2p-multistream-select](https://github.com/web3-storage/js-libp2p-multistream-select)
 - [ ] [w3up-client-components](https://github.com/web3-storage/w3up-client-components)
-- [ ] [w3up-cli](https://github.com/web3-storage/w3up-cli)
+- [x] [w3up-cli](https://github.com/web3-storage/w3up-cli)
+    - already archived.
 - [ ] [goodbits](https://github.com/web3-storage/goodbits)
 - [ ] [linkdex](https://github.com/web3-storage/linkdex)
 - [ ] [linkdex-api](https://github.com/web3-storage/linkdex-api)
 - [ ] [w3ui](https://github.com/web3-storage/w3ui)
 - [ ] [web3.storage-content](https://github.com/web3-storage/web3.storage-content)
 - [ ] [w3ui-website](https://github.com/web3-storage/w3ui-website)
-- [ ] [attach-write-to-read](https://github.com/web3-storage/attach-write-to-read)
+- [x] [attach-write-to-read](https://github.com/web3-storage/attach-write-to-read)
+    - already archived.
 - [ ] [sigv4](https://github.com/web3-storage/sigv4)
 - [ ] [ipfs-path](https://github.com/web3-storage/ipfs-path)
 - [ ] [toucan-js](https://github.com/web3-storage/toucan-js)
 - [ ] [freeway](https://github.com/web3-storage/freeway)
-- [ ] [w3console](https://github.com/web3-storage/w3console)
+- [x] [w3console](https://github.com/web3-storage/w3console)
+    - already archived.
 - [ ] [gateway-lib](https://github.com/web3-storage/gateway-lib)
 - [ ] [diffusionbee-stable-diffusion-ui](https://github.com/web3-storage/diffusionbee-stable-diffusion-ui)
 - [ ] [ai-artwork-uploader](https://github.com/web3-storage/ai-artwork-uploader)
@@ -152,7 +158,8 @@ The following repos lists were computed with: `curl -Ls -H "Accept: application/
 - [ ] [backup](https://github.com/web3-storage/backup)
 - [ ] [w3filecoin-infra](https://github.com/web3-storage/w3filecoin-infra)
     - Will need to check what happens to the [seed.run](https://seed.run/) infra with a new mini project (SST + seed.run) in the new org and migrate this repo there.
-- [ ] [w3up-docs](https://github.com/web3-storage/w3up-docs)
+- [x] [w3up-docs](https://github.com/web3-storage/w3up-docs)
+    - already archived.
 - [ ] [backup-infra](https://github.com/web3-storage/backup-infra)
 - [ ] [w3clock](https://github.com/web3-storage/w3clock)
 - [ ] [dagcargo-r2-presigned-download-url-gen](https://github.com/web3-storage/dagcargo-r2-presigned-download-url-gen)
@@ -162,7 +169,8 @@ The following repos lists were computed with: `curl -Ls -H "Accept: application/
 - [ ] [secrets](https://github.com/web3-storage/secrets)
 - [ ] [carpark-backfill](https://github.com/web3-storage/carpark-backfill)
 - [ ] [ipni](https://github.com/web3-storage/ipni)
-- [ ] [dealer](https://github.com/web3-storage/dealer)
+- [x] [dealer](https://github.com/web3-storage/dealer)
+    - already archived.
 - [ ] [carpark-bucket-diff](https://github.com/web3-storage/carpark-bucket-diff)
 - [ ] [data-segment](https://github.com/web3-storage/data-segment)
 - [ ] [gendex](https://github.com/web3-storage/gendex)
@@ -188,7 +196,8 @@ The following repos lists were computed with: `curl -Ls -H "Accept: application/
 - [ ] [one-webcrypto](https://github.com/web3-storage/one-webcrypto)
 - [ ] [www](https://github.com/web3-storage/www)
 - [ ] [learnyouw3up](https://github.com/web3-storage/learnyouw3up)
-- [ ] [docs](https://github.com/web3-storage/docs)
+- [x] [docs](https://github.com/web3-storage/docs)
+    - already archived.
 - [ ] [go-w3up](https://github.com/web3-storage/go-w3up)
 - [ ] [migrate-to-w3up](https://github.com/web3-storage/migrate-to-w3up)
 - [ ] [piece-compute-worker](https://github.com/web3-storage/piece-compute-worker)
@@ -218,7 +227,8 @@ The following repos lists were computed with: `curl -Ls -H "Accept: application/
 - [ ] [ipnft](https://github.com/nftstorage/ipnft)
 - [ ] [backup](https://github.com/nftstorage/backup)
 - [ ] [gateway-load-simulator](https://github.com/nftstorage/gateway-load-simulator)
-- [ ] [gateway-read-test-lambda](https://github.com/nftstorage/gateway-read-test-lambda)
+- [x] [gateway-read-test-lambda](https://github.com/nftstorage/gateway-read-test-lambda)
+    - already archived.
 - [ ] [ucan.storage](https://github.com/nftstorage/ucan.storage)
 - [ ] [etl-dotstorage](https://github.com/nftstorage/etl-dotstorage)
 - [ ] [checkup](https://github.com/nftstorage/checkup)
