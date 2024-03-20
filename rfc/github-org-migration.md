@@ -63,7 +63,7 @@ We have a total of 203 candidate repositories to migrate.
 We SHOULD migrate repos one-by-one with an opportunistic approach after we have established it is safe to do so.
 Once a repository is successfully migrated, it will be marked as [x].
 
-The following repos lists were computed with: `curl -Ls -H "Accept: application/vnd.github+json" -H "Authorization: Bearer $GITHUB_TOKEN" -H "X-GitHub-Api-Version: 2022-11-28" https://api.github.com/orgs/$ORG/repos\?per_page\=100\&page\=$PAGE | jq -r '.[] | "- [ ] [" + .name + "](" + .html_url + ")"' |`, where `$ORG ∈ {"web3-storage", "nftstorage", "filecoin-saturn"}`, `GITHUB_TOKEN` is a token with access to all orgs, and `$PAGE ∈ [1,2]`. Further reference [here](https://docs.github.com/en/rest/repos/repos?apiVersion=2022-11-28#list-organization-repositories).
+The following repos lists were computed with: `curl -Ls -H "Accept: application/vnd.github+json" -H "Authorization: Bearer $GITHUB_TOKEN" -H "X-GitHub-Api-Version: 2022-11-28" https://api.github.com/orgs/$ORG/repos\?per_page\=100\&page\=$PAGE | jq -r '.[] | "- [ ] [" + .name + "](" + .html_url + ")"'`, where `$ORG ∈ {"web3-storage", "nftstorage", "filecoin-saturn"}`, `GITHUB_TOKEN` is a token with access to all orgs, and `$PAGE ∈ [1,2]`. Further reference [here](https://docs.github.com/en/rest/repos/repos?apiVersion=2022-11-28#list-organization-repositories).
 
 ### [Web3 Storage](https://github.com/web3-storage)
 
