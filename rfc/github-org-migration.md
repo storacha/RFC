@@ -157,7 +157,8 @@ The following repos lists were computed with: `curl -Ls -H "Accept: application/
 - [ ] [ai-artwork-uploader](https://github.com/web3-storage/ai-artwork-uploader)
 - [ ] [sst-monorepo](https://github.com/web3-storage/sst-monorepo)
 - [ ] [w3infra](https://github.com/web3-storage/w3infra)
-    - Will need to check what happens to the [seed.run](https://seed.run/) infra with a new mini project (SST + seed.run) in the new org and migrate this repo there.
+    - [ ] Will need to check what happens to the [seed.run](https://seed.run/) infra with a new mini project (SST + seed.run) in the new org and migrate this repo there.
+    - It SHOULD be migrated.
 - [ ] [w3notes](https://github.com/web3-storage/w3notes)
 - [ ] [w3ui-swc-minify-bug](https://github.com/web3-storage/w3ui-swc-minify-bug)
 - [ ] [file-space](https://github.com/web3-storage/file-space)
@@ -169,7 +170,8 @@ The following repos lists were computed with: `curl -Ls -H "Accept: application/
 - [ ] [w3link-csp-report-api](https://github.com/web3-storage/w3link-csp-report-api)
 - [ ] [backup](https://github.com/web3-storage/backup)
 - [ ] [w3filecoin-infra](https://github.com/web3-storage/w3filecoin-infra)
-    - Will need to check what happens to the [seed.run](https://seed.run/) infra with a new mini project (SST + seed.run) in the new org and migrate this repo there.
+    - [ ] Will need to check what happens to the [seed.run](https://seed.run/) infra with a new mini project (SST + seed.run) in the new org and migrate this repo there.
+    - It SHOULD be migrated.
 - [x] [w3up-docs](https://github.com/web3-storage/w3up-docs)
     - already archived.
 - [ ] [backup-infra](https://github.com/web3-storage/backup-infra)
