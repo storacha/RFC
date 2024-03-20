@@ -73,10 +73,20 @@ The following repos lists were computed with: `curl -Ls -H "Accept: application/
     - already archived.
 - [ ] [go-w3s-client](https://github.com/web3-storage/go-w3s-client)
 - [ ] [wrangler-action](https://github.com/web3-storage/wrangler-action)
+    - Zero-config Cloudflare Workers deployment using Wrangler and GitHub Actions.
+    - [ ] Check if this is being used in any of main repos
+    - It SHOULD be archived;
+    - It SHOULD NOT be migrated.
 - [ ] [add-to-web3](https://github.com/web3-storage/add-to-web3)
 - [ ] [files-from-path](https://github.com/web3-storage/files-from-path)
 - [ ] [multipart-parser](https://github.com/web3-storage/multipart-parser)
+    - A simple multipart/form-data parser to use with ReadableStreams.
+    - It SHOULD be archived;
+    - It SHOULD NOT be migrated.
 - [ ] [example-image-gallery](https://github.com/web3-storage/example-image-gallery)
+    - A simple example of using Web3.Storage to share images using decentralized storage.
+    - It SHOULD be archived;
+    - It SHOULD NOT be migrated.
 - [ ] [broker](https://github.com/web3-storage/broker)
 - [ ] [web3-schema](https://github.com/web3-storage/web3-schema)
 - [ ] [example-forum-dapp](https://github.com/web3-storage/example-forum-dapp)
@@ -104,6 +114,8 @@ The following repos lists were computed with: `curl -Ls -H "Accept: application/
 - [ ] [alt-gateway](https://github.com/web3-storage/alt-gateway)
 - [ ] [link.web3.storage](https://github.com/web3-storage/link.web3.storage)
 - [ ] [dag-check](https://github.com/web3-storage/dag-check)
+    - It SHOULD be archived.
+    - It SHOULD NOT be migrated.
 - [ ] [pickup](https://github.com/web3-storage/pickup)
 - [ ] [workers](https://github.com/web3-storage/workers)
 - [ ] [minibus](https://github.com/web3-storage/minibus)
