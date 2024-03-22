@@ -15,13 +15,14 @@
 Formalizes a process of migrating the [Filecoin Saturn](https://github.com/filecoin-saturn), [NFT.Storage](https://github.com/nftstorage), and [Web3 Storage](https://github.com/web3-storage) orgs into [w3s](https://github.com/w3s-project).
 
 Goals:
-- To ensure a common understanding on how repositories should be migrated on a case-by-case basis;
 - To achieve cost-savings across orgs by only billing a single one;
+- To minimize maintenance complexity by consolidating the list of org repos we want to engage;
+- To ensure a common understanding on how repositories should be migrated on a case-by-case basis;
 - To ensure all repo-dependant systems continue operating transparently;
     - i.e. to provide recommendations/fixes to make the migration process as smooth and bulletproof as possible;
     - If such a goal is not possible, then the secondary goal is to provide the necessary changes to either prevent the system from stopping its operation or to recover it.
-- To consolidate repos while minimizing maintenance complexity;
-    - e.g. keeping project tracking as simple as possible.
+- To keep project tracking as simple as possible.
+    - i.e. across a single org.
 
 ## Language
 
