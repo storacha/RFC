@@ -154,7 +154,7 @@ If opting-in to IPNI indexing, a request in to form of an invocation UCAN is cre
 
 ### Indexing stored data
 
-``mermaid
+```mermaid
 sequenceDiagram
     actor Alice
     Alice->>w3s: put blob + inclusion claim
@@ -171,13 +171,15 @@ sequenceDiagram
     activate w3s
     w3s-->>w3s: fetch & verify claims bundle
     w3s-->>w3s: write advertisement
-    w3s-)ipni: announce head (CID)
+    w3s-->>Alice: receipt (ad CID)
+    w3s-)ipni: announce head (ad CID)
     deactivate w3s
-    ipni-->>w3s: fetch advert
+    ipni--)w3s: fetch advert
     activate ipni
     ipni-->>ipni: index entries
     deactivate ipni
 ```
+
 - User creates their data blob and inclusion claim, then uploads these to w3s to the pre-signed PUT URL.
   - The inclusion claim listing sub-blocks within the blob is created by the client whether or not they intend to have their data indexed. This is because these blocks may still be needed to find data within the blob, and to allow indexing to be done at a later point without having the re-read the entire blob.
   - W3s does not need to immediately verify the correctness of the inclusion claim, but can at any time and then replace the inclusion claim with its own to certify that it was verified.
@@ -227,11 +229,14 @@ sequenceDiagram
 ```
 Above shows inclusion claim for blob identified by `blob-hash`, and two locations for that blob. This  blob is stored in multiple locations.
 
-- W3s eventually verifies blob is stored at location(s) given to use for storage and creates content claim(s)
-- If user wants to publish to IPNI, they invoke ipni/offer request.
-  - Get blob status to check blob is stored and get claims bundle CID
-  - Can be done anytime during stored data lifetime.
-- Invoke `ipni/offer` with the CID for the claims bundle associated with the stored blob.
+W3s eventually verifies blob is stored at location(s) given to use for storage and creates content claim(s)
+
+If user wants to publish to IPNI, they invoke ipni/offer request:
+- Get blob status to check data is stored and get claims bundle CID
+- Invoke `ipni/offer` with the claims bundle CID associated with the stored data to index.
+- User gets back a receipt that contains the advertisement ID
+- Can be done once at anytime during stored data lifetime.
+
 
 **UCAN invocation** example
 
