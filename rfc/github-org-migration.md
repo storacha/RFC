@@ -274,36 +274,36 @@ Recommendation: all repos which end up getting migrated should have their name c
     - It SHOULD NOT be migrated.
 - [ ] [browser-client](https://github.com/filecoin-saturn/browser-client)
     - The Saturn Browser Client is a service worker that serves websites' CID requests with CAR files. CAR files are verifiable, which is a requirement when retrieving content in a trustless manner from community hosted Saturn Nodes.
-    - It MUST be migrated.
+    - It SHOULD be migrated.
 - [ ] [L1-node](https://github.com/filecoin-saturn/L1-node)
     - Saturn L1 nodes are CDN edge caches in the outermost layer of the Filecoin Saturn network. L1 nodes serve CAR files to retrieval clients as requested by their CIDs. Cache misses are served by the IPFS Network and Filecoin Storage Providers.
     - Any migration will require a network-wide update and changes to the self-update scripts which directly depend on the repo name. This SHOULD be done immediately after the migration.
-    - It MUST be migrated.
+    - It SHOULD be migrated.
 - [ ] [homepage](https://github.com/filecoin-saturn/homepage)
     - Saturn's homepage
-    - It MUST be migrated.
+    - It SHOULD be migrated.
 - [ ] [terraform](https://github.com/filecoin-saturn/terraform)
     - Saturn's terraform IaC.
-    - It MUST be migrated.
+    - It SHOULD be migrated.
 - [ ] [lambdas](https://github.com/filecoin-saturn/lambdas)
     - Had misc lambdas for Saturn's operation. These store bandwidth logs, provide a metrics API, calculate FIL earnings, run fraud analysis on logs, and serve JWTs.
-    - It MUST be migrated.
+    - It SHOULD be migrated.
 - [ ] [DEPRECATED-media](https://github.com/filecoin-saturn/DEPRECATED-media)
     - It SHOULD be archived.
     - It SHOULD NOT be migrated.
 - [ ] [orchestrator](https://github.com/filecoin-saturn/orchestrator)
     - Saturn's centralised network orchestrator.
-    - It MUST be migrated.
+    - It SHOULD be migrated.
 - [ ] [L2-node](https://github.com/filecoin-saturn/L2-node)
     - Legacy repo for Saturn's l2 nodes which are no longer relevant.
     - It SHOULD be archived.
     - It SHOULD NOT be migrated.
 - [ ] [L1-dashboard](https://github.com/filecoin-saturn/L1-dashboard)
     - A dashboard UI for Filecoin Saturn's L1 node. Hosted at https://dashboard.saturn.tech.
-    - It MUST be migrated.
+    - It SHOULD be migrated.
 - [ ] [metrics-dashboard](https://github.com/filecoin-saturn/metrics-dashboard)
     - Hosts the metric aggregation code for Saturn's Grafana.
-    - It MUST be migrated.
+    - It SHOULD be migrated.
 - [ ] [http-testing](https://github.com/filecoin-saturn/http-testing)
     - HTTP3 testing for nginx and Saturn.
     - It SHOULD be archived.
@@ -314,14 +314,14 @@ Recommendation: all repos which end up getting migrated should have their name c
     - It SHOULD NOT be migrated.
 - [ ] [js-client](https://github.com/filecoin-saturn/js-client)
     - The official JavaScript client for Filecoin Saturn. Used by [browser-client](https://github.com/filecoin-saturn/browser-client).
-    - It MUST be migrated.
+    - It SHOULD be migrated.
 - [ ] [roadmap](https://github.com/filecoin-saturn/roadmap)
     - Saturn's old project roadmap.
     - It SHOULD be archived.
     - It SHOULD NOT be migrated.
 - [ ] [contracts](https://github.com/filecoin-saturn/contracts)
     - Saturn's smart contract tooling and the cli to deploy payouts.
-    - It MUST be migrated.
+    - It SHOULD be migrated.
 - [ ] [zk-fraud](https://github.com/filecoin-saturn/zk-fraud)
     - A tentative project to create a simple zk circuit which replicates the fraud detection algorithm on node logs
     - AFAICT this is not being used
@@ -329,30 +329,30 @@ Recommendation: all repos which end up getting migrated should have their name c
     - It SHOULD NOT be migrated.
 - [ ] [payouts-website](https://github.com/filecoin-saturn/payouts-website)
     - The repo behind https://payouts.saturn.tech, the website where node operators interact with Saturn's payout smart contract to receive their FIL payouts for network contributions.
-    - It MUST be migrated.
+    - It SHOULD be migrated.
 - [ ] [caboose](https://github.com/filecoin-saturn/caboose)
     - A remote-car blockstore which provides a blockstore interface over a dynamic set of remote car providers. This was heavily used during Project Rhea.
     - It SHOULD be archived.
     - It SHOULD NOT be migrated.
 - [ ] [ansible](https://github.com/filecoin-saturn/ansible))
     - The tools to provision, manage and configure Saturn trusted/core nodes.
-    - It MUST be migrated.
+    - It SHOULD be migrated.
 - [ ] [explorer](https://github.com/filecoin-saturn/explorer)
     - A geospatial visualization for Saturn network stats. Live at https://explorer.saturn.tech.
-    - It MUST be migrated.
+    - It SHOULD be migrated.
 - [ ] [saturn-analysis](https://github.com/filecoin-saturn/saturn-analysis)
     - Documents the fraud and payment analysis performed for the Saturn Network.
-    - It MUST be migrated.
+    - It SHOULD be migrated.
 - [ ] [nginx-car-range](https://github.com/filecoin-saturn/nginx-car-range)
     - Nginx plugin for filtering range requests from CAR files.
     - It SHOULD be archived.
     - It SHOULD NOT be migrated.
 - [ ] [saturn-docs](https://github.com/filecoin-saturn/saturn-docs)
     - Saturn documentation hosted by Super at docs.saturn.tech.
-    - It MUST be migrated.
+    - It SHOULD be migrated.
 - [ ] [rs-fevm-utils](https://github.com/filecoin-saturn/rs-fevm-utils)
     - Repo for fEVM related utility functions in rust which is a depdency of [contracts](https://github.com/filecoin-saturn/contracts).
-    - It MUST be migrated.
+    - It SHOULD be migrated.
 - [ ] [fevm-deployment-tutorial](https://github.com/filecoin-saturn/fevm-deployment-tutorial)
     - Related to and a PoC to [contracts](https://github.com/filecoin-saturn/contracts) deployment on fEVM using [foundry](https://github.com/foundry-rs/foundry).
     - It SHOULD be archived.
@@ -371,10 +371,10 @@ Recommendation: all repos which end up getting migrated should have their name c
     - It SHOULD NOT be migrated.
 - [ ] [misc](https://github.com/filecoin-saturn/misc)
     - A collection of miscellaneous Saturn tools, scripts, and snippets that don't warrant their own repos.
-    - It MUST be migrated.
+    - It SHOULD be migrated.
 - [ ] [saturn-demo](https://github.com/filecoin-saturn/saturn-demo)
     - A demo Github Pages website which uses the Saturn network and it's helpful to demo it.
-    - It MUST be migrated.
+    - It SHOULD be migrated.
 - [ ] [onion](https://github.com/filecoin-saturn/onion)
     - Part of troubleshooting Project Rhea.
     - It SHOULD be archived.
@@ -397,7 +397,7 @@ Recommendation: all repos which end up getting migrated should have their name c
     - It SHOULD NOT be migrated.
 - [ ] [js-ipfs-unixfs](https://github.com/filecoin-saturn/js-ipfs-unixfs)
     - AFAICT it's a custom version which is bundled with [browser-client](https://github.com/filecoin-saturn/browser-client).
-    - It MUST be migrated.
+    - It SHOULD be migrated.
 - [ ] [pluto](https://github.com/filecoin-saturn/pluto)
     - The unfinished golang migration of [L1-node](https://github.com/filecoin-saturn/L1-node). We can always pick it up from archival if we need it.
     - It SHOULD be archived.
@@ -408,10 +408,10 @@ Recommendation: all repos which end up getting migrated should have their name c
     - It SHOULD NOT be migrated.
 - [ ] [portal](https://github.com/filecoin-saturn/portal)
     - Saturn's customer portal.
-    - It MUST be migrated.
+    - It SHOULD be migrated.
 - [ ] [brand-assets](https://github.com/filecoin-saturn/brand-assets)
     - WIP brand assets for the Saturn brand.
-    - It MUST be migrated.
+    - It SHOULD be migrated.
 - [ ] [project-tracking](https://github.com/filecoin-saturn/project-tracking)
     - Project tracking for Saturn.
     - It SHOULD be archived.
@@ -419,7 +419,7 @@ Recommendation: all repos which end up getting migrated should have their name c
     - [The project board](https://github.com/orgs/filecoin-saturn/projects/1/views/1) SHOULD be checked for anything important.
 - [ ] [compare-payouts](https://github.com/filecoin-saturn/compare-payouts)
     - The companion tool to process [contracts](https://github.com/filecoin-saturn/contracts) payment CSVs with credits.
-    - It MUST be migrated.
+    - It SHOULD be migrated.
 
 ## Post-migration instructions
 
