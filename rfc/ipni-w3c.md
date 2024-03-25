@@ -17,18 +17,17 @@ This RFC describes how IPNI indexing can be used to lookup data locations and co
 
 A user stores content as opaque blobs containing series of blocks addressed by multihashes. Currently, these blocks are collected into a CAR file for storage as one body of data. This will be generalized into a blob of data that does not require a CAR file.
 
-The user creates an [inclusion claim] that contains the multihash of the data blob and an array of tuples of (multihash, offset, length) of any items the user intends to make individually retrievable from their data blob. This inclusion claim serves as an external index into the user's data that can be stored and retrieved separately from the data. This inclusion claim is also the user's assertion that their data blob contains the data represented by a given set of multihashes.
+The user creates an [inclusion claim] that contains the multihash of the data blob and an array of tuples of (multihash, offset, length) of any blocks within the blob that the user intends to make individually retrievable. This inclusion claim serves as an external index into the user's data blob that can be stored and retrieved separately from the user's data blob. The inclusion claim is also the user's assertion that their data blob contains the blocks represented by the set of multihashes in the inclusion claim.
 
-After storing the data blob and the inclusion claim, w3s creates a [location claim](https://hackmd.io/@gozala/content-claims?utm_source=preview-mode&utm_medium=rec#Location-Claims) for the blob and the inclusion claim (serialized to bytes). Each location claim maps an item's CID to a URL where the item can be retrieved.
+After storing the data blob and the inclusion claim, w3s creates a [location claim](https://github.com/web3-storage/specs/blob/main/w3-blob.md#location-claim) for the blob and the inclusion claim (serialized to bytes). Each location claim maps blob's [multihash](https://github.com/multiformats/multihash) to a URL where the item can be read via HTTP [range request](https://developer.mozilla.org/en-US/docs/Web/HTTP/Range_requests)
 
-w3s creates a Content Claims Bundle. This is a container, stored on the w3s network, that holds all content claims associated with the stored data. The location claims and inclusion claim are written to the claims bundle. The claims bundle is then stored in the user's storage space.
+w3s creates a Content Claims Bundle. This is a container that holds all content claims associated with some data. The location claims and inclusion claim are written to the claims bundle. The claims bundle is then stored in the user's storage space.
 
-[IPNI](https://github.com/ipni/specs/blob/main/IPNI.md) will allow a client to lookup any of the multihashes from the blob inclusion claim, to get information sufficient to retrieve the claims bundle. The location claims and the inclusion claim can be read from the bundle to allow the client to retrieved the desired pieces of data from the stored data blob.
+[IPNI](https://github.com/ipni/specs/blob/main/IPNI.md) will tell a client where/how to get the claims bundle when IPNI is queried using any of the multihashes from the inclusion claim. The client can fetch the claims bundle and read the location and inclusion claims from the bundle. The client then uses the information read from these claims to retrieve the desired pieces of data from the stored data blob.
 
-Information is provided to IPNI in the form of [IPNI Advertisements](https://github.com/ipni/specs/blob/main/IPNI.md#advertisements)
-that are signed by w3s and published to IPNI by w3s. When a new advertisement is published, an [IPNI Announcement](https://github.com/ipni/specs/blob/main/IPNI.md#announcements) is sent to IPNI to trigger IPNI to fetch the new advertisement.
+Information is provided to IPNI in the form of [IPNI Advertisements](https://github.com/ipni/specs/blob/main/IPNI.md#advertisements) that are signed by w3s and published to IPNI by w3s. When a new advertisement is published, an [IPNI Announcement](https://github.com/ipni/specs/blob/main/IPNI.md#announcements) is sent to IPNI to trigger IPNI to fetch the new advertisement.
 
-Each Advertisement is associated with a data blob, and allows IPNI to map all of the multihashes in the inclusion claim to information needed to retrieve the claims bundle.
+Each Advertisement is associated with a data blob, and allows IPNI to map all of the multihashes in the inclusion claim, including the multihash of the entire blob, to information needed to retrieve the claims bundle.
 
 ## Introduction
 
@@ -40,7 +39,7 @@ W3s publishes ad-hoc batches of multihashes to IPNI. This proposal aims to align
   - Content Claims Bundle has all information describing data
   - Not only located data, but delegated responsibility of asserting that data is at the specified location
   - Network becomes more distributed by eliminating central database
-- Provide a way for used to read specific block stored within a blob, without needing to fetch the whole blob.
+- Provide a way for a user to read a specific block stored within a blob, without needing to fetch the whole blob.
   - Enabled by inclusion claim with block index information
   - Lowers transfer delay and bandwidth cost where range-reads can be supported
   - Removed the need to search through data to find a specific piece.
@@ -181,11 +180,11 @@ sequenceDiagram
 ```
 
 - User creates their data blob and inclusion claim, then uploads these to w3s to the pre-signed PUT URL.
-  - The inclusion claim listing sub-blocks within the blob is created by the client whether or not they intend to have their data indexed. This is because these blocks may still be needed to find data within the blob, and to allow indexing to be done at a later point without having the re-read the entire blob.
-  - W3s does not need to immediately verify the correctness of the inclusion claim, but can at any time and then replace the inclusion claim with its own to certify that it was verified.
+  - The inclusion claim specifying sub-blocks within the blob is created by the client whether or not they intend to have their data indexed. This is because these blocks may still be needed to find data within the blob, and to allow indexing to be done at a later point without having the re-read the entire blob.
+  - W3s does not need to verify inclusion claim, but it can do so at an time. Once verified it may also re-issue inclusion claim under own authority effectively certifying it by signing.
 - w3s creates the location claim for the blob after verifying the content was uploaded. Multiple location claims are created if the data is partitioned into multiple blobs or if the blob is stored in multiple locations.
   - The client triggers w3s to create the blob location claim(s) when the client is done uploading the data blob(s) to the URLs issued by w3s. By creating the location claims, w3s is responsible for the location of the data, and should verify the data is present before creating the claims.
-  - After triggering location claims creation following blob upload, the client can then issue a request to index the data. This request can be made once anytime during the data's lifetime.
+  - After triggering location claims creation following blob upload, the client can then send a request to w3s to have the blob indexed using IPNI. This request tells the w3s service to create an IPNI advertisement to tell IPNI what to index. The client can make such an indexing request once, anytime during the data's lifetime.
 
 ** Inclusion and Location claims** example
 
@@ -195,11 +194,11 @@ sequenceDiagram
   "sub": "did:key:alice",
   "args": {
     "content" : blob-hash,
-    "parts" [
-      [some-block-mh, 128, 32],
-      [other-block-mh, 160, 30],
-      [bafy...cat, 190, 100]
-    ]
+    "blocks" {
+      "some-block-mh": [128, 32],
+      "other-block-mh": [160, 30],
+      "bafy...cat": [190, 100]
+    }
   }
 }
 ```
@@ -237,6 +236,8 @@ If user wants to publish to IPNI, they invoke ipni/offer request:
 - User gets back a receipt that contains the advertisement ID
 - Can be done once at anytime during stored data lifetime.
 
+
+Note: In the [location claim](https://github.com/web3-storage/specs/blob/main/w3-blob.md#location-claim-capability-schema) we end allowing more than two numbers in the range because as it turns out [Range HTTP Header](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Range) supports that. Given that filecoin piece hashing alg does fr32 padding, leaving out padded bytes may be useful.
 
 **UCAN invocation** example
 
@@ -309,6 +310,8 @@ The Advertisement should then be available for consumption by IPNI nodes per the
 
 The w3s service is responsible for creating advertisements. Having users publish the advertisements is not practical as that would require the user to maintain an advertisement chain and serve a network endpoint from which indexers can fetch the advertisements.
 
+The `ContextID` is the blob CID, not the bundle CID. The reason for this is that the bundle CID, contained in the metadata, may change if the bundle is modified, but the bundle is still associated with the same blob. The `ContextID` is a key for the metadata, so the `ContextID` remains the same if the metadata is updated.
+
 #### Encoding the IPNI Advertisement
 
 The set of multihashes within one blob must be encoded as 1 Advertisement. If a blob is partitioned into multiple sub-blobs this still generates one advertisement as there is still one content claims bundle. See [Handling Partitioned Data](#handling-partitioned-data).
@@ -371,10 +374,10 @@ When data is too large to fit in a single blob, it is partitioned into multiple 
   sub: did:key:alice
   args: {
     content: megablob..hash
-    parts: [
-      [blob..hash, 0, 1280],
-      [other...hash, 1280, 6008]
-    ]
+    blocks: {
+      "blob..hash": [0, 1280],
+      "other...hash": [1280, 6008]
+    }
   }
 }
 ```
