@@ -220,48 +220,98 @@ The following repos lists were computed with: `curl -Ls -H "Accept: application/
 
 ### [NFT.Storage](https://github.com/nftstorage)
 
-- [ ] [nft.storage](https://github.com/nftstorage/nft.storage)
-- [ ] [go-client](https://github.com/nftstorage/go-client)
-- [ ] [java-client](https://github.com/nftstorage/java-client)
-- [ ] [php-client](https://github.com/nftstorage/php-client)
-- [ ] [python-client](https://github.com/nftstorage/python-client)
-- [ ] [ruby-client](https://github.com/nftstorage/ruby-client)
-- [ ] [rust-client](https://github.com/nftstorage/rust-client)
-- [ ] [eip721-subgraph](https://github.com/nftstorage/eip721-subgraph)
-- [ ] [ipfs-cluster](https://github.com/nftstorage/ipfs-cluster)
-- [ ] [nft.storage-tools](https://github.com/nftstorage/nft.storage-tools)
-- [ ] [js-client](https://github.com/nftstorage/js-client)
-- [ ] [dagcargo](https://github.com/nftstorage/dagcargo)
-- [ ] [carbites](https://github.com/nftstorage/carbites)
-- [ ] [carbites-cli](https://github.com/nftstorage/carbites-cli)
-- [ ] [nft.storage-example-next.js](https://github.com/nftstorage/nft.storage-example-next.js)
-- [ ] [ipnftx](https://github.com/nftstorage/ipnftx)
-- [ ] [nfts-growth-initiatives](https://github.com/nftstorage/nfts-growth-initiatives)
-- [ ] [consul-cluster-go-ipfs](https://github.com/nftstorage/consul-cluster-go-ipfs)
-- [ ] [metaplex-auth](https://github.com/nftstorage/metaplex-auth)
-- [ ] [ipnft](https://github.com/nftstorage/ipnft)
-- [ ] [backup](https://github.com/nftstorage/backup)
-- [ ] [gateway-load-simulator](https://github.com/nftstorage/gateway-load-simulator)
+The recommendation here is to leave everything as is.
+
+- [x] [nft.storage](https://github.com/nftstorage/nft.storage)
+    - the main repo
+    - It SHOULD NOT be migrated.
+- [x] [go-client](https://github.com/nftstorage/go-client)
+    - generated from OpenAPI schemas. We don't know how well they work
+    - It SHOULD NOT be migrated.
+- [x] [java-client](https://github.com/nftstorage/java-client)
+    - generated from OpenAPI schemas. We don't know how well they work
+    - It SHOULD NOT be migrated.
+- [x] [php-client](https://github.com/nftstorage/php-client)
+    - generated from OpenAPI schemas. We don't know how well they work
+    - It SHOULD NOT be migrated.
+- [x] [python-client](https://github.com/nftstorage/python-client)
+    - generated from OpenAPI schemas. We don't know how well they work
+    - It SHOULD NOT be migrated.
+- [x] [ruby-client](https://github.com/nftstorage/ruby-client)
+    - generated from OpenAPI schemas. We don't know how well they work
+    - It SHOULD NOT be migrated.
+- [x] [rust-client](https://github.com/nftstorage/rust-client)
+    - generated from OpenAPI schemas. We don't know how well they work
+    - It SHOULD NOT be migrated.
+- [x] [eip721-subgraph](https://github.com/nftstorage/eip721-subgraph)
+    - It SHOULD NOT be migrated.
+- [x] [ipfs-cluster](https://github.com/nftstorage/ipfs-cluster)
+    - It SHOULD NOT be migrated.
+- [x] [nft.storage-tools](https://github.com/nftstorage/nft.storage-tools)
+    - It SHOULD NOT be migrated.
+- [x] [js-client](https://github.com/nftstorage/js-client)
+    - generated from OpenAPI schemas. We don't know how well they work
+    - It SHOULD NOT be migrated.
+- [x] [dagcargo](https://github.com/nftstorage/dagcargo)
+    - It SHOULD NOT be migrated.
+- [x] [carbites](https://github.com/nftstorage/carbites)
+    - It SHOULD NOT be migrated.
+- [x] [carbites-cli](https://github.com/nftstorage/carbites-cli)
+    - It SHOULD NOT be migrated.
+- [x] [nft.storage-example-next.js](https://github.com/nftstorage/nft.storage-example-next.js)
+    - It SHOULD NOT be migrated.
+- [x] [ipnftx](https://github.com/nftstorage/ipnftx)
+    - It SHOULD NOT be migrated.
+- [x] [nfts-growth-initiatives](https://github.com/nftstorage/nfts-growth-initiatives)
+    - It SHOULD NOT be migrated.
+- [x] [consul-cluster-go-ipfs](https://github.com/nftstorage/consul-cluster-go-ipfs)
+    - It SHOULD NOT be migrated.
+- [x] [metaplex-auth](https://github.com/nftstorage/metaplex-auth)
+    - It SHOULD NOT be migrated.
+- [x] [ipnft](https://github.com/nftstorage/ipnft)
+    - It SHOULD NOT be migrated.
+- [x] [backup](https://github.com/nftstorage/backup)
+    - It SHOULD NOT be migrated.
+- [x] [gateway-load-simulator](https://github.com/nftstorage/gateway-load-simulator)
+    - It SHOULD NOT be migrated.
 - [x] [gateway-read-test-lambda](https://github.com/nftstorage/gateway-read-test-lambda)
     - already archived.
-- [ ] [ucan.storage](https://github.com/nftstorage/ucan.storage)
-- [ ] [etl-dotstorage](https://github.com/nftstorage/etl-dotstorage)
-- [ ] [checkup](https://github.com/nftstorage/checkup)
-- [ ] [niftysave](https://github.com/nftstorage/niftysave)
-- [ ] [nft-upload-tools](https://github.com/nftstorage/nft-upload-tools)
-- [ ] [assemble-cars-lambda](https://github.com/nftstorage/assemble-cars-lambda)
-- [ ] [ipfs-check](https://github.com/nftstorage/ipfs-check)
-- [ ] [warm-cache-lambda](https://github.com/nftstorage/warm-cache-lambda)
-- [ ] [nftup](https://github.com/nftstorage/nftup)
-- [ ] [cloudflare-analytics-prometheus-exporter](https://github.com/nftstorage/cloudflare-analytics-prometheus-exporter)
-- [ ] [nftstorage.link](https://github.com/nftstorage/nftstorage.link)
-- [ ] [react-nftstorage.link-fallback-example](https://github.com/nftstorage/react-nftstorage.link-fallback-example)
-- [ ] [nftstorage-service-worker](https://github.com/nftstorage/nftstorage-service-worker)
-- [ ] [test-seed.run](https://github.com/nftstorage/test-seed.run)
-- [ ] [dotstorage-db-admin](https://github.com/nftstorage/dotstorage-db-admin)
-- [ ] [dagcargo-bucket](https://github.com/nftstorage/dagcargo-bucket)
-- [ ] [nft.storage-content](https://github.com/nftstorage/nft.storage-content)
-- [ ] [nftdotstorage](https://github.com/nftstorage/nftdotstorage)
+- [x] [ucan.storage](https://github.com/nftstorage/ucan.storage)
+    - It SHOULD NOT be migrated.
+- [x] [etl-dotstorage](https://github.com/nftstorage/etl-dotstorage)
+    - It SHOULD NOT be migrated.
+- [x] [checkup](https://github.com/nftstorage/checkup)
+    - It SHOULD NOT be migrated.
+- [x] [niftysave](https://github.com/nftstorage/niftysave)
+    - It SHOULD NOT be migrated.
+- [x] [nft-upload-tools](https://github.com/nftstorage/nft-upload-tools)
+    - It SHOULD NOT be migrated.
+- [x] [assemble-cars-lambda](https://github.com/nftstorage/assemble-cars-lambda)
+    - It SHOULD NOT be migrated.
+- [x] [ipfs-check](https://github.com/nftstorage/ipfs-check)
+    - It SHOULD NOT be migrated.
+- [x] [warm-cache-lambda](https://github.com/nftstorage/warm-cache-lambda)
+    - It SHOULD NOT be migrated.
+- [x] [nftup](https://github.com/nftstorage/nftup)
+    - It SHOULD NOT be migrated.
+- [x] [cloudflare-analytics-prometheus-exporter](https://github.com/nftstorage/cloudflare-analytics-prometheus-exporter)
+    - It SHOULD NOT be migrated.
+- [x] [nftstorage.link](https://github.com/nftstorage/nftstorage.link)
+    - It SHOULD NOT be migrated.
+- [x] [react-nftstorage.link-fallback-example](https://github.com/nftstorage/react-nftstorage.link-fallback-example)
+    - It SHOULD NOT be migrated.
+- [x] [nftstorage-service-worker](https://github.com/nftstorage/nftstorage-service-worker)
+    - It SHOULD NOT be migrated.
+- [x] [test-seed.run](https://github.com/nftstorage/test-seed.run)
+    - It SHOULD NOT be migrated.
+- [x] [dotstorage-db-admin](https://github.com/nftstorage/dotstorage-db-admin)
+    - It SHOULD NOT be migrated.
+- [x] [dagcargo-bucket](https://github.com/nftstorage/dagcargo-bucket)
+    - It SHOULD NOT be migrated.
+- [x] [nft.storage-content](https://github.com/nftstorage/nft.storage-content)
+    - It SHOULD NOT be migrated.
+- [x] [nftdotstorage](https://github.com/nftstorage/nftdotstorage)
+    - It SHOULD NOT be migrated.
 
 ### [Filecoin Saturn](https://github.com/filecoin-saturn)
 
