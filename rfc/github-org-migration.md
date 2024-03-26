@@ -16,7 +16,7 @@ Formalizes a process of migrating the [Filecoin Saturn](https://github.com/filec
 
 Goals:
 - To achieve cost-savings across orgs by only billing a single one;
-- To minimize maintenance complexity by consolidating the list of org repos we want to engage;
+- To minimize maintenance complexity by consolidating the list of org repos we want to take on;
 - To ensure a common understanding on how repositories should be migrated on a case-by-case basis;
 - To ensure all repo-dependant systems continue operating transparently;
     - i.e. to provide recommendations/fixes to make the migration process as smooth and bulletproof as possible;
@@ -705,6 +705,11 @@ Recommendation: all repos which end up getting migrated should have their name c
     - It SHOULD be migrated.
 - [ ] [brand-assets](https://github.com/filecoin-saturn/brand-assets)
     - WIP brand assets for the Saturn brand.
+    - It SHOULD NOT be archived.
+    - It SHOULD be migrated.
+- [ ] [project-tracking](https://github.com/filecoin-saturn/project-tracking)
+    - Project tracking for Saturn.
+    - It SHOULD be archived.
     - It SHOULD be migrated.
 - [ ] [project-tracking](https://github.com/filecoin-saturn/project-tracking)
     - Project tracking for Saturn.
