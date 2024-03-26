@@ -69,154 +69,397 @@ The following repos lists were computed with: `curl -Ls -H "Accept: application/
 ### [Web3 Storage](https://github.com/web3-storage)
 
 - [ ] [ipfs-car](https://github.com/web3-storage/ipfs-car)
+    - CAR client for UnixFS dags. It is heavilty used.
+    - It SHOULD be migrated.
 - [ ] [web3.storage](https://github.com/web3-storage/web3.storage)
+    - Monorepo for the old website. It deploys to Cloudflare Pages.
+    - It SHOULD NOT be migrated.
 - [x] [web3-file](https://github.com/web3-storage/web3-file)
     - already archived.
 - [ ] [go-w3s-client](https://github.com/web3-storage/go-w3s-client)
+    - client for the old API.
+    - It SHOULD be archived.
+    - It SHOULD NOT be migrated.
 - [ ] [wrangler-action](https://github.com/web3-storage/wrangler-action)
     - Zero-config Cloudflare Workers deployment using Wrangler and GitHub Actions.
     - [ ] Check if this is being used in any of main repos
-    - It SHOULD be archived;
+    - It SHOULD be archived.
     - It SHOULD NOT be migrated.
 - [ ] [add-to-web3](https://github.com/web3-storage/add-to-web3)
+    - Github action to put websites on web3.storage.It has probably been updated.
+    - It SHOULD be migrated.
 - [ ] [files-from-path](https://github.com/web3-storage/files-from-path)
+    - A lib for globbing a bunch of files in a dir and returning that as an array of file objects.
+    - It SHOULD be migrated.
 - [ ] [multipart-parser](https://github.com/web3-storage/multipart-parser)
     - A simple multipart/form-data parser to use with ReadableStreams.
-    - It SHOULD be archived;
+    - [ ] Check if this is being used.
+    - It SHOULD be archived.
     - It SHOULD NOT be migrated.
 - [ ] [example-image-gallery](https://github.com/web3-storage/example-image-gallery)
     - A simple example of using Web3.Storage to share images using decentralized storage.
-    - It SHOULD be archived;
+    - It SHOULD be archived.
     - It SHOULD NOT be migrated.
 - [ ] [broker](https://github.com/web3-storage/broker)
+    - [ ] check with @vascosantos10 if it can be archived
+    - It SHOULD be archived.
+    - It SHOULD NOT be migrated.
 - [ ] [web3-schema](https://github.com/web3-storage/web3-schema)
+    - It SHOULD be archived.
+    - It SHOULD NOT be migrated.
 - [ ] [example-forum-dapp](https://github.com/web3-storage/example-forum-dapp)
+    - It SHOULD be archived.
+    - It SHOULD NOT be migrated.
 - [ ] [fauna-dump](https://github.com/web3-storage/fauna-dump)
+    - It SHOULD be archived.
+    - It SHOULD NOT be migrated.
 - [ ] [db-migration-pipeline](https://github.com/web3-storage/db-migration-pipeline)
+    - Related to fauna-dump.
+    - It SHOULD be archived.
+    - It SHOULD NOT be migrated.
 - [ ] [fauna-dumpify](https://github.com/web3-storage/fauna-dumpify)
     - Old DB migrations for old products;
-    - It SHOULD be archived;
+    - It SHOULD be archived.
     - It SHOULD NOT be migrated.
 - [ ] [admin.storage](https://github.com/web3-storage/admin.storage)
+    - Admin web interface for the old api.
+    - It SHOULD NOT be archived.
+    - It SHOULD NOT be migrated.
 - [ ] [hydra-booster](https://github.com/web3-storage/hydra-booster)
+    - This is a fork.
+    - It SHOULD be deleted.
 - [ ] [ipns-publisher](https://github.com/web3-storage/ipns-publisher)
+    - Create your IPNS records in Javascript and publish them on the IPFS network.
+    - It SHOULD NOT be archived.
+    - It SHOULD NOT be migrated.
 - [ ] [specs](https://github.com/web3-storage/specs)
+    - It SHOULD NOT be archived.
+    - It SHOULD be migrated.
 - [ ] [consul-cluster-go-ipfs](https://github.com/web3-storage/consul-cluster-go-ipfs)
+    - It SHOULD be archived.
+    - It SHOULD NOT be migrated.
 - [ ] [repin-unpinned-cids](https://github.com/web3-storage/repin-unpinned-cids)
+    - It SHOULD be archived.
+    - It SHOULD NOT be migrated.
 - [ ] [parse-link-header](https://github.com/web3-storage/parse-link-header)
+    - Old but it should be left be.
+    - It SHOULD NOT be archived.
+    - It SHOULD NOT be migrated.
 - [ ] [js-replica](https://github.com/web3-storage/js-replica)
+    - Empty repo.
+    - It SHOULD be deleted.
 - [ ] [w3up-archived](https://github.com/web3-storage/w3up-archived)
+    - It SHOULD be archived.
+    - It SHOULD NOT be migrated.
 - [ ] [upload-protocol](https://github.com/web3-storage/upload-protocol)
     - It SHOULD be archived.
     - It SHOULD NOT be migrated.
 - [ ] [ucanto](https://github.com/web3-storage/ucanto)
+    - UCAN encoding implication for creating UCANs and sending them to a service and verifying delegations.
+    - It SHOULD NOT be archived.
+    - It SHOULD be migrated.
 - [ ] [w3up](https://github.com/web3-storage/w3up)
+    - Implementation of the protocols and specs repos. The current web3.storage system.
+    - It SHOULD NOT be archived.
+    - It SHOULD be migrated.
 - [ ] [ucanto-name-system](https://github.com/web3-storage/ucanto-name-system)
+    - [ ] check with @gobengo what should be done
 - [ ] [alt-gateway](https://github.com/web3-storage/alt-gateway)
+    - It SHOULD NOT be archived.
+    - It SHOULD NOT be migrated.
 - [ ] [link.web3.storage](https://github.com/web3-storage/link.web3.storage)
+    - [ ] check with @vascosantos10 if it can be archived
 - [ ] [dag-check](https://github.com/web3-storage/dag-check)
     - It SHOULD be archived.
     - It SHOULD NOT be migrated.
 - [ ] [pickup](https://github.com/web3-storage/pickup)
+    - Used by nft.storage for the pinning service API (only supported by them)
+    - It SHOULD NOT be archived.
+    - It SHOULD NOT be migrated.
 - [ ] [workers](https://github.com/web3-storage/workers)
+    - [ ] check with @vascosantos10 if it can be archived
 - [ ] [minibus](https://github.com/web3-storage/minibus)
+    - There's a deployed service with this but we're not using it in production. A small data service and it works with blocks for CIDs. Works for smaller things and not for big DAGs
+    - It SHOULD NOT be archived.
+    - It SHOULD NOT be migrated.
 - [ ] [w3name](https://github.com/web3-storage/w3name)
+    - Used in production for IPNS.
+    - It SHOULD NOT be archived.
+    - It SHOULD NOT be migrated.
 - [ ] [reads](https://github.com/web3-storage/reads)
+    - Frontend for the racing GW system. Also includes a denylist that gets checked before racing. A superset of badbits.
+    - It SHOULD NOT be archived.
+    - It SHOULD NOT be migrated.
 - [ ] [claudio](https://github.com/web3-storage/claudio)
+    - Original MVP for hoverboard.
+    - It SHOULD be archived.
+    - It SHOULD NOT be migrated.
 - [ ] [minibus-client](https://github.com/web3-storage/minibus-client)
+    - The cli for minibus.
+    - It SHOULD NOT be archived.
+    - It SHOULD NOT be migrated.
 - [ ] [w3link](https://github.com/web3-storage/w3link)
+    - [ ] check with @vascosantos10 if it can be archived
 - [ ] [dagula](https://github.com/web3-storage/dagula)
+    - Used by freeway and hoverboard. lib and cli for fetching a DAG from a remote peer.
+    - It SHOULD NOT be archived.
+    - It SHOULD NOT be migrated.
 - [ ] [dagula-gateway](https://github.com/web3-storage/dagula-gateway)
+    - Experiment to back a GW with Elastic IPFS over Bitswap, but it didn't work out with the amount of traffic.
+    - It SHOULD be archived.
+    - It SHOULD NOT be migrated.
 - [x] [fast-unixfs-exporter](https://github.com/web3-storage/fast-unixfs-exporter)
     - already archived.
 - [ ] [telemetry-grafana-agent](https://github.com/web3-storage/telemetry-grafana-agent)
+    - [ ] check with @vascosantos10 if it can be archived
 - [ ] [handlebars.js](https://github.com/web3-storage/handlebars.js)
+    - Fork used in the gateway and used for listing files.
+    - It SHOULD NOT be archived.
+    - It SHOULD NOT be migrated.
 - [x] [w3up-client](https://github.com/web3-storage/w3up-client)
     - already archived.
 - [ ] [w3up-client-examples](https://github.com/web3-storage/w3up-client-examples)
+    - It SHOULD be archived.
+    - It SHOULD NOT be migrated.
 - [ ] [cf-management](https://github.com/web3-storage/cf-management)
+    - It SHOULD be archived.
+    - It SHOULD NOT be migrated.
 - [ ] [js-libp2p-multistream-select](https://github.com/web3-storage/js-libp2p-multistream-select)
+    - Reduces roundtrips. do you speak this with data right away so one less roundtrip. IPFS network peers do speak same protocols.
+    - [ ] Check for deps on @web3-storage/multistream-select
+    - [ ] Check for deps on maybe dagula
+    - It SHOULD be archived.
+    - It SHOULD NOT be migrated.
 - [ ] [w3up-client-components](https://github.com/web3-storage/w3up-client-components)
+    - It SHOULD be deleted.
 - [x] [w3up-cli](https://github.com/web3-storage/w3up-cli)
     - already archived.
 - [ ] [goodbits](https://github.com/web3-storage/goodbits)
+    - if your CID got accidentally banned, you can submit an issue and say it's good.
+    - It SHOULD NOT be archived.
+    - It SHOULD NOT be migrated.
 - [ ] [linkdex](https://github.com/web3-storage/linkdex)
+    - Lib for the api.
+    - It SHOULD NOT be archived.
+    - It SHOULD NOT be migrated.
 - [ ] [linkdex-api](https://github.com/web3-storage/linkdex-api)
+    - Indexes and ensures DAGs have the right blocks and if a DAG is complete. Used by pickup.
+    - It SHOULD NOT be archived.
+    - It SHOULD NOT be migrated.
 - [ ] [w3ui](https://github.com/web3-storage/w3ui)
+    - UI components. Lib for devs to build UI with web3.storage.
+    - It SHOULD NOT be archived.
+    - It SHOULD NOT be migrated.
 - [ ] [web3.storage-content](https://github.com/web3-storage/web3.storage-content)
+    - Blog for the old website.
+    - It SHOULD NOT be archived.
+    - It SHOULD NOT be migrated.
 - [ ] [w3ui-website](https://github.com/web3-storage/w3ui-website)
+    - It SHOULD NOT be archived.
+    - It SHOULD NOT be migrated.
 - [x] [attach-write-to-read](https://github.com/web3-storage/attach-write-to-read)
     - already archived.
 - [ ] [sigv4](https://github.com/web3-storage/sigv4)
+    - [ ] check with @vascosantos10 if it can be archived
 - [ ] [ipfs-path](https://github.com/web3-storage/ipfs-path)
+    - It SHOULD be archived.
+    - It SHOULD NOT be migrated.
 - [ ] [toucan-js](https://github.com/web3-storage/toucan-js)
+    - Fork for talking to Sentry in CF workers and it's not used anymore. Upstream didn't support error-cause property and it was needed.
+    - It SHOULD be archived.
+    - It SHOULD NOT be migrated.
 - [ ] [freeway](https://github.com/web3-storage/freeway)
+    - HTTP GW which reads CAR files and serves data. w3s.link and ntf.storage link talk to this.
+    - It SHOULD NOT be archived.
+    - It SHOULD NOT be migrated.
 - [x] [w3console](https://github.com/web3-storage/w3console)
     - already archived.
 - [ ] [gateway-lib](https://github.com/web3-storage/gateway-lib)
+    - Used by freeway and by dagula-gw.
+    - It SHOULD NOT be archived.
+    - It SHOULD NOT be migrated.
 - [ ] [diffusionbee-stable-diffusion-ui](https://github.com/web3-storage/diffusionbee-stable-diffusion-ui)
+    - It SHOULD be archived.
+    - It SHOULD NOT be migrated.
 - [ ] [ai-artwork-uploader](https://github.com/web3-storage/ai-artwork-uploader)
+    - It should be left behind as a demo.
+    - It SHOULD NOT be archived.
+    - It SHOULD NOT be migrated.
 - [ ] [sst-monorepo](https://github.com/web3-storage/sst-monorepo)
+    - [ ] check with @vascosantos10 if it can be deleted.
 - [ ] [w3infra](https://github.com/web3-storage/w3infra)
     - [ ] Will need to check what happens to the [seed.run](https://seed.run/) infra with a new mini project (SST + seed.run) in the new org and migrate this repo there.
     - It SHOULD be migrated.
 - [ ] [w3notes](https://github.com/web3-storage/w3notes)
+    - Example app.
+    - It SHOULD NOT be archived.
+    - It SHOULD NOT be migrated.
 - [ ] [w3ui-swc-minify-bug](https://github.com/web3-storage/w3ui-swc-minify-bug)
+    - It SHOULD be archived.
+    - It SHOULD NOT be migrated.
 - [ ] [file-space](https://github.com/web3-storage/file-space)
+    - It SHOULD NOT be archived.
+    - It SHOULD NOT be migrated.
 - [ ] [pickup-e2e-tests](https://github.com/web3-storage/pickup-e2e-tests)
+    - It SHOULD NOT be archived.
+    - It SHOULD NOT be migrated.
 - [ ] [w3cli](https://github.com/web3-storage/w3cli)
+    - It SHOULD NOT be archived.
+    - It SHOULD NOT be migrated.
 - [ ] [aws-tag-audit](https://github.com/web3-storage/aws-tag-audit)
+    - It SHOULD be archived.
+    - It SHOULD NOT be migrated.
 - [ ] [private](https://github.com/web3-storage/private)
+    - This is not used.
+    - [ ] Ask @gobengo if it can be archived.
 - [ ] [pail](https://github.com/web3-storage/pail)
+    - It SHOULD NOT be archived.
+    - It SHOULD NOT be migrated.
 - [ ] [w3link-csp-report-api](https://github.com/web3-storage/w3link-csp-report-api)
+    - Leave behind for CSP.
+    - It SHOULD NOT be archived.
+    - It SHOULD NOT be migrated.
 - [ ] [backup](https://github.com/web3-storage/backup)
+    - From when moving from cluster to s3.
+    - It SHOULD be archived.
+    - It SHOULD NOT be migrated.
 - [ ] [w3filecoin-infra](https://github.com/web3-storage/w3filecoin-infra)
-    - [ ] Will need to check what happens to the [seed.run](https://seed.run/) infra with a new mini project (SST + seed.run) in the new org and migrate this repo there.
+    - Will need to check what happens to the [seed.run](https://seed.run/) infra with a new mini project (SST + seed.run) in the new org and migrate this repo there.
+    - It SHOULD NOT be archived.
     - It SHOULD be migrated.
 - [x] [w3up-docs](https://github.com/web3-storage/w3up-docs)
     - already archived.
 - [ ] [backup-infra](https://github.com/web3-storage/backup-infra)
+    - It SHOULD be archived.
+    - It SHOULD NOT be migrated.
 - [ ] [w3clock](https://github.com/web3-storage/w3clock)
+    - Service used in production.
+    - It SHOULD NOT be archived.
+    - It SHOULD NOT be migrated.
 - [ ] [dagcargo-r2-presigned-download-url-gen](https://github.com/web3-storage/dagcargo-r2-presigned-download-url-gen)
+    - It SHOULD be archived.
+    - It SHOULD NOT be migrated.
 - [ ] [blake3-multihash](https://github.com/web3-storage/blake3-multihash)
+    - [ ] Ask @gozala if it can be archived.
 - [ ] [car-block-validator](https://github.com/web3-storage/car-block-validator)
+    - Used in production.
+    - It SHOULD NOT be archived.
+    - It SHOULD NOT be migrated.
 - [ ] [backup-progress](https://github.com/web3-storage/backup-progress)
+    - It SHOULD be archived.
+    - It SHOULD NOT be migrated.
 - [ ] [secrets](https://github.com/web3-storage/secrets)
+    - It SHOULD NOT be archived.
+    - It SHOULD NOT be migrated.
 - [ ] [carpark-backfill](https://github.com/web3-storage/carpark-backfill)
+    - [ ] check with @vascosantos10 if it can be archived.
 - [ ] [ipni](https://github.com/web3-storage/ipni)
+    - To talk to IPNI.
+    - It SHOULD NOT be archived.
+    - It SHOULD NOT be migrated.
 - [x] [dealer](https://github.com/web3-storage/dealer)
     - already archived.
 - [ ] [carpark-bucket-diff](https://github.com/web3-storage/carpark-bucket-diff)
+    - [ ] check with @vascosantos10 if it can be deleted.
 - [ ] [data-segment](https://github.com/web3-storage/data-segment)
+    - This lib is being used.
+    - It SHOULD NOT be archived.
+    - It SHOULD NOT be migrated.
 - [ ] [gendex](https://github.com/web3-storage/gendex)
+    - An experiment.
+    - It SHOULD NOT be archived.
+    - It SHOULD NOT be migrated.
 - [ ] [autobahn](https://github.com/web3-storage/autobahn)
+    - GW in AWS.
+    - It SHOULD be archived.
+    - It SHOULD NOT be migrated.
 - [ ] [dag.w3s.link](https://github.com/web3-storage/dag.w3s.link)
+    - Trustless GW for Saturn.
+    - It SHOULD NOT be archived.
+    - It SHOULD NOT be migrated.
 - [ ] [w3admin](https://github.com/web3-storage/w3admin)
+    - Admin interface for the new UCAN APIs.
+    - It SHOULD NOT be archived.
+    - It SHOULD NOT be migrated.
 - [ ] [gendex-consumer](https://github.com/web3-storage/gendex-consumer)
+    - It can be archived as it didn't quite work out.
+    - It SHOULD be archived.
+    - It SHOULD NOT be migrated.
 - [ ] [content-claims](https://github.com/web3-storage/content-claims)
+    - It SHOULD NOT be archived.
+    - It SHOULD NOT be migrated.
 - [ ] [sync-multihash-sha2](https://github.com/web3-storage/sync-multihash-sha2)
+    - It SHOULD NOT be archived.
+    - It SHOULD NOT be migrated.
 - [ ] [hoverboard](https://github.com/web3-storage/hoverboard)
+    - Bitswap in CF workers used in production.
+    - It SHOULD NOT be archived.
+    - It SHOULD NOT be migrated.
 - [ ] [access-proxy](https://github.com/web3-storage/access-proxy)
+    - [ ] Ask @travis if it can be archived.
 - [ ] [RFC](https://github.com/web3-storage/RFC)
+    - It SHOULD NOT be archived.
+    - It SHOULD be migrated.
 - [ ] [loki-tail-worker](https://github.com/web3-storage/loki-tail-worker)
+    - Worker to tail logs.
+    - It SHOULD NOT be archived.
+    - It SHOULD NOT be migrated.
 - [ ] [content-claims-gql](https://github.com/web3-storage/content-claims-gql)
+    - It SHOULD NOT be archived.
+    - It SHOULD NOT be migrated.
 - [ ] [sha256it](https://github.com/web3-storage/sha256it)
+    - It SHOULD NOT be archived.
+    - It SHOULD NOT be migrated.
 - [ ] [migrate-block-index](https://github.com/web3-storage/migrate-block-index)
+    - It SHOULD be archived.
+    - It SHOULD NOT be migrated.
 - [ ] [fr32-sha2-256-trunc254-padded-binary-tree-multihash](https://github.com/web3-storage/fr32-sha2-256-trunc254-padded-binary-tree-multihash)
+    - Lib used for piece CIDs.
+    - It SHOULD NOT be archived.
+    - It SHOULD NOT be migrated.
 - [ ] [migrate-block-index-infra](https://github.com/web3-storage/migrate-block-index-infra)
+    - It SHOULD be archived.
+    - It SHOULD NOT be migrated.
 - [ ] [w3stat](https://github.com/web3-storage/w3stat)
+    - To diagnose CID problems.
+    - It SHOULD NOT be archived.
+    - It SHOULD NOT be migrated.
 - [ ] [go-ucanto](https://github.com/web3-storage/go-ucanto)
+    - It SHOULD NOT be archived.
+    - It SHOULD NOT be migrated.
 - [ ] [pieces](https://github.com/web3-storage/pieces)
+    - Cli for devs.
+    - It SHOULD NOT be archived.
+    - It SHOULD NOT be migrated.
 - [ ] [console](https://github.com/web3-storage/console)
+    - Web UI for w3up.
+    - It SHOULD NOT be archived.
+    - It SHOULD NOT be migrated.
 - [ ] [one-webcrypto](https://github.com/web3-storage/one-webcrypto)
+    - Fork
+    - [ ] Ask @gobengo if it can be deleted or archived.
 - [ ] [www](https://github.com/web3-storage/www)
+    - Current website.
+    - It SHOULD NOT be archived.
+    - It SHOULD NOT be migrated.
 - [ ] [learnyouw3up](https://github.com/web3-storage/learnyouw3up)
+    - It SHOULD NOT be archived.
+    - It SHOULD NOT be migrated.
 - [x] [docs](https://github.com/web3-storage/docs)
     - already archived.
 - [ ] [go-w3up](https://github.com/web3-storage/go-w3up)
+    - It SHOULD NOT be archived.
+    - It SHOULD NOT be migrated.
 - [ ] [migrate-to-w3up](https://github.com/web3-storage/migrate-to-w3up)
+    - It SHOULD NOT be archived.
+    - It SHOULD NOT be migrated.
 - [ ] [piece-compute-worker](https://github.com/web3-storage/piece-compute-worker)
+    - [ ] Ask @vascosantos10 if it can be deleted or archived.
 - [ ] [RFC.staging](https://github.com/web3-storage/RFC.staging)
+    - It should be moved to the main RFC repo
+    - [ ] Move to main RFC repo.
+    - It SHOULD NOT be archived.
+    - It SHOULD NOT be migrated.
 
 ### [NFT.Storage](https://github.com/nftstorage)
 
