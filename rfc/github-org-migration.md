@@ -58,7 +58,10 @@ CI pipelines SHALL be individually checked to make sure nothing breaks or relies
 
 ## Repository Migration Overview
 
-**Note: This section is under construction and it is where the bulk of work of this spec will go**
+The [Web3 Storage](https://github.com/web3-storage) should be downgraded to the Github Team plan for immediate cost savings.
+
+The goal of this section is to migrate repos we are going to be actively working on, so we're able to downgrade source orgs to the Github free tier.
+Ideally, migrations should happen when we are working on repos whose purpose overlaps between w3s and the previous project.
 
 We have a total of 193 candidate repositories to migrate (out of a total of 203 of which 10 were already archived).
 We SHOULD migrate repos one-by-one with an opportunistic approach after we have established it is safe to do so.
