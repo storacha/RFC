@@ -27,8 +27,7 @@ This proposal is simply an minimal alternate path for preserving the ability the
 
 ## Proposal
 
-When an non-technical author wishes to publish an RFC through notion, the author SHOULD add a document to the new W3S RFCs page:
-https://www.notion.so/w3sat/f8233dc100324e579cb8f21198dac929?v=78a19e5c711544dd9fe35cde4cbab5b8&pvs=4
+When an non-technical author wishes to publish an RFC through notion, the author SHOULD add a document to the new [W3S RFCs page](https://www.notion.so/w3sat/f8233dc100324e579cb8f21198dac929?v=78a19e5c711544dd9fe35cde4cbab5b8&pvs=4)
 
 This will create a document based on a template basic RFC structure. The author then fills out the RFC
 
