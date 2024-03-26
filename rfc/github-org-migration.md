@@ -292,6 +292,7 @@ The following repos lists were computed with: `curl -Ls -H "Accept: application/
     - [ ] check with @vascosantos10 if it can be deleted.
 - [ ] [w3infra](https://github.com/web3-storage/w3infra)
     - [ ] Will need to check what happens to the [seed.run](https://seed.run/) infra with a new mini project (SST + seed.run) in the new org and migrate this repo there.
+    - It SHOULD NOT be archived.
     - It SHOULD be migrated.
 - [ ] [w3notes](https://github.com/web3-storage/w3notes)
     - Example app.
