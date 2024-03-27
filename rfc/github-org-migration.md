@@ -104,7 +104,6 @@ The following repos lists were computed with: `curl -Ls -H "Accept: application/
     - It SHOULD be archived.
     - It SHOULD NOT be migrated.
 - [ ] [broker](https://github.com/web3-storage/broker)
-    - [ ] check with @vascosantos10 if it can be archived
     - It SHOULD be archived.
     - It SHOULD NOT be migrated.
 - [ ] [web3-schema](https://github.com/web3-storage/web3-schema)
@@ -171,7 +170,9 @@ The following repos lists were computed with: `curl -Ls -H "Accept: application/
     - It SHOULD NOT be archived.
     - It SHOULD NOT be migrated.
 - [ ] [link.web3.storage](https://github.com/web3-storage/link.web3.storage)
-    - [ ] check with @vascosantos10 if it can be archived
+    - Tests done in the team week in Miami to test the service worker deployment.
+    - It SHOULD be archived.
+    - It SHOULD NOT be migrated.
 - [ ] [dag-check](https://github.com/web3-storage/dag-check)
     - It SHOULD be archived.
     - It SHOULD NOT be migrated.
@@ -180,7 +181,9 @@ The following repos lists were computed with: `curl -Ls -H "Accept: application/
     - It SHOULD NOT be archived.
     - It SHOULD NOT be migrated.
 - [ ] [workers](https://github.com/web3-storage/workers)
-    - [ ] check with @vascosantos10 if it can be archived
+    - In use for the workers for things like loki/logs. Check https://github.com/web3-storage/reads/blob/main/packages/edge-gateway/package.json#L21
+    - It SHOULD NOT be archived.
+    - It SHOULD NOT be migrated.
 - [ ] [minibus](https://github.com/web3-storage/minibus)
     - There's a deployed service with this but we're not using it in production. A small data service and it works with blocks for CIDs. Works for smaller things and not for big DAGs
     - It SHOULD NOT be archived.
@@ -202,7 +205,9 @@ The following repos lists were computed with: `curl -Ls -H "Accept: application/
     - It SHOULD NOT be archived.
     - It SHOULD NOT be migrated.
 - [ ] [w3link](https://github.com/web3-storage/w3link)
-    - [ ] check with @vascosantos10 if it can be archived
+    - The production deployed worker for w3s.link.
+    - It SHOULD NOT be archived.
+    - It SHOULD NOT be migrated.
 - [ ] [dagula](https://github.com/web3-storage/dagula)
     - Used by freeway and hoverboard. lib and cli for fetching a DAG from a remote peer.
     - It SHOULD NOT be archived.
@@ -214,7 +219,9 @@ The following repos lists were computed with: `curl -Ls -H "Accept: application/
 - [x] [fast-unixfs-exporter](https://github.com/web3-storage/fast-unixfs-exporter)
     - already archived.
 - [ ] [telemetry-grafana-agent](https://github.com/web3-storage/telemetry-grafana-agent)
-    - [ ] check with @vascosantos10 if it can be archived
+    - This holds a bunch of our Grafana metrics, including w3up, gateways, cloudflare metrics, etc.
+    - It SHOULD NOT be archived.
+    - It SHOULD NOT be migrated.
 - [ ] [handlebars.js](https://github.com/web3-storage/handlebars.js)
     - Fork used in the gateway and used for listing files.
     - It SHOULD NOT be archived.
@@ -263,7 +270,9 @@ The following repos lists were computed with: `curl -Ls -H "Accept: application/
 - [x] [attach-write-to-read](https://github.com/web3-storage/attach-write-to-read)
     - already archived.
 - [ ] [sigv4](https://github.com/web3-storage/sigv4)
-    - [ ] check with @vascosantos10 if it can be archived
+    - Used by w3up to generate presigned urls.
+    - It SHOULD NOT be archived.
+    - It SHOULD NOT be migrated.
 - [ ] [ipfs-path](https://github.com/web3-storage/ipfs-path)
     - It SHOULD be archived.
     - It SHOULD NOT be migrated.
@@ -272,7 +281,7 @@ The following repos lists were computed with: `curl -Ls -H "Accept: application/
     - It SHOULD be archived.
     - It SHOULD NOT be migrated.
 - [ ] [freeway](https://github.com/web3-storage/freeway)
-    - HTTP GW which reads CAR files and serves data. w3s.link and ntf.storage link talk to this.
+    - HTTP GW which reads CAR files and serves data. w3s.link and ntfstorage.link talk to this.
     - It SHOULD NOT be archived.
     - It SHOULD NOT be migrated.
 - [x] [w3console](https://github.com/web3-storage/w3console)
@@ -289,7 +298,7 @@ The following repos lists were computed with: `curl -Ls -H "Accept: application/
     - It SHOULD NOT be archived.
     - It SHOULD NOT be migrated.
 - [ ] [sst-monorepo](https://github.com/web3-storage/sst-monorepo)
-    - [ ] check with @vascosantos10 if it can be deleted.
+    - It SHOULD be deleted.
 - [ ] [w3infra](https://github.com/web3-storage/w3infra)
     - [ ] Will need to check what happens to the [seed.run](https://seed.run/) infra with a new mini project (SST + seed.run) in the new org and migrate this repo there.
     - It SHOULD NOT be archived.
@@ -356,7 +365,8 @@ The following repos lists were computed with: `curl -Ls -H "Accept: application/
     - It SHOULD NOT be archived.
     - It SHOULD NOT be migrated.
 - [ ] [carpark-backfill](https://github.com/web3-storage/carpark-backfill)
-    - [ ] check with @vascosantos10 if it can be archived.
+    - It SHOULD be archived.
+    - It SHOULD NOT be migrated.
 - [ ] [ipni](https://github.com/web3-storage/ipni)
     - To talk to IPNI.
     - It SHOULD NOT be archived.
@@ -364,7 +374,7 @@ The following repos lists were computed with: `curl -Ls -H "Accept: application/
 - [x] [dealer](https://github.com/web3-storage/dealer)
     - already archived.
 - [ ] [carpark-bucket-diff](https://github.com/web3-storage/carpark-bucket-diff)
-    - [ ] check with @vascosantos10 if it can be deleted.
+    - It SHOULD be deleted.
 - [ ] [data-segment](https://github.com/web3-storage/data-segment)
     - This lib is being used.
     - It SHOULD NOT be archived.
@@ -458,7 +468,9 @@ The following repos lists were computed with: `curl -Ls -H "Accept: application/
     - It SHOULD NOT be archived.
     - It SHOULD NOT be migrated.
 - [ ] [piece-compute-worker](https://github.com/web3-storage/piece-compute-worker)
-    - [ ] Ask @vascosantos10 if it can be deleted or archived.
+    - We might need this as a worker to compute Filecoin Pieces.
+    - It SHOULD NOT be archived.
+    - It SHOULD NOT be migrated.
 - [ ] [RFC.staging](https://github.com/web3-storage/RFC.staging)
     - It should be moved to the main RFC repo
     - [ ] Move to main RFC repo.
