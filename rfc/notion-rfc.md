@@ -31,7 +31,7 @@ When an non-technical author wishes to publish an RFC through notion, the author
 
 This will create a document based on a template basic RFC structure. The author then fills out the RFC
 
-Once complete, the author SHOULD request review. Reviews SHOULD comment on the RFC page itself, then add their name to either the approved list or to the request changes. A reviewer MAY specify a change as blocking approval by 
+Once complete, the author SHOULD request review. Reviews SHOULD comment on the RFC page itself, then add their name to either the approved list or to the request changes. A reviewer MAY specify a change as blocking approval.
 
 The W3S RFCs page is shared publicly and an author MAY request comments from an outside party.
 
