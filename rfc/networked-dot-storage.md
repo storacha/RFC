@@ -69,7 +69,7 @@ In general, users should be able to "trust" W3S to handle their data well and me
 
 4. A user paying for multiple backups should be able to verify each backup is still functioning.
 
-4. If verification demonstrates that a particular provider is failing to provide a service that the user has paid for, the network should detect the failures and move their data automatically. (or alternatively, the user should have the ability to create a dispute and move to a different provider while getting money back)
+5. If verification demonstrates that a particular provider is failing to provide a service that the user has paid for, the network should detect the failures and move their data automatically. (or alternatively, the user should have the ability to create a dispute and move to a different provider while getting money back)
 
 ### Distribution of resources
 
