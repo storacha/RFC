@@ -1,6 +1,6 @@
 # Networked Dot Storage
 
-> or what does decentralziation even mean?
+> or what does decentralization even mean?
 
 ## Authors
 
