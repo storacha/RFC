@@ -65,7 +65,8 @@ Ideally, migrations should happen when we are working on repos whose purpose ove
 
 We have a total of 193 candidate repositories to migrate (out of a total of 203 of which 10 were already archived).
 We SHOULD migrate repos one-by-one with an opportunistic approach after we have established it is safe to do so.
-Once a repository is successfully migrated, it will be marked as [x].
+Once the actions for a repository are successfully identified, it will be marked as [x].
+If a given repository has no checkbox, than means it was sorted prior to this document.
 
 The following repos lists were computed with: `curl -Ls -H "Accept: application/vnd.github+json" -H "Authorization: Bearer $GITHUB_TOKEN" -H "X-GitHub-Api-Version: 2022-11-28" https://api.github.com/orgs/$ORG/repos\?per_page\=100\&page\=$PAGE | jq -r '.[] | select(.archived|not) | "- [ ] [" + .name + "](" + .html_url + ")"'`, where `$ORG ∈ {"web3-storage", "nftstorage", "filecoin-saturn"}`, `GITHUB_TOKEN` is a token with access to all orgs, and `$PAGE ∈ [1,2]`. Further reference [here](https://docs.github.com/en/rest/repos/repos?apiVersion=2022-11-28#list-organization-repositories).
 
@@ -77,7 +78,7 @@ The following repos lists were computed with: `curl -Ls -H "Accept: application/
 - [ ] [web3.storage](https://github.com/web3-storage/web3.storage)
     - Monorepo for the old website. It deploys to Cloudflare Pages.
     - It SHOULD NOT be migrated.
-- [x] [web3-file](https://github.com/web3-storage/web3-file)
+- [web3-file](https://github.com/web3-storage/web3-file)
     - already archived.
 - [ ] [go-w3s-client](https://github.com/web3-storage/go-w3s-client)
     - client for the old API.
@@ -216,7 +217,7 @@ The following repos lists were computed with: `curl -Ls -H "Accept: application/
     - Experiment to back a GW with Elastic IPFS over Bitswap, but it didn't work out with the amount of traffic.
     - It SHOULD be archived.
     - It SHOULD NOT be migrated.
-- [x] [fast-unixfs-exporter](https://github.com/web3-storage/fast-unixfs-exporter)
+- [fast-unixfs-exporter](https://github.com/web3-storage/fast-unixfs-exporter)
     - already archived.
 - [ ] [telemetry-grafana-agent](https://github.com/web3-storage/telemetry-grafana-agent)
     - This holds a bunch of our Grafana metrics, including w3up, gateways, cloudflare metrics, etc.
@@ -226,7 +227,7 @@ The following repos lists were computed with: `curl -Ls -H "Accept: application/
     - Fork used in the gateway and used for listing files.
     - It SHOULD NOT be archived.
     - It SHOULD NOT be migrated.
-- [x] [w3up-client](https://github.com/web3-storage/w3up-client)
+- [w3up-client](https://github.com/web3-storage/w3up-client)
     - already archived.
 - [ ] [w3up-client-examples](https://github.com/web3-storage/w3up-client-examples)
     - It SHOULD be archived.
@@ -242,7 +243,7 @@ The following repos lists were computed with: `curl -Ls -H "Accept: application/
     - It SHOULD NOT be migrated.
 - [ ] [w3up-client-components](https://github.com/web3-storage/w3up-client-components)
     - It SHOULD be deleted.
-- [x] [w3up-cli](https://github.com/web3-storage/w3up-cli)
+- [w3up-cli](https://github.com/web3-storage/w3up-cli)
     - already archived.
 - [ ] [goodbits](https://github.com/web3-storage/goodbits)
     - if your CID got accidentally banned, you can submit an issue and say it's good.
@@ -267,7 +268,7 @@ The following repos lists were computed with: `curl -Ls -H "Accept: application/
 - [ ] [w3ui-website](https://github.com/web3-storage/w3ui-website)
     - It SHOULD NOT be archived.
     - It SHOULD NOT be migrated.
-- [x] [attach-write-to-read](https://github.com/web3-storage/attach-write-to-read)
+- [attach-write-to-read](https://github.com/web3-storage/attach-write-to-read)
     - already archived.
 - [ ] [sigv4](https://github.com/web3-storage/sigv4)
     - Used by w3up to generate presigned urls.
@@ -284,7 +285,7 @@ The following repos lists were computed with: `curl -Ls -H "Accept: application/
     - HTTP GW which reads CAR files and serves data. w3s.link and ntfstorage.link talk to this.
     - It SHOULD NOT be archived.
     - It SHOULD NOT be migrated.
-- [x] [w3console](https://github.com/web3-storage/w3console)
+- [w3console](https://github.com/web3-storage/w3console)
     - already archived.
 - [ ] [gateway-lib](https://github.com/web3-storage/gateway-lib)
     - Used by freeway and by dagula-gw.
@@ -340,7 +341,7 @@ The following repos lists were computed with: `curl -Ls -H "Accept: application/
     - Will need to check what happens to the [seed.run](https://seed.run/) infra with a new mini project (SST + seed.run) in the new org and migrate this repo there.
     - It SHOULD NOT be archived.
     - It SHOULD be migrated.
-- [x] [w3up-docs](https://github.com/web3-storage/w3up-docs)
+- [w3up-docs](https://github.com/web3-storage/w3up-docs)
     - already archived.
 - [ ] [backup-infra](https://github.com/web3-storage/backup-infra)
     - It SHOULD be archived.
@@ -371,7 +372,7 @@ The following repos lists were computed with: `curl -Ls -H "Accept: application/
     - To talk to IPNI.
     - It SHOULD NOT be archived.
     - It SHOULD NOT be migrated.
-- [x] [dealer](https://github.com/web3-storage/dealer)
+- [dealer](https://github.com/web3-storage/dealer)
     - already archived.
 - [ ] [carpark-bucket-diff](https://github.com/web3-storage/carpark-bucket-diff)
     - It SHOULD be deleted.
@@ -459,7 +460,7 @@ The following repos lists were computed with: `curl -Ls -H "Accept: application/
 - [ ] [learnyouw3up](https://github.com/web3-storage/learnyouw3up)
     - It SHOULD NOT be archived.
     - It SHOULD NOT be migrated.
-- [x] [docs](https://github.com/web3-storage/docs)
+- [docs](https://github.com/web3-storage/docs)
     - already archived.
 - [ ] [go-w3up](https://github.com/web3-storage/go-w3up)
     - It SHOULD NOT be archived.
