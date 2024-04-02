@@ -59,6 +59,7 @@ CI pipelines SHALL be individually checked to make sure nothing breaks or relies
 ## Repository Migration Overview
 
 The [Web3 Storage](https://github.com/web3-storage) should be downgraded to the Github Team plan for immediate cost savings.
+New repositories MUST be created in [w3s](https://github.com/w3s-project).
 
 The goal of this section is to migrate repos we are going to be actively working on, so we're able to downgrade source orgs to the Github free tier.
 Ideally, migrations should happen when we are working on repos whose purpose overlaps between w3s and the previous project.
