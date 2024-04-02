@@ -58,7 +58,6 @@ CI pipelines SHALL be individually checked to make sure nothing breaks or relies
 
 ## Repository Migration Overview
 
-The [Web3 Storage](https://github.com/web3-storage) should be downgraded to the Github Team plan for immediate cost savings.
 New repositories MUST be created in [w3s](https://github.com/w3s-project).
 
 The goal of this section is to migrate repos we are going to be actively working on, so we're able to downgrade source orgs to the Github free tier.
@@ -72,6 +71,8 @@ If a given repository has no checkbox, than means it was sorted prior to this do
 The following repos lists were computed with: `curl -Ls -H "Accept: application/vnd.github+json" -H "Authorization: Bearer $GITHUB_TOKEN" -H "X-GitHub-Api-Version: 2022-11-28" https://api.github.com/orgs/$ORG/repos\?per_page\=100\&page\=$PAGE | jq -r '.[] | select(.archived|not) | "- [ ] [" + .name + "](" + .html_url + ")"'`, where `$ORG ∈ {"web3-storage", "nftstorage", "filecoin-saturn"}`, `GITHUB_TOKEN` is a token with access to all orgs, and `$PAGE ∈ [1,2]`. Further reference [here](https://docs.github.com/en/rest/repos/repos?apiVersion=2022-11-28#list-organization-repositories).
 
 ### [Web3 Storage](https://github.com/web3-storage)
+
+[ ] The [Web3 Storage](https://github.com/web3-storage) should be downgraded to the Github Team plan for immediate cost savings.
 
 - [ ] [ipfs-car](https://github.com/web3-storage/ipfs-car)
     - CAR client for UnixFS dags. It is heavilty used.
