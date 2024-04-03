@@ -54,7 +54,10 @@ According to [Transferring a repository](https://docs.github.com/en/repositories
 This ensures migration disruptions are minimal and that we can keep operating normally and migrate on a repo-by-repo basis. Still, it is crucial to look at each repo individually to ascertain migration consequences which may impact other systems outside of Github and our local development machines.
 Additionally, it is RECOMMENDED to perform the [post-migration instructions](#post-migration-instructions) below.
 
-CI pipelines SHALL be individually checked to make sure nothing breaks or relies on a particular repo naming structure.
+CI pipelines were checked to make sure nothing relies on a particular repo naming structure. Github was used and the results were manually checked using the following search commands:
+
+  - `org:filecoin-saturn AND ("git@github.com" OR "https://github.com" OR "https://raw.githubusercontent.com") AND (path:*.yaml OR path:*.yml)`
+  - `org:web3-storage  AND ("git@github.com" OR "https://github.com" OR "https://raw.githubusercontent.com") AND (path:*.yaml OR path:*.yml)`
 
 ## Repository Migration Overview
 
