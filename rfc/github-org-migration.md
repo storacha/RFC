@@ -75,7 +75,7 @@ The following repos lists were computed with: `curl -Ls -H "Accept: application/
 
 ### [Web3 Storage](https://github.com/web3-storage)
 
-[ ] The [Web3 Storage](https://github.com/web3-storage) should be downgraded to the Github Team plan for immediate cost savings.
+[ ] The [Web3 Storage](https://github.com/web3-storage) SHOULD be downgraded to the Github Team plan for immediate cost savings.
 
 - [ ] [ipfs-car](https://github.com/web3-storage/ipfs-car)
     - CAR client for UnixFS dags. It is heavilty used.
