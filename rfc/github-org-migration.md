@@ -171,7 +171,8 @@ The following repos lists were computed with: `curl -Ls -H "Accept: application/
     - It SHOULD NOT be archived.
     - It SHOULD be migrated.
 - [ ] [ucanto-name-system](https://github.com/web3-storage/ucanto-name-system)
-    - [ ] check with @gobengo what should be done
+    - It SHOULD be archived.
+    - It SHOULD NOT be migrated.
 - [ ] [alt-gateway](https://github.com/web3-storage/alt-gateway)
     - It SHOULD NOT be archived.
     - It SHOULD NOT be migrated.
@@ -330,7 +331,8 @@ The following repos lists were computed with: `curl -Ls -H "Accept: application/
     - It SHOULD NOT be migrated.
 - [ ] [private](https://github.com/web3-storage/private)
     - This is not used.
-    - [ ] Ask @gobengo if it can be archived.
+    - It SHOULD be archived.
+    - It SHOULD NOT be migrated.
 - [ ] [pail](https://github.com/web3-storage/pail)
     - It SHOULD NOT be archived.
     - It SHOULD NOT be migrated.
@@ -456,8 +458,7 @@ The following repos lists were computed with: `curl -Ls -H "Accept: application/
     - It SHOULD NOT be archived.
     - It SHOULD NOT be migrated.
 - [ ] [one-webcrypto](https://github.com/web3-storage/one-webcrypto)
-    - Fork
-    - [ ] Ask @gobengo if it can be deleted or archived.
+    - Fork which w3up depends upon. See [here](https://github.com/web3-storage/w3up/blob/6fa7797ba6f5c0bbd359c807e257882a7d5d6fb8/packages/access-client/package.json#L113).
 - [ ] [www](https://github.com/web3-storage/www)
     - Current website.
     - It SHOULD NOT be archived.
