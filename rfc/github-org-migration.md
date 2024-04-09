@@ -90,8 +90,7 @@ The following repos lists were computed with: `curl -Ls -H "Accept: application/
     - It SHOULD be archived.
     - It SHOULD NOT be migrated.
 - [ ] [wrangler-action](https://github.com/web3-storage/wrangler-action)
-    - Zero-config Cloudflare Workers deployment using Wrangler and GitHub Actions.
-    - [ ] Check if this is being used in any of main repos
+    - Zero-config Cloudflare Workers deployment using Wrangler and GitHub Actions. It's being used on some repos liked `reads` and `freeway`. More [here](https://github.com/search?q=org%3Aweb3-storage%20wrangler-action&type=code).
     - It SHOULD be archived.
     - It SHOULD NOT be migrated.
 - [ ] [add-to-web3](https://github.com/web3-storage/add-to-web3)
@@ -101,8 +100,7 @@ The following repos lists were computed with: `curl -Ls -H "Accept: application/
     - A lib for globbing a bunch of files in a dir and returning that as an array of file objects.
     - It SHOULD be migrated.
 - [ ] [multipart-parser](https://github.com/web3-storage/multipart-parser)
-    - A simple multipart/form-data parser to use with ReadableStreams.
-    - [ ] Check if this is being used.
+    - A simple multipart/form-data parser to use with ReadableStreams. It's being used by a fair number of repos. See [here](https://github.com/search?q=org%3Aweb3-storage+multipart-parser&type=code).
     - It SHOULD be archived.
     - It SHOULD NOT be migrated.
 - [ ] [example-image-gallery](https://github.com/web3-storage/example-image-gallery)
@@ -242,9 +240,7 @@ The following repos lists were computed with: `curl -Ls -H "Accept: application/
     - It SHOULD be archived.
     - It SHOULD NOT be migrated.
 - [ ] [js-libp2p-multistream-select](https://github.com/web3-storage/js-libp2p-multistream-select)
-    - Reduces roundtrips. do you speak this with data right away so one less roundtrip. IPFS network peers do speak same protocols.
-    - [ ] Check for deps on @web3-storage/multistream-select
-    - [ ] Check for deps on maybe dagula
+    - Reduces roundtrips. do you speak this with data right away so one less roundtrip. IPFS network peers do speak same protocols. [It's no longer used](https://github.com/search?q=org%3Aweb3-storage+js-libp2p-multistream-select&type=code).
     - It SHOULD be archived.
     - It SHOULD NOT be migrated.
 - [ ] [w3up-client-components](https://github.com/web3-storage/w3up-client-components)
