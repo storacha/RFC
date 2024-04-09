@@ -1,6 +1,6 @@
 # Github Org Migration
 
-![status:draft](https://img.shields.io/badge/status-draft-yellow.svg?style=flat-square)
+![status:final](https://img.shields.io/badge/status-final-green.svg?style=flat-square)
 
 ## Editors
 
