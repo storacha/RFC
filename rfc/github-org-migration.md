@@ -69,7 +69,7 @@ Ideally, migrations should happen when we are working on repos whose purpose ove
 We have a total of 203 repositories, 193 are migration candidates, 10 are already archived.
 We SHOULD migrate repos one-by-one with an opportunistic approach after we have established it is safe to do so.
 Once the actions for a repository are successfully identified, it will be marked as [x].
-If a given repository has no checkbox, than means it was sorted prior to this document.
+If a given repository has no checkbox, than means it was archived prior to this document.
 
 The following repos lists were computed with: `curl -Ls -H "Accept: application/vnd.github+json" -H "Authorization: Bearer $GITHUB_TOKEN" -H "X-GitHub-Api-Version: 2022-11-28" https://api.github.com/orgs/$ORG/repos\?per_page\=100\&page\=$PAGE | jq -r '.[] | select(.archived|not) | "- [ ] [" + .name + "](" + .html_url + ")"'`, where `$ORG ∈ {"web3-storage", "nftstorage", "filecoin-saturn"}`, `GITHUB_TOKEN` is a token with access to all orgs, and `$PAGE ∈ [1,2]`. Further reference [here](https://docs.github.com/en/rest/repos/repos?apiVersion=2022-11-28#list-organization-repositories).
 
