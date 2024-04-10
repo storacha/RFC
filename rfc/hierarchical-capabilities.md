@@ -6,7 +6,7 @@ Currently UCAN capabilities described in [W3Up specification](https://github.com
 
 This creates a serious challenge for the programs (like w3up client) that attempt to infer set of methods to expose based no delegated capabilities.
 
-We roughly two roles in the sysntem `space` and `account` and their capability set do not overlap, so we can somewhat infer which methods to present in case of `*` ability by subject DID, but that hinges upon the fact that we use `did:key` for space and `did:mailto` for accounts. This assumbtion may be rendered obsolete in the future.
+We roughly two roles in the system `space` and `account` and their capability set do not overlap, so we can somewhat infer which methods to present in case of `*` ability by subject DID, but that hinges upon the fact that we use `did:key` for space and `did:mailto` for accounts. This assumbtion may be rendered obsolete in the future.
 
 ## Proposal
 
