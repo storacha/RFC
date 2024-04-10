@@ -66,7 +66,7 @@ New repositories MUST be created in [w3s](https://github.com/w3s-project).
 The goal of this section is to migrate repos we are going to be actively working on, so we're able to downgrade source orgs to the Github free tier.
 Ideally, migrations should happen when we are working on repos whose purpose overlaps between w3s and the previous project.
 
-We have a total of 193 candidate repositories to migrate (out of a total of 203 of which 10 were already archived).
+We have a total of 203 repositories, 193 are migration candidates, 10 are already archived.
 We SHOULD migrate repos one-by-one with an opportunistic approach after we have established it is safe to do so.
 Once the actions for a repository are successfully identified, it will be marked as [x].
 If a given repository has no checkbox, than means it was sorted prior to this document.
