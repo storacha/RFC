@@ -139,8 +139,8 @@ The [Web3 Storage](https://github.com/web3-storage) SHOULD be downgraded to the 
     - It SHOULD NOT be archived.
     - It SHOULD NOT be migrated.
 - [ ] [specs](https://github.com/web3-storage/specs)
-    - It SHOULD NOT be archived.
-    - It SHOULD be migrated.
+    - It SHALL NOT be archived.
+    - It SHALL be migrated.
 - [ ] [consul-cluster-go-ipfs](https://github.com/web3-storage/consul-cluster-go-ipfs)
     - It SHOULD be archived.
     - It SHOULD NOT be migrated.
@@ -166,8 +166,8 @@ The [Web3 Storage](https://github.com/web3-storage) SHOULD be downgraded to the 
     - It SHOULD be migrated.
 - [ ] [w3up](https://github.com/web3-storage/w3up)
     - Implementation of the protocols and specs repos. The current web3.storage system.
-    - It SHOULD NOT be archived.
-    - It SHOULD be migrated.
+    - It SHALL NOT be archived.
+    - It SHALL be migrated.
 - [ ] [ucanto-name-system](https://github.com/web3-storage/ucanto-name-system)
     - It SHOULD be archived.
     - It SHOULD NOT be migrated.
@@ -303,8 +303,8 @@ The [Web3 Storage](https://github.com/web3-storage) SHOULD be downgraded to the 
 - [ ] [sst-monorepo](https://github.com/web3-storage/sst-monorepo)
     - It SHOULD be deleted.
 - [ ] [w3infra](https://github.com/web3-storage/w3infra)
-    - It SHOULD NOT be archived.
-    - It SHOULD be migrated.
+    - It SHALL NOT be archived.
+    - It SHALL be migrated.
 - [ ] [w3notes](https://github.com/web3-storage/w3notes)
     - Example app.
     - It SHOULD NOT be archived.
@@ -319,8 +319,8 @@ The [Web3 Storage](https://github.com/web3-storage) SHOULD be downgraded to the 
     - It SHOULD NOT be archived.
     - It SHOULD NOT be migrated.
 - [ ] [w3cli](https://github.com/web3-storage/w3cli)
-    - It SHOULD NOT be archived.
-    - It SHOULD NOT be migrated.
+    - It SHALL NOT be archived.
+    - It SHALL NOT be migrated.
 - [ ] [aws-tag-audit](https://github.com/web3-storage/aws-tag-audit)
     - It SHOULD be archived.
     - It SHOULD NOT be migrated.
@@ -340,8 +340,8 @@ The [Web3 Storage](https://github.com/web3-storage) SHOULD be downgraded to the 
     - It SHOULD be archived.
     - It SHOULD NOT be migrated.
 - [ ] [w3filecoin-infra](https://github.com/web3-storage/w3filecoin-infra)
-    - It SHOULD NOT be archived.
-    - It SHOULD be migrated.
+    - It SHALL NOT be archived.
+    - It SHALL be migrated.
 - [w3up-docs](https://github.com/web3-storage/w3up-docs)
     - already archived.
 - [ ] [backup-infra](https://github.com/web3-storage/backup-infra)
@@ -402,8 +402,8 @@ The [Web3 Storage](https://github.com/web3-storage) SHOULD be downgraded to the 
     - It SHOULD be archived.
     - It SHOULD NOT be migrated.
 - [ ] [content-claims](https://github.com/web3-storage/content-claims)
-    - It SHOULD NOT be archived.
-    - It SHOULD NOT be migrated.
+    - It SHALL NOT be archived.
+    - It SHALL be migrated.
 - [ ] [sync-multihash-sha2](https://github.com/web3-storage/sync-multihash-sha2)
     - It SHOULD NOT be archived.
     - It SHOULD NOT be migrated.
@@ -414,8 +414,8 @@ The [Web3 Storage](https://github.com/web3-storage) SHOULD be downgraded to the 
 - [ ] [access-proxy](https://github.com/web3-storage/access-proxy)
     - [ ] Ask @travis if it can be archived.
 - [ ] [RFC](https://github.com/web3-storage/RFC)
-    - It SHOULD NOT be archived.
-    - It SHOULD be migrated.
+    - It SHALL NOT be archived.
+    - It SHALL be migrated.
 - [ ] [loki-tail-worker](https://github.com/web3-storage/loki-tail-worker)
     - Worker to tail logs.
     - It SHOULD NOT be archived.
@@ -449,14 +449,14 @@ The [Web3 Storage](https://github.com/web3-storage) SHOULD be downgraded to the 
     - It SHOULD NOT be migrated.
 - [ ] [console](https://github.com/web3-storage/console)
     - Web UI for w3up.
-    - It SHOULD NOT be archived.
-    - It SHOULD NOT be migrated.
+    - It SHALL NOT be archived.
+    - It SHALL NOT be migrated.
 - [ ] [one-webcrypto](https://github.com/web3-storage/one-webcrypto)
     - Fork which w3up depends upon. See [here](https://github.com/web3-storage/w3up/blob/6fa7797ba6f5c0bbd359c807e257882a7d5d6fb8/packages/access-client/package.json#L113).
 - [ ] [www](https://github.com/web3-storage/www)
     - Current website.
-    - It SHOULD NOT be archived.
-    - It SHOULD NOT be migrated.
+    - It SHALL NOT be archived.
+    - It SHALL be migrated.
 - [ ] [learnyouw3up](https://github.com/web3-storage/learnyouw3up)
     - It SHOULD NOT be archived.
     - It SHOULD NOT be migrated.
