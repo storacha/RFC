@@ -303,7 +303,6 @@ The [Web3 Storage](https://github.com/web3-storage) SHOULD be downgraded to the 
 - [ ] [sst-monorepo](https://github.com/web3-storage/sst-monorepo)
     - It SHOULD be deleted.
 - [ ] [w3infra](https://github.com/web3-storage/w3infra)
-    - [ ] Will need to check what happens to the [seed.run](https://seed.run/) infra with a new mini project (SST + seed.run) in the new org and migrate this repo there.
     - It SHOULD NOT be archived.
     - It SHOULD be migrated.
 - [ ] [w3notes](https://github.com/web3-storage/w3notes)
@@ -341,7 +340,6 @@ The [Web3 Storage](https://github.com/web3-storage) SHOULD be downgraded to the 
     - It SHOULD be archived.
     - It SHOULD NOT be migrated.
 - [ ] [w3filecoin-infra](https://github.com/web3-storage/w3filecoin-infra)
-    - Will need to check what happens to the [seed.run](https://seed.run/) infra with a new mini project (SST + seed.run) in the new org and migrate this repo there.
     - It SHOULD NOT be archived.
     - It SHOULD be migrated.
 - [w3up-docs](https://github.com/web3-storage/w3up-docs)
