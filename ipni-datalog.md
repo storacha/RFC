@@ -117,13 +117,49 @@ If system drops `blob..left` will drop all the records associated with that enti
 
 Because we get shards from single query we do not need to fetch [DAG Index] to start resolving location commitments. We could start resolving them right away and we gate IPNI with something like GraphQL we could even resolve those in a single roundtrip and cache for subsequent queries.
 
-Location commitments can be also indexed and advertised on [IPNI] in a very similar way.
+Location commitments and blob partition info can also be indexed and advertised on [IPNI] in a very similar way.
 
 | entity   | attribute             | value        |
 | ---------|-----------------------|--------------|
-| `loc..1` | `assert/location@0.2` | `bafy..left` |
-| `loc..2` | `assert/location@0.2` | `bafy..left` |
-| `loc..3` | `assert/location@0.2` | `bafy..right`|
+| `loc..1` | `assert/location@0.2` | `blb..left` |
+| `loc..2` | `assert/location@0.2` | `blb..left` |
+| `bl..idx`| `blob/partition@0.2`  | `blb..left` |
+| `loc..3` | `assert/location@0.2` | `blb..right`|
+| `br..idx`| `blob/partition@0.2`  | `blb..right`|
+
+## Relation to Datalog
+
+In datalog facts are triples of `[entity, attribute, value]` and you e.g. run a query like  `[?blob, 'dag@0.1/shard', 'bafy..dag']` to find all `?blob`s that have `shard` relation to `bafy..dag` which (from our example) will produce
+
+```
+{blob: 'blb..left'}
+{blob: 'blb..right'}
+```
+
+But you can also perform more powerful queries that perform joins e.g.
+
+```clj
+[?blob, "dag@0.1/shard", "bafy..dag"]
+[?location, "assert/location@0.2", ?blob]
+[?partition, "blob/partition@0.2", ?blob]
+```
+
+Which will produce results like
+
+```clj
+{blob: "blb..left", location: "loc..1", partition: "bl..idx"}
+{blob: "blb..left", location: "loc..2", partition: "bl..idx"}
+{blob: "blb..right", location: "loc..3", partition: "br..idx"}
+```
+
+Only constraint we would have to impose for IPNI compatibility are
+
+1. Every clause needs to specify constant `attribute`.
+   > This is because we need attribute for lookup keys derivation
+1. Variable must appear in the `entity` clause before it appears in value clause.
+   > This is because of the `1:n` relation that IPNI exploits.
+
+Such a query engine can be put in front of the IPNI to provide to offer great query flexibility in a single roundtrip. Things could be optimized significantly by utilizing caching.
 
 [Irakli Gozalishvili]:https://github.com/gozala
 [IPNI]:https://github.com/ipni/specs/blob/main/IPNI.md
