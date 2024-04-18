@@ -355,7 +355,9 @@ The [Web3 Storage](https://github.com/web3-storage) SHOULD be downgraded to the 
     - It SHOULD be archived.
     - It SHOULD NOT be migrated.
 - [ ] [blake3-multihash](https://github.com/web3-storage/blake3-multihash)
-    - [ ] Ask @gozala if it can be archived.
+    - We will likely be using in blake3 and bao in the future.
+    - It SHOULD NOT be archived.
+    - It SHOULD NOT be migrated.
 - [ ] [car-block-validator](https://github.com/web3-storage/car-block-validator)
     - Used in production.
     - It SHOULD NOT be archived.
