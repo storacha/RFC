@@ -414,7 +414,8 @@ The [Web3 Storage](https://github.com/web3-storage) SHOULD be downgraded to the 
     - It SHOULD NOT be archived.
     - It SHOULD NOT be migrated.
 - [ ] [access-proxy](https://github.com/web3-storage/access-proxy)
-    - [ ] Ask @travis if it can be archived.
+    - It SHOULD be archived.
+    - It SHOULD NOT be migrated.
 - [ ] [RFC](https://github.com/web3-storage/RFC)
     - It SHALL NOT be archived.
     - It SHALL be migrated.
