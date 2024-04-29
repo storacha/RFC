@@ -261,8 +261,8 @@ The [Web3 Storage](https://github.com/web3-storage) SHOULD be downgraded to the 
     - It SHOULD NOT be migrated.
 - [ ] [w3ui](https://github.com/web3-storage/w3ui)
     - UI components. Lib for devs to build UI with web3.storage.
-    - It SHOULD NOT be archived.
-    - It SHOULD NOT be migrated.
+    - It SHALL NOT be archived.
+    - It SHALL be migrated.
 - [ ] [web3.storage-content](https://github.com/web3-storage/web3.storage-content)
     - Blog for the old website.
     - It SHOULD NOT be archived.
