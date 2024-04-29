@@ -320,7 +320,7 @@ The [Web3 Storage](https://github.com/web3-storage) SHOULD be downgraded to the 
     - It SHOULD NOT be migrated.
 - [ ] [w3cli](https://github.com/web3-storage/w3cli)
     - It SHALL NOT be archived.
-    - It SHALL NOT be migrated.
+    - It SHALL be migrated.
 - [ ] [aws-tag-audit](https://github.com/web3-storage/aws-tag-audit)
     - It SHOULD be archived.
     - It SHOULD NOT be migrated.
@@ -453,7 +453,7 @@ The [Web3 Storage](https://github.com/web3-storage) SHOULD be downgraded to the 
 - [ ] [console](https://github.com/web3-storage/console)
     - Web UI for w3up.
     - It SHALL NOT be archived.
-    - It SHALL NOT be migrated.
+    - It SHALL be migrated.
 - [ ] [one-webcrypto](https://github.com/web3-storage/one-webcrypto)
     - Fork which w3up depends upon. See [here](https://github.com/web3-storage/w3up/blob/6fa7797ba6f5c0bbd359c807e257882a7d5d6fb8/packages/access-client/package.json#L113).
 - [ ] [www](https://github.com/web3-storage/www)
