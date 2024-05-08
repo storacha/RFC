@@ -26,7 +26,7 @@ Prolly Trees provide a great foundation for efficient, potentially partial sync 
 
 ### Query System
 
-It is important to recognize that Prolly Tree is effectively a merkelized key value store, which is inferior in query ability to Dynamo DB. More importantly key value stores tend to impose higher upfront design costs and are less flexible to schema changes which can be deal breaker.
+It is important to recognize that Prolly Tree is effectively a merkelized key value store, which is far more constrained query interface than what Dynamo DB offers. More importantly, key value stores tend to impose higher upfront design costs and are less flexible to schema changes which can be deal breaker.
 
 Luckily however graph oriented data bases like [Datomic] provide a very flexible query system, yet are [implemented on top of key value stores][Datomic interanls]. In addition it is designed such that all queries run locally, they simply sync shallow (three level deep) tree and fetch leaves containing packed groups of related records as needed and store them in local [MRU cache] for the future queries. This is a great fit because we do not want to drive system operational costs, instead we could leverage our storage layer for storing packed records and only shallow tree sync with replicas.
 
