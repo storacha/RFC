@@ -39,9 +39,9 @@ Expecting that well supported preferences will evolve over time, for now we are 
 
 ## Routed implementation of `space/content/add/blob`
 
-A blob router provides the `space/content/add/blob` capability by routing subsequent effects to seperate storage nodes providing `service/blob/allocate` and `service/blob/accept` capabilities.
+A blob storage router provides the `space/content/add/blob` capability by dispatching subsequent effects to separate storage nodes that provide `service/blob/allocate` and `service/blob/accept` capabilities.
 
-The blob router contains a state of storage nodes available.
+The blob router manages a state of available storage nodes.
 
 ```ts
 type StorageNode = {
@@ -62,12 +62,7 @@ type StorageProperties = {
 The blob router will probably also need a state of where things have been placed at and what stage they're at:
 
 ```ts
-type BlobAllocation = {
-  did: ProviderDid
-  blob: Blob
-}
-
-type BlobAllocations { [digest]: BlobAllocation }
+type BlobAllocations = { [Blob['digest']]: Set<LocationCommitment> }
 
 ```
 
@@ -106,7 +101,7 @@ Legacy invocation of `blob/add`:
   "aud": "did:web:web3.storage",
   "att": [
     {
-      "cmd": "/space/content/add/blob",
+      "can": "blob/add",
       "with": "did:key:zAlice",
       "nb": {
         "blob": {
@@ -281,8 +276,8 @@ Legacy receipt for `blob/add` pre-UCAN 1.0:
       // corresponding to the blob
       // via HTTP PUT to given location.
       { // "/": "bafy...put",
-        "iss": "did:key:zAlice",
-        "aud": "did:key:zAlice",
+        "iss": "did:key:zMh...der",
+        "aud": "did:key:zMh...der",
         "att": [
           {
             "can": "/http/put",
@@ -399,8 +394,8 @@ Legacy invocation:
   "att": [
     {
       "can": "/web3.storage/blob/allocate",
-      "nb": "did:web:node1.storage",
-      "with": {
+      "with": "did:web:node1.storage",
+      "nb": {
         "blob": {
           // multihash of the blob as byte array
           "digest": { "/": { "bytes": "mEi...sfKg" } },
@@ -421,9 +416,9 @@ Receipt:
 { 
   // "/": "bafy..work",
   "iss": "did:web:node1.storage",
-  "aud": "did:web:web3.storage",
+  "aud": "did:web:node1.storage",
+  "sub": "did:web:node1.storage",
   "cmd": "/ucan/assert",
-  "sub": "did:web:web3.storage",
   "args": {
     "assert": [
       // refers to the invocation from the example
@@ -455,7 +450,6 @@ Legacy receipt:
 { 
   // "/": "bafy..work",
   "iss": "did:web:node1.storage",
-  "aud": "did:web:web3.storage",
   "ran": {
     "/": "bafyreia5tctxekbm5bmuf6tsvragyvjdiiceg5q6wghfjiqczcuevmdqcu"
   },
