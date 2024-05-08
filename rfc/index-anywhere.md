@@ -8,7 +8,7 @@ W3Up heavily leverages Dynamo DB to store various indexes about the system state
 
 Use of Dynamo for indexing ties critical component of the system to the proprietary AWS stack. It is worth calling out we have explored other DBs like [PostgreSQL], [Cloudflare KV] and [FaunaDB] and Dynamo proved to be the best choice so far.
 
-Despite success with Dynamo it is not practical choice for exposing our index to the rest of the network, because we'd like network to replicate index as opposed to drive our operational costs by number of queries.
+Despite success with Dynamo it is not practical choice for an index in a distributed network, as it introduces central point of failure (owner of the db) and drives up operational costs (of the db owner) with every query served. 
 
 ### Requirements
 
