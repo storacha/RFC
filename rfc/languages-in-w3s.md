@@ -14,7 +14,7 @@
   - We should not add languages because we "like" them, or get excited by them, or cause they seem #SoHotRightNow
   - There must be a strong engineering driven reason to adopt a new language.
 - Not every dev will be an expert in all our languages. But once we adopt a language, every dev must be willing to do work in that language if it's required. We support each other and teach each other to make work get done faster.
-- Candidate languages worth considering adding right now are Go and Rust. In the future we will probably need to write some Solidity contracts.
+- Candidate languages worth considering adding are Go and Rust. In the future we will probably need to write some Solidity contracts.
 
 ## Thoughts on programming languages from Hannah
 
