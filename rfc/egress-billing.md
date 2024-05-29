@@ -46,6 +46,16 @@ request to the rate limits service and a small amount of computation to decide w
 extremely flexible and extensible mechanism to control how and when their content is served, including support for
 `Origin`-gating and other CDN-esque tools to control their egress costs.
 
+```mermaid
+sequenceDiagram
+  Alice->>Gateway: Do you have bafk...7fi?
+  Gateway->>Rate Limit Service: Has bafk...7fi exceeded rate limits?
+  Rate Limit Service-->>Gateway: YES or NO or UNKNOWN
+  Gateway-)Accounting Service: Serving/not serving bafk...7fi
+  Gateway-->>Alice: 200 if YES or UNKNOWN, 429 if NO
+  Accounting Service->>Rate Limit Service: Update rate limits
+```
+
 ## Introduction
 
 We currently operate the IPFS gateway at https://w3s.link as a free service. As a result, it is an unbound source of "cost"
