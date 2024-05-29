@@ -159,6 +159,18 @@ This delegation authorizes the gateway to serve this content when the HTTP reque
 value of `example.com` and the request URL has a query string that includes `token=zrptvx`. This functions
 as an "unlimited" rate limit and can be used to authorize, for example, unlimited egress billing for requests.
 
+Additional `pol` entries can be added to set more stringent rate limits,
+for example specifying that a particular content commitment may
+only be used 100 times per minute or 1000 total. The syntax and
+specifics of these rate limits will be defined in a formal specification.
+
+```mermaid
+sequenceDiagram
+  Alice->>Blob Service: Please store bafk...7fi
+  Blob Service-->>Alice: Stored - you can present bafy..site to fetch bafk...7fi
+  Alice-)Gateway: You can present bafy..site to fetch bafk...7fi
+```
+
 #### Rate Limit Accounting
 
 When the gateway receives a request, it will query the [content claims service] for claims about the requested
