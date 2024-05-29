@@ -182,6 +182,15 @@ These queries and the updates to rate limits they are used to create should not 
 this should be done in background jobs and the read logic should read from whatever data store these tasks are using to manage
 rate limits.
 
+```mermaid
+sequenceDiagram
+  Gateway-)Accounting Service: I received a request for bafk...7fi
+  Accounting Service->>Content Claims Service: Give me claims relevant to this request
+  Content Claims Service-->>Accounting Service: Here are the claims I can find
+  Accounting Service->>Rate Limiting Service: Increment rate limit usage for this claim
+  Rate Limiting Service-->>Accounting Service: OK, done
+```
+
 #### Bulk Configuration
 
 NOTE: The following this requires support for "delegations without inline proofs" as specified in UCAN 1.0
