@@ -274,7 +274,13 @@ https://redis.io/blog/redis-adopts-dual-source-available-licensing/
 
 We may want to consider using an open source alternative like https://github.com/nalgeon/redka if we
 are concerned about using "source available" products - my inclination is to use Redis but consider products like
-Redka as a fallback in case Redis no longer meets our needs.
+Redka as a fallback in case Redis no longer meets our needs. We may also want to consider using AWS or Cloudflare products with Redis-compatible APIs:
+
+https://aws.amazon.com/memorydb/
+https://aws.amazon.com/elasticache/
+https://developers.cloudflare.com/workers/databases/native-integrations/upstash/
+
+Using one of these services is probably the most expedient way to prototype this - since the gateway currently runs on Cloudflare, Upstash is perhaps the most promising.
 
 ## TODO
 
