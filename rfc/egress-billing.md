@@ -78,8 +78,8 @@ being out of date, we count that request against _R_.
 
 The following TypeScript pseudocode illustrates the rate limiting algorithm:
 
-ts
-```
+
+```ts
 enum RateLimited {
   Yes,
   No,
