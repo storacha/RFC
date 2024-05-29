@@ -22,10 +22,8 @@ The business has the capacity to pay for some number of reads - we'll call this 
 first implement a global per-CID rate-limit that is expected to account for roughly 75-90%
 of R. This rate limit will be used for all content that has not been configured with another
 rate limit, and for content that has been configured with other rate limits that have already
-been reached. If a request is made for content that has "used up" all available rate limits, including
-its public rate limit, the response MAY be an HTTP 429 (`Too Many Requests`), but MAY be an HTTP 200 (`OK`) with the content
-if doing so allows us to optimize read performance. Requests served despite being over all rate
-limits will account for the remaining 10-25% of R. [note: I'm not sure if these percentage ranges for R are right]
+been reached. Requests served despite being over all other available rate limits will account
+for the remaining 10-25% of R. [note: I'm not sure if these percentage ranges for R are right]
 
 In order to allow our users to guarantee consistent read performance in their applications, we
 will allow them to configure rate limits using the “content commitments“ returned from blob uploads. 
@@ -35,15 +33,13 @@ with some restrictions. At read time, if the gateway can find a valid content co
 and if not it will fall back to the behavior described above.
 
 Finally, in order to give ourselves maximum flexibility to optimize read performance, we propose
-a high performance rate-limit tracking system based on a mature caching service - we will
-use [Redis] in this document as an example, but other services like memcached or Caddy should be considered. 
-When read requests come in to the gateway, this system will be used to determine whether the request should
-be served. After the request is served it will be passed to a backend job processing system which
-will both record the system for administrative purposes (eg, billing) AND update the rate limit caching
-system. We expect this to result in some amount of "unauthorized" read request service, for example if two requests for
-the same content arrive at nearly the same time they will both be served 200s, since the rate limits will only be
-updated some time after a request is served. This pattern is similar in some ways to the "stale while revalidate" 
-pattern that is popular on the web today - stale rate limits will be used while they are revalidated in the background.
+a high performance rate-limit tracking system based on industry-standard tools for this purpose. After
+the request is served it will be passed to a backend job processing system which will update the rate limit caching
+system. We expect this to result in some amount of "unauthorized" read request service - for example, if two requests for
+the same content arrive at nearly the same time they will always both be served even if the second request
+goes over all established rate limits, since the rate limits will only be updated some time after a request is served. 
+This pattern is similar in some ways to the "stale while revalidate"  pattern that is popular on the web today - stale
+rate limits will be used while they are revalidated in the background.
 
 Taken together, this should allow us to keep reads extremely performant - ideally we will need only a single Redis
 request and a small amount of computation to decide whether to serve content. It will also give users an
