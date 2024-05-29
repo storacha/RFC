@@ -18,12 +18,11 @@ and we generally want to err on the side of performant reads.
 
 ## Abstract
 
-The business has the capacity to pay for some number of reads - we'll call this R. We will
-first implement a global per-CID rate-limit that is expected to account for roughly 75-90%
-of R. This rate limit will be used for all content that has not been configured with another
+The business has the capacity to pay for some number of reads - we'll call this _R_. We will
+first implement a global per-CID rate-limit that is expected to account for N%
+of _R_. This rate limit will be used for all content that has not been configured with another
 rate limit, and for content that has been configured with other rate limits that have already
-been reached. Requests served despite being over all other available rate limits will account
-for the remaining 10-25% of R. [note: I'm not sure if these percentage ranges for R are right]
+been reached.
 
 In order to allow our users to guarantee consistent read performance in their applications, we
 will allow them to configure rate limits using the “content commitments“ returned from blob uploads. 
@@ -39,10 +38,11 @@ system. We expect this to result in some amount of "unauthorized" read request s
 the same content arrive at nearly the same time they will always both be served even if the second request
 goes over all established rate limits, since the rate limits will only be updated some time after a request is served. 
 This pattern is similar in some ways to the "stale while revalidate"  pattern that is popular on the web today - stale
-rate limits will be used while they are revalidated in the background.
+rate limits will be used while they are revalidated in the background. Requests served this way despite being over all
+available rate limits will account for the remaining (100 - N)% of _R_.
 
-Taken together, this should allow us to keep reads extremely performant - ideally we will need only a single Redis
-request and a small amount of computation to decide whether to serve content. It will also give users an
+Taken together, this should allow us to keep reads extremely performant - ideally we will need only a single network
+request to the rate limits service and a small amount of computation to decide whether to serve content. It will also give users an
 extremely flexible and extensible mechanism to control how and when their content is served, including support for
 `Origin`-gating and other CDN-esque tools to control their egress costs.
 
