@@ -193,7 +193,7 @@ sequenceDiagram
 
 #### Bulk Configuration
 
-NOTE: The following this requires support for "delegations without inline proofs" as specified in UCAN 1.0
+NOTE: The following requires support for "delegations without inline proofs" as specified in UCAN 1.0
 
 If users would like to set rate limits on a set of CIDs in a single operation, they can create an intermediary "principle"
 to which they can address delegations - in this example we will call this principle `did:key:zGroup`. 
@@ -278,9 +278,21 @@ Redka as a fallback in case Redis no longer meets our needs.
 
 ## TODO
 
+- [ ] quick prototype spike - (in hoverboard?)
+  - just the single-CID flow for now
+  - nail down details of:
+    - what is a delegation vs invocation
+    - how this integrates with our billing service
+- [ ] design and specify the first version of the gateway configuration
 - [ ] research Redis and alternatives
-- [ ] design the caching system
-- [ ] work plan
+- [ ] design the rate limits service
+- [ ] build the rate limits service
+- [ ] design the accounting service
+- [ ] build the accounting service
+- [ ] update hoverboard (?) to use the rate limits and accounting services
+- [ ] update other pieces of infrastructure to use rate limits and accounting services (what are these?)
+
+
 
 ## Resources
 
