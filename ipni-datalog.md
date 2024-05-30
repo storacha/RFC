@@ -127,6 +127,25 @@ Location commitments and blob partition info can also be indexed and advertised 
 | `loc..3` | `assert/location@0.2` | `blb..right`|
 | `br..idx`| `blob/partition@0.2`  | `blb..right`|
 
+### Example Query
+
+Here are the actual steps that would be required for computing bafy..dag DAG
+
+1. Query IPNI for the `bafy..dag` blobs `toKey(['dag@0.1/shard', 'bafy..dag'])`
+    - Receive `[blb..left, blb..right]`
+2. Concurrently query IPNI for
+    - Blob locations `toKey(['assert/location@0.2', 'blb..left'])`
+        - Fetch blob from location
+    - Blob partition `toKey(['blob/partition@0.2', 'blb..left'])`
+        - Fetch resolved partition index
+    - Blob locations `toKey(['assert/location@0.2', 'blb..right'])`
+        - Fetch blob from location
+    - Blob partition `toKey(['blob/partition@0.2', 'blb..right'])`
+        - Fetch resolved partition index
+3. Slice up fetched blob to blocks per partition index & put together a DAG (some parts can occur concurrently as we receive blob + index for them)
+
+Note: round-trips can be reduced to 1 if we put something in front of IPNI that can perform a join
+
 ## Relation to Datalog
 
 In datalog facts are triples of `[entity, attribute, value]` and you e.g. run a query like  `[?blob, 'dag@0.1/shard', 'bafy..dag']` to find all `?blob`s that have `shard` relation to `bafy..dag` which (from our example) will produce
