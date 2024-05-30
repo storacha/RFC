@@ -250,7 +250,7 @@ sequenceDiagram
 
 Note that `bafy..access` alone will not be enough to authorize retrieval
 of the content - the accounting system will need to combine it with
-a CID-specific content commitment that has been delegated to `Group`.
+a CID-specific content commitment that has been delegated to `Group` like `bafy..group`.
 
 ## Implementation Considerations
 
