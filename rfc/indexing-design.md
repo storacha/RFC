@@ -51,7 +51,7 @@ results = Query(multihash="bafy...", match)
 
 ### Query Operation Diagram
 
-![w3-index](https://www.tldraw.com/ro/jBOq7Ce4ILWloWfAODrlj?v=-183,481,2733,1758&p=page)
+![indexer-core-data](indexer-core-data.png)
 
 ## Indexing Components
 
