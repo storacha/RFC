@@ -51,7 +51,7 @@ results = Query(multihash="bafy...", match)
 
 ### Query Operation Diagram
 
-![indexer-core-data](indexer-core-data.png)
+![w3up-query-diagram](w3up-query-diagram.png)
 
 ## Indexing Components
 
