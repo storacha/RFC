@@ -88,7 +88,9 @@ If either shard or location results are not cached, then a query for the multiha
 The shard/slice data does not change over the lifetime of the stored data, so this data can have a much longer expiration time. It could also have no expiration time and be explicitly removed from cache when the data is no longer stored, but this means that there need to be a communication path from data removal to all cache locations. So, better to just have an expiration time, making cache more independent.
 
 ### IPNI
-
+IPNI is the final, "cache-miss" layer of the W3up Indexing System. IPNI is a highly optimized system for caching indexing information for massive numbers of CIDs. It's available to all and optimized to run on bare metal hardware. IPNI is used to do the following:
+1. Provide a reliable global index for all w3up content, that is not only publicly available but usable by an IPFS retrieval client, without the other components of the w3up indexing system
+2. Provide a low cost way to index content on w3up that is infrequently requested
 #### Get w3up results
 
 IPNI maps a multihash to location and metadata information. When queried with a multihash, IPNI will respond with all known locations/metadatas of that multihash. The w3up IPNI query client must filter these results to only select results that are under the control of w3up.
