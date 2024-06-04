@@ -53,7 +53,7 @@ results = Query(multihash="bafy...", match)
 
 ![w3up-query-diagram](w3up-query-diagram.png)
 
-## System Components
+## Indexing System Components
 
 The indexing components are intended for deployment on the w3up gateway. They may also be deployed to the w3up client, where they will not be shared with other clients.
 
@@ -65,14 +65,16 @@ The w3up index layer is responsible for reading a query specification, and then
 3. Filtering returned results
 4. Packaging results for the query client.
 
-### W3up IPNI Cache
+### W3up IPNI and Index Cache
 
-The w3up IPNI Cache is a cache that holds IPNI query results. The cache is:
+The w3up IPNI Cache is a cache that holds IPNI query results and sharded-dag-index data. The cache is:
 
 - Limited-size LRU. Discards the least recently used data when at storage capacity.
 - Temporary. Evicts items that have been cached for longer than the cache expiration time, regardless of last access. This allows changes to query results to be seen.
 - Negative (empty) result-aware. Caching empty results prevents more expensive IPNI queries for data that is not indexed. Negative cache entries are kept in a separate cache so that negative entries cannot evict a positive entrries due to LRU.
 - Populated on write: When new or updated data is publisher to IPNI, the cache is populated. This replaces previous any previous cache entries, including negative ones.
+
+Similar to negative cache entries, cached sharded-dag-indexes are kept in a separate LUR cache because their size will cause them to be evicted more frequently than IPNI results.
 
 This is a read-through cache, meaning if it does not hold the request query results, then it forwards the query on to IPNI, and caches the results. This includes caching an empty response.
 
