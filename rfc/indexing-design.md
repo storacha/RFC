@@ -53,7 +53,7 @@ results = Query(multihash="bafy...", match)
 
 ![w3up-query-diagram](w3up-query-diagram.png)
 
-## Indexing Components
+## System Components
 
 The indexing components are intended for deployment on the w3up gateway. They may also be deployed to the w3up client, where they will not be shared with other clients.
 
