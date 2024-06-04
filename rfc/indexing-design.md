@@ -16,9 +16,9 @@ A query API will allow a user to specify indexed content to lookup and how to fi
 
 ## Overview
 
-A user stores content as opaque blobs containing series of blocks addressed by multihashes. These blocks are collected into one or more CAR file (shards) and the CAR file is stored at a location designated for a particular user's data.
+A user stores content in shards of opaque blobs that contain a series of blocks addressed by multihashes. Blobs are set of blocks in CAR file format (although they could use different format in the future) and are stored at a location designated for a particular user's data.
 
-The user creates a blob-index ([sharded-dag-index](https://github.com/w3s-project/specs/blob/main/w3-index.md#sharded-dag-index-example)) that contains the multihash of each shard of blob data, and an array of tuples of (multihash, offset, length) for all the blocks in each shard. The user may choose which blocks to include in the blob-index if they do not want all blocks to be indexed. For example, they may want only the DAG root to be indexed.
+The agent uploading user content builds a UnixFS IPLD DAG and encodes it into one or more blobs. It also derives ([sharded-dag-index](https://github.com/w3s-project/specs/blob/main/w3-index.md#sharded-dag-index-example)) that describe blob in terms of (multihash, offset, length) tuples for all the blocks. This enables the user to make choices about which block to be make discoverable and retrievable over the network. For example, they may want only the DAG root to be indexed.
 
 The blob-index is stored in the user's space along with the CAR file(s) containing the blob data. This is done in the [w3 add-blob operation](https://github.com/w3s-project/specs/blob/main/w3-blob.md#add-blob). The w3s service creates [location commitments](https://github.com/w3s-project/specs/blob/main/w3-blob.md#location-commitment) for the blob shards and for the blob-index. 
 
@@ -33,9 +33,9 @@ Finally the user uses the shard location, with range information from the blob i
 A w3s client can query indexed information by specific attributes, and can filter retrieved query results.
 
 The queryable attributes are as follows.
-- Site: the location(s) where all blob data is available
-- Shard: the location(s) where a specific shard of data is available
-- Slice: the location(s) within a shard where a block of data is available
+- Site: This lets the query ask for results where data is stored at specified site(s), i.e. query can specify "where site in [X]".
+- Shard: This lets the query ask for results for a specific shard, i.e. query can specify "where shard in [S]".
+- Slice: This lets the query ask for a specific block of data, identified my multihash with a result being the byte range within a shard containing the block of data.
 
 Query results can be filtered to select only results that the user has access to, or for data supplied by specific data providers.
 
@@ -63,14 +63,16 @@ The w3up index layer is responsible for reading a query specification, and then
 1. Creating a set of IPNI queries needed to get the requested index content
 2. Sending the queries to the w3up IPNI cache
 3. Filtering returned results
-4. Presenting results to the query client.
+4. Packaging results for the query client.
 
 ### W3up IPNI Cache
 
 The w3up IPNI Cache is a cache that holds IPNI query results. The cache is:
+
 - Limited-size LRU. Discards the least recently used data when at storage capacity.
 - Temporary. Evicts items that have been cached for longer than the cache expiration time, regardless of last access. This allows changes to query results to be seen.
-- Negative (empty) result-aware. Caching empty results prevents more expensive IPNI queries for data that is not indexed.
+- Negative (empty) result-aware. Caching empty results prevents more expensive IPNI queries for data that is not indexed. Negative cache entries are kept in a separate cache so that negative entries cannot evict a positive entrries due to LRU.
+- Populated on write: When new or updated data is publisher to IPNI, the cache is populated. This replaces previous any previous cache entries, including negative ones.
 
 This is a read-through cache, meaning if it does not hold the request query results, then it forwards the query on to IPNI, and caches the results. This includes caching an empty response.
 
