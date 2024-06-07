@@ -232,3 +232,25 @@ When an advertisement is created to publish new index data, the IPNI cache is po
 1. What are the trade-offs of using IPNI to lookup location commitments as opposed to bundling these with blob-index data.
 2. Deploy on w3s gateway, client, both?
 3. How can the IPNI cache be distributed? Should its contents be shared on IPFS?
+
+
+## Summary from Discussions
+
+1. The cache will translate both IPNI requests and claims bundle (i.e. sharded dag index) into a format optimized for fast querying of lots of data and supporting arbitrary relationships between multihashs. Likely some kind of EAV store
+  a. There’ll be a ticket to design this data model, and maybe another to start protoyping.
+2. The claims bundle / sharded dag index effectively captures 2 types of relationships:
+  a. blob/shard (how is the blob broken up into multiple shards)
+  b. blob/slice (what are the offsets of individual blocks or groups of blocks in the the shard)
+  c. in the future, it’s possible there are other types of relationships we will want to store. we should be able to add additional relationships and potentially publish them to IPNI without redesigning the system
+3. For IPNI:
+  a. You can query by a shard multihash to get the location commitments for that shard. Each location commitment for each shard will have a contextID as they update independently.
+  b. You can query by any multihash in DAG to get the address of the claims bundle for the DAG. These will all updated under a single context ID. Importantly, each relationship will have a separate metadata protocol. There are a number of ways to do this on a single context ID:
+    i. Actually, rereading spec and https://github.com/ipni/go-libipni/blob/main/metadata/metadata.go, a single “Metadata” as specified by IPNI is MULTIPLE metadata protocols — so Andrew I believe this can be accomplished by just including multiple metadata protocols in the metadata for the main advertisement for the context ID. Metadata can also be updated in a future advertisement, so you could add future relations this way.
+    ii. That said we could also use extended providers here and maybe it would be useful to do so. Mostly if different bundles start ending up at different publishers
+    iii. Anyway, there’s going to a ticket for laser focus on the metadata and IPNI ad structures so we can figure it out then.
+  c. Worth noting we still need to keep our existing advertisement chain going, cause this is what ipfs.io and other IPFS clients know how to use for now.
+4. For the Index query:
+  a. I’m ok with a query interface instead of a rest api for the long term. I get the rationale. I honestly think the first version should be a REST Api for the one query join we actually want. We can certainly build the query interface right away, but I would not build a generalized query parser and implementation. Instead I would just pattern match the queries against the specific joins we want to do for the moment and error on everything other than the thing we need. Again, for the moment.
+  b. There’ll be a prototype ticket for this service.
+
+Still need to figure out what that looks like: [metadata.go](https://github.com/ipni/go-libipni/blob/main/metadata/metadata.go)
