@@ -18,7 +18,7 @@ A query API will allow a user to specify indexed content to lookup and how to fi
 
 A user stores content in shards of opaque blobs that contain a series of blocks addressed by multihashes. Blobs are a set of blocks in CAR file format (although they could use different format in the future) and are stored at a location designated for a particular user's data.
 
-The agent uploading user content builds a UnixFS IPLD DAG and encodes it into one or more blobs. It also derives ([sharded-dag-index](https://github.com/w3s-project/specs/blob/main/w3-index.md#sharded-dag-index-example)) that describe blob in terms of (multihash, offset, length) tuples for all the blocks. This enables the user to make choices about which block to be make discoverable and retrievable over the network. For example, they may want only the DAG root to be indexed.
+The agent uploading user content builds an IPLD DAG and encodes it into one or more CAR files (blobs). It also derives a ([sharded-dag-index](https://github.com/w3s-project/specs/blob/main/w3-index.md#sharded-dag-index-example)) that describe the blobs in terms of (multihash, offset, length) tuples for all the blocks. This enables the user to make choices about which block to be make discoverable and retrievable over the network. For example, they may want only the DAG root to be indexed.
 
 The blob-index is stored in the user's space along with the CAR file(s) containing the blob data. This is done in the [w3 add-blob operation](https://github.com/w3s-project/specs/blob/main/w3-blob.md#add-blob). The w3s service creates [location commitments](https://github.com/w3s-project/specs/blob/main/w3-blob.md#location-commitment) for the blob shards and for the blob-index. 
 
