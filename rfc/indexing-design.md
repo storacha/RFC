@@ -30,7 +30,7 @@ Finally the user uses the shard location, with range information from the blob-i
 
 ## Index Query
 
-A w3s client can query indexed information by specific attributes, and can filter retrieved query results.
+A client can query indexed information by specific attributes, and can filter retrieved query results.
 
 The queryable attributes are as follows.
 - Site: This lets the query ask for results where data is stored at specified site(s), i.e. query can specify "where site in [X]".
