@@ -74,7 +74,7 @@ The w3up IPNI Cache is a cache that holds IPNI query results and sharded-dag-ind
 - Negative (empty) result-aware. Caching empty results prevents more expensive IPNI queries for data that is not indexed. Negative cache entries are kept in a separate cache so that negative entries cannot evict positive entries due to LRU.
 - Invalidated on write: When new or updated data is published to IPNI, corresponding cache data is invalidated, so the latest can be fetched from source.
 
-Similar to negative cache entries, cached sharded-dag-indexes are kept in a separate LUR cache because their size will cause them to be evicted more frequently than IPNI results.
+Similar to negative cache entries, cached sharded-dag-indexes are kept in a separate LRU cache because their size will cause them to be evicted more frequently than IPNI results. This cache does not need to be time-based.
 
 This is a read-through cache, meaning if it does not hold the request query results, then it forwards the query on to IPNI, and caches the results. This includes caching an empty response.
 
