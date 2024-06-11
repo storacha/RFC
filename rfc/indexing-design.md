@@ -8,7 +8,7 @@
 
 ## Goals
 
-A user can use a multihash, that identifies data stored on w3s, to lookup the all information necessary to retrieve and delegate access to that data.
+A user can use a multihash, that identifies data stored on w3s, to lookup all the information necessary to retrieve and delegate access to that data.
 
 Location commitments that describe where content is stored can change over time as w3s moves data to a more favorable location, re-aggregates data storage, or replicates stored data. Location commitments are updated without having to index all multihashes.
 
