@@ -24,7 +24,7 @@ The blob-index is stored in the user's space along with the CAR file(s) containi
 
 After the add-blob process completes, and the user receives an [accept-blob receipt](https://github.com/w3s-project/specs/blob/main/w3-blob.md#accept-blob-receipt), the user may then choose to make their data publicly queryable by publishing it to W3UP's indexing system.  The user optionally invokes an [index-add](https://github.com/w3s-project/specs/blob/main/w3-index.md#index-add) capability to publish the blob-index multihashes into W3UP's indexing system and eventually to [IPNI](https://github.com/ipni/specs/blob/main/IPNI.md) so that they can be used to look up location commitments and retrieve blob-index information and blob data. See [W3 Index](https://github.com/w3s-project/specs/blob/main/w3-index.md#w3-index) for more.
 
-After publishing an index, any user looking for content can query for the blob-index of that content. The user read the blob-index to determine what data shard needs to be retrieved, and then asks for the location of that shard.
+After publishing an index, any user looking for content can query for the blob-index of that content. The user can read the blob-index to determine what data shard needs to be retrieved, and then asks for the location of that shard.
 
 Finally the user uses the shard location, with range information from the blob index, to retrieve a specific piece of data from w3s.
 
