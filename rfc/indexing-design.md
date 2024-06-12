@@ -30,20 +30,13 @@ Finally the user uses the shard location, with range information from the sharde
 
 ## Index Query
 
-A client can query indexed information by specific attributes, and can filter retrieved query results.
-
-The queryable attributes are as follows.
-- Site: This lets the query ask for results where data is stored at specified site(s), i.e. query can specify "where site in [X]".
-- Shard: This lets the query ask for results for a specific shard, i.e. query can specify "where shard in [S]".
-- Slice: This lets the query ask for a specific block of data, identified my multihash with a result being the byte range within a shard containing the block of data.
-
-Query results can be filtered to select only results that the user has access to, or for data supplied by specific data providers.
+A client can query indexed information by looking up multihashes that are specified in the sharded dag index. These include the dag root, dag shards, and slices (blocks) within shards. Results can be filtered to only allow results for a specific audiance.
 
 ### Query Specification
 
 ```
 results = Query(
-    multihash="bafy...",
+    multihash=["bafy...", ..],
     match = {
         subject=[myID, myAlternateID],
     })
@@ -54,10 +47,6 @@ results = Query(
 ![w3up-query-diagram](w3up-query-diagram.png)
 
 Note: This is for reference and is not current with this document.
-
-## Indexing System Components
-
-The indexing components are intended for deployment on the w3up gateway. They may also be deployed to the w3up client, where they will not be shared with other clients.
 
 ## Operational Description
 
@@ -180,6 +169,10 @@ Consider:
 - sharded-dag-index-2 has the same shard with slices. That shard is at location URL-2 and the slice is at offset 55, lenght 1024
 
 When trying to read the slice, which is found in sharded-dag-index-2, it is ok to tell the client that the slice can be read either from shard-1 or from shard-2 at offset 55, length 1024?  This works because both shards have the same multihash and therefore the same data. 
+
+## Indexing System Components
+
+The indexing components are intended for deployment on the w3up gateway. They may also be deployed to the w3up client, where they will not be shared with other clients.
 
 ### W3up Index
 
