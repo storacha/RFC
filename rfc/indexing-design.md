@@ -42,23 +42,24 @@ Query results can be filtered to select only results that the user has access to
 ### Query Specification
 
 ```
-match = {
-  subject=[myID, myOrgID],
-  location=spBaseURL,
-}
-results = Query(multihash="bafy...", match)
+results = Query(
+    multihash="bafy...",
+    match = {
+        subject=[myID, myAlternateID],
+    })
 ```
 
-### Query Operation Diagram
+### Previous Query Operation Diagram
 
 ![w3up-query-diagram](w3up-query-diagram.png)
+
+Note: This is for reference and is not current with this document.
 
 ## Indexing System Components
 
 The indexing components are intended for deployment on the w3up gateway. They may also be deployed to the w3up client, where they will not be shared with other clients.
 
 ## Operational Description
-## cache sequence
 
 ### First time query is made
 
