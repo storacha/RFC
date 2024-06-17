@@ -26,7 +26,7 @@ After the add-blob process completes, and the user receives an [accept-blob rece
 
 After publishing an index, any user looking for content can query for the sharded-dag-index of that content. The user can read the sharded-dag-index to determine what data shard needs to be retrieved, and then ask for the location of that shard.
 
-Finally the user uses the shard location, with range information from the sharded-dag-index, to retrieve a specific piece of data from the network.
+Finally the user uses the blob location, with byte range information from the sharded-dag-index, to fetch the blocks required to service the request from the network.
 
 ## Index Query
 
