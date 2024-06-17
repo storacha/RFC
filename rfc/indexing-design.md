@@ -54,7 +54,6 @@ Note: This is for reference and is not current with this document.
 
 ```mermaid
 sequenceDiagram
-sequenceDiagram
     actor Client
     Client->>index-cache: "bafy..cat1"
     Note right of index-cache: "bafy..cat1" not cached
