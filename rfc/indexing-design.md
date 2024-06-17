@@ -54,85 +54,78 @@ Note: This is for reference and is not current with this document.
 
 ```mermaid
 sequenceDiagram
+sequenceDiagram
     actor Client
-    Client->>w3up-index: "bafy..cat1"
-    w3up-index->>ipni-cache: "bafy..cat1"
-    Note right of ipni-cache: "bafy..cat1" not cached
-    ipni-cache->>ipni: "bafy..cat1"
-    ipni-->>+ipni-cache: [restult, ..]
+    Client->>index-cache: "bafy..cat1"
+    Note right of index-cache: "bafy..cat1" not cached
+    index-cache->>ipni: "bafy..cat1"
+    ipni-->>index-cache: [restult, ..]
+    activate index-cache
     loop Every ctx-id not cached
-        ipni-cache-->>ipni-cache: fetch sharded-dag-index
-        ipni-cache-->>ipni-cache: cache ctx-id: sharded-dag-index
-        ipni-cache-->>ipni-cache: cache "bafy..cat1": sharded-dag-index
+        index-cache->>user-storage: fetch sharded-dag-index
+        user-storage-->>index-cache: sharded-dag-index 
+        index-cache-->>index-cache: cache ctx-id, "bafy..cat1": sharded-dag-index
     end 
-    ipni-cache-->>-w3up-index: [sharded-dag-index, ..]
-    activate w3up-index
-    w3up-index-->>w3up-index: find "bafy..cat1" in sharded-dag-index
-    Note right of w3up-index: get shard-mh, offset, lenght
-    w3up-index-->>ipni-cache: shard-key=mh(dag-mh+shard-mh)
-    deactivate w3up-index
-    Note right of ipni-cache: shard-key not cached
-    ipni-cache->>ipni: shard-key
-    ipni-->>+ipni-cache: loc-bundle URL
-    ipni-cache-->>ipni-cache: fetch and read shard loc-commits
-    ipni-cache-->>ipni-cache: cache shard-key: [shard-loc-commit, ..]
-    ipni-cache-->>-w3up-index: [shard-loc-commit, ..]
-    activate w3up-index
-    w3up-index-->>w3up-index: filter shard-loc-commits for client
-    w3up-index-->>w3up-index: create response with all shard-URLs for all shards
-    Note right of w3up-index: results sorted by shard-URL
-    w3up-index-->>Client: [{shard-URL,off,len}, ..]
-    deactivate w3up-index
+    index-cache-->>index-cache: find "bafy..cat1" in sharded-dag-index
+    Note right of index-cache: get shard-mh, offset, lenght
+    index-cache-->>index-cache: loookup shard-key=mh(dag-mh+shard-mh)
+    Note right of index-cache: shard-key not cached
+    index-cache->>ipni: shard-key
+    deactivate index-cache
+    ipni-->>index-cache: loc-bundle URL
+    index-cache-->>user-storage: fetch shard loc-commits
+    activate index-cache
+    index-cache-->>index-cache: read shard loc-commits
+    index-cache-->>index-cache: cache shard-key: [shard-loc-commit, ..]
+    index-cache-->>index-cache: filter shard-loc-commits for client
+    index-cache-->>index-cache: create response with all shard-URLs for all shards
+    Note right of index-cache: results sorted by shard-URL
+    index-cache-->>Client: [{shard-URL,off,len}, ..]
+    deactivate index-cache
 ```
  
-1. Client queries w3up-index with "bafy..cat1". (cache miss)
-2. w3up-index asks ipni-cache for "bafy..cat1". (cache miss)
-3. ipni-cache asks ipni for "bafy..cat1", ipni returns multiple results
-    - ipni-cache filters results to only reads w3up sharded-dag-index results
+1. Client queries index-cache with "bafy..cat1". (cache miss)
+2. index-cache asks ipni for "bafy..cat1", ipni returns multiple results
+    - index-cache filters results, only getting w3up sharded-dag-index results
     - each result contains the base URL and CID of a sharded-dag-index. These combine to make a sharded-dag-index download URL.
-4. ipni-cache gets a sharded-dag-index URL from each result and fetches each sharded-dag-index. All sharded-dag-indexes are cached in the dag index cache with the result's context-ID as the key, `context-ID: [sharded-dag-index, ...]`
+3. index-cache gets a sharded-dag-index URL from each result and fetches each sharded-dag-index. All sharded-dag-indexes are cached in the dag index cache with the result's context-ID as the key, `context-ID: [sharded-dag-index, ...]`
     - sharded-dag-index is cached under the context-ID, so that if results for a different shard multihash are returned, and have the same context-ID, then the sharded-dag-index can be read from cache.
-5. ipni-cache returns `[sharded-dag-index, ...]` to w3up-index.
-6. w3up-index reads each sharded-dag-index to find "bafy..cat1"
+4. index-cache reads each sharded-dag-index to find "bafy..cat1"
     - "bafy..cat1" may be a shard or a slice
-    - w3up-index reads offset and length for "bafy..cat1" slice or shard
-    - w3up-index reads dag-multihash
-7. w3up-index makes a shard-key with mh(dag-multihash + shard-multihash) and queries ipni-cache for shard location commitments. (cache miss)
+    - index-cache reads offset and length for "bafy..cat1" slice or shard
+    - index-cache reads dag-multihash
+5. index-cache makes a shard-key with mh(dag-multihash + shard-multihash) and looks for cached shard location commitments. (cache miss)
     - The mh(dag-multihash + shard-multihash) key is used since the shard-multihash key alone would return the sharded-dag-index results.
     - This is done for each sharded-dag-index
-8. ipni-cache queries ipni with shard-key to get URL to fetch location commitments
-9. ipni responds with location commitments URL
-10. ipni-cache fetches location commitments for shard with URL/shard-key and reads the shard URL(s) from it.
+6. index-cache queries ipni with shard-key to get URL to fetch location commitments
+7. ipni responds with location commitments URL
+8. index-cache fetches, from user space, location commitments for shard with URL/shard-key and reads the shard URL(s) from it.
     - All location commitments, for all shards in dag, are available at the URL returned by ipni. To get the commitments for a specific shard, request URL/shard-key.
     - A single shard may have multiple locations if data is replicated.
     - If location commitments are small enough these can be packed into the ipni metadata so that a separate fetch is not necessary.
-11. ipni-cache caches mh(dag-multihash + shard-multihash) -> [shard-URL, ...]
-12. ipni-cache returns `[shard-URL, ..]`
-13. w3up-index caches "bafy..cat1" -> { shard URL, offset, length }
-14. w3up-index returns { shard URL, offset, length } to client.
+9. index-cache caches mh(dag-multihash + shard-multihash) -> [shard-URL, ...]
+10. index caches "bafy..cat1" -> { shard URL, offset, length }
+11. index-cache returns { shard URL, offset, length } to client.
 
 ### Next time the same query is made for same shard _same_ slice
 
 ```mermaid
 sequenceDiagram
     actor Client
-    Client->>w3up-index: "bafy..cat1"
-    w3up-index->>ipni-cache: "bafy..cat1"
-    Note right of ipni-cache: "bafy..cat1" in cache
-    ipni-cache-->>w3up-index: [sharded-dag-index, ..]
-    activate w3up-index
-    w3up-index-->>w3up-index: find "bafy..cat1" in sharded-dag-index
-    Note right of w3up-index: get shard-mh, offset, lenght
-    w3up-index-->>ipni-cache: shard-key=mh(dag-mh+shard-mh)
-    deactivate w3up-index
-    Note right of ipni-cache: shard-key in cache
-    ipni-cache-->>w3up-index: [shard-loc-commit, ..]
-    activate w3up-index
-    w3up-index-->>w3up-index: filter shard-loc-commits for client
-    w3up-index-->>w3up-index: create response with all shard-URLs for all shards
-    Note right of w3up-index: results sorted by shard-URL
-    w3up-index-->>Client: [{shard-URL,off,len}, ..]
-    deactivate w3up-index
+    Client->>index-cache: "bafy..cat1"
+    Note right of index-cache: "bafy..cat1" in cache
+    activate index-cache
+    index-cache-->>index-cache: found [sharded-dag-index, ..]
+    index-cache-->>index-cache: find "bafy..cat1" in sharded-dag-index
+    Note right of index-cache: get shard-mh, offset, lenght
+    index-cache-->>index-cache: lookp shard-key=mh(dag-mh+shard-mh)
+    Note right of index-cache: shard-key in cache
+    index-cache-->>index-cache: found [shard-loc-commit, ..]
+    index-cache-->>index-cache: filter shard-loc-commits for client
+    index-cache-->>index-cache: create response with all shard-URLs for all shards
+    Note right of index-cache: results sorted by shard-URL
+    index-cache-->>Client: [{shard-URL,off,len}, ..]
+    deactivate index-cache
 ```
 
 ### Next time the same query is made for same shard _different slice_
@@ -140,26 +133,23 @@ sequenceDiagram
 ```mermaid
 sequenceDiagram
     actor Client
-    Client->>w3up-index: "bafy..cat2"
-    w3up-index->>ipni-cache: "bafy..cat2"
-    Note right of ipni-cache: "bafy..cat2" not cached
-    ipni-cache->>ipni: "bafy..cat2"
-    ipni-->>+ipni-cache: [restult, ..]
-    Note right of ipni-cache: ctx-id from results in cache
-    ipni-cache-->>-w3up-index: [sharded-dag-index, ..]
-    activate w3up-index
-    w3up-index-->>w3up-index: find "bafy..cat1" in sharded-dag-index
-    Note right of w3up-index: get shard-mh, offset, lenght
-    w3up-index-->>ipni-cache: shard-key=mh(dag-mh+shard-mh)
-    deactivate w3up-index
-    Note right of ipni-cache: shard-key in cache
-    ipni-cache-->>w3up-index: [shard-loc-commit, ..]
-    activate w3up-index
-    w3up-index-->>w3up-index: filter shard-loc-commits for client
-    w3up-index-->>w3up-index: create response with all shard-URLs for all shards
-    Note right of w3up-index: results sorted by shard-URL
-    w3up-index-->>Client: [{shard-URL,off,len}, ..]
-    deactivate w3up-index    
+    Client->>index-cache: "bafy..cat2"
+    Note right of index-cache: "bafy..cat2" not cached
+    index-cache->>ipni: "bafy..cat2"
+    ipni-->>index-cache: [restult, ..]
+    activate index-cache
+    Note right of index-cache: ctx-id from results in cache
+    index-cache-->>index-cache: found [sharded-dag-index, ..] in cahce
+    index-cache-->>index-cache: find "bafy..cat1" in sharded-dag-index
+    Note right of index-cache: get shard-mh, offset, lenght
+    index-cache-->>index-cache: lookup shard-key=mh(dag-mh+shard-mh)
+    Note right of index-cache: shard-key in cache
+    index-cache-->>index-cache: found [shard-loc-commit, ..]
+    index-cache-->>index-cache: filter shard-loc-commits for client
+    index-cache-->>index-cache: create response with all shard-URLs for all shards
+    Note right of index-cache: results sorted by shard-URL
+    index-cache-->>Client: [{shard-URL,off,len}, ..]
+    deactivate index-cache
 ```
 
 ### Note:
