@@ -12,7 +12,7 @@ A user can use a multihash, that identifies data stored on w3s, to lookup all th
 
 Location commitments that describe where content is stored can change over time as w3s moves data to a more favorable location, re-aggregates data storage, or replicates stored data. Location commitments are updated without having to index all multihashes.
 
-A query API will allow a user to specify indexed content to lookup and how to filter results. The API retrieves previously cached responses or composes new IPNI queries to get new responses to filter and cache.
+A REST API will allow a user to request indexed content from a w3up index-cache, and how to filter results. The index-cache retrieves previously cached responses or composes new IPNI queries to get new responses to filter and cache.
 
 ## Overview
 
@@ -24,7 +24,7 @@ The sharded-dag-index is stored in the user's space along with the CAR file(s) c
 
 After the add-blob process completes, and the user receives an [accept-blob receipt](https://github.com/w3s-project/specs/blob/main/w3-blob.md#accept-blob-receipt), the user may then choose to make their data publicly queryable by publishing it to W3UP's indexing system.  The user optionally invokes an [index-add](https://github.com/w3s-project/specs/blob/main/w3-index.md#index-add) capability to publish the sharded-dag-index multihashes into W3UP's indexing system and eventually to [IPNI](https://github.com/ipni/specs/blob/main/IPNI.md) so that they can be used to look up location commitments and retrieve sharded-dag-index information and blob data. See [W3 Index](https://github.com/w3s-project/specs/blob/main/w3-index.md#w3-index) for more.
 
-After publishing an index, any user looking for content can query for the sharded-dag-index of that content. The user can read the sharded-dag-index to determine what data shard needs to be retrieved, and then asks for the location of that shard.
+After publishing an index, any user looking for content can query for the sharded-dag-index of that content. The user can read the sharded-dag-index to determine what data shard needs to be retrieved, and then ask for the location of that shard.
 
 Finally the user uses the shard location, with range information from the sharded-dag-index, to retrieve a specific piece of data from the network.
 
@@ -32,7 +32,7 @@ Finally the user uses the shard location, with range information from the sharde
 
 A client can query indexed information by looking up multihashes that are specified in the sharded dag index. These include the dag root, dag shards, and slices (blocks) within shards. Results can be filtered to only allow results for a specific audiance.
 
-### Query Specification
+### Query Data structure passed to index-cache REST API
 
 ```
 results = Query(
@@ -160,19 +160,19 @@ Consider:
 
 When trying to read the slice, which is found in sharded-dag-index-2, it is ok to tell the client that the slice can be read either from shard-1 or from shard-2 at offset 55, length 1024?  This works because both shards have the same multihash and therefore the same data. 
 
-## Indexing System Components
+## W3up Index-cache
 
-The indexing components are intended for deployment on the w3up gateway. They may also be deployed to the w3up client, where they will not be shared with other clients.
+The index-cache layer is responsible for reading a query from a client, and then
+1. Creating a set of IPNI queries needed to get locations of sharded-dag-index and location commitments.
+2. Filtering returned results
+3. Fetching sharded-dag-index and location commitments from used space.
+4. Caching data fetched from user space
+5. Reading shard and slice data from sharded-dag-index
+6. Packaging results for the query client.
 
-### W3up Index
+The index-cache is intended for deployment on w3up gateways.
 
-The w3up index layer is responsible for reading a query specification, and then
-1. Creating a set of IPNI queries needed to get the requested index content
-2. Sending the queries to the w3up IPNI cache
-3. Filtering returned results
-4. Packaging results for the query client.
-
-### W3up IPNI and Index Cache
+### Index-cache behavior
 
 The w3up IPNI Cache is a cache that holds IPNI query results and sharded-dag-index data. The cache is:
 
@@ -194,7 +194,8 @@ By using both these query results, a specific portion of the blob data can be re
 
 If either shard or location results are not cached, then a query for the multihash is passed to the IPNI client.
 
-### IPNI
+## IPNI
+
 IPNI is the final, "cache-miss" layer of the W3up Indexing System. IPNI is a highly optimized system for caching indexing information for massive numbers of CIDs. It's available to all and optimized to run on bare metal hardware. IPNI is used to do the following:
 1. Provide a reliable global index for all w3up content, that is not only publicly available but usable by an IPFS retrieval client, without the other components of the w3up indexing system
 2. Provide a low cost way to index content on w3up that is infrequently requested
@@ -235,13 +236,13 @@ curl https://cid.contact/cid/bafybeicawc3qwtlecld6lmtvsndimoz3446xyaprgsxvhd3aap
 ]}]}
 ```
 
-#### Get sharded-dag-index
+### Get sharded-dag-index
 
 After selecting only w3up results, these must then be processed to generate responses for shard/slice and location query attributes. To do this, first the sharded-dag-index result is read from the IPNI result metadata. This gets the CID of the sharded-dag-index and the location portion of the result gives the base URL to retrieve the sharded-dag-index from.
 
 The sharded-dag-index is retrieved and read. The sharded-dag-index data is searched to find the multihash, and to get the shard and slice (if the multihash is a slice within a shard).
 
-#### Get locations of shards
+### Get locations of shards
 
 After getting the shard and slice data, then location commitment data needs to be collected.
 
@@ -334,9 +335,9 @@ When an advertisement is created to publish new index data, the IPNI cache is po
 
 ## Design questions
 
-1. What are the trade-offs of using IPNI to lookup location commitments as opposed to bundling these with sharded-dag-index data.
-2. Deploy on w3s gateway, client, both?
-3. How can the IPNI cache be distributed? Should its contents be shared on IPFS?
+1. Can location commitments be directly retrieved from IPNI if small enough or do these always need to be retrieved from user space.
+2. Can the index-cache be deployed in locations othern than w3s gateway, such as at a customer site?
+3. How can the index-cache be better distributed? Should its contents be shared on IPFS?
 
 
 ## Summary from Discussions
