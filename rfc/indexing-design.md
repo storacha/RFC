@@ -61,7 +61,7 @@ sequenceDiagram
     ipni-->>index-cache: [restult, ..]
     activate index-cache
     loop Every ctx-id not cached
-        index-cache->>user-storage: fetch sharded-dag-index
+        index-cache->>user-storage: fetch sharded-dag-index ⚠️
         user-storage-->>index-cache: sharded-dag-index 
         index-cache-->>index-cache: cache ctx-id, "bafy..cat1": sharded-dag-index
     end 
@@ -72,11 +72,12 @@ sequenceDiagram
     index-cache->>ipni: shard-key
     deactivate index-cache
     ipni-->>index-cache: loc-bundle URL
-    index-cache-->>user-storage: fetch shard loc-commits
+    index-cache->>user-storage: fetch shard location-cmts ⚠️
+    user-storage-->>index-cache: [shard-location-cmt, ..]
     activate index-cache
-    index-cache-->>index-cache: read shard loc-commits
-    index-cache-->>index-cache: cache shard-key: [shard-loc-commit, ..]
-    index-cache-->>index-cache: filter shard-loc-commits for client
+    index-cache-->>index-cache: read shard location-cmts
+    index-cache-->>index-cache: cache shard-key: [shard-location-cmt, ..]
+    index-cache-->>index-cache: filter shard-location-cmts for client
     index-cache-->>index-cache: create response with all shard-URLs for all shards
     Note right of index-cache: results sorted by shard-URL
     index-cache-->>Client: [{shard-URL,off,len}, ..]
@@ -119,8 +120,8 @@ sequenceDiagram
     Note right of index-cache: get shard-mh, offset, lenght
     index-cache-->>index-cache: lookp shard-key=mh(dag-mh+shard-mh)
     Note right of index-cache: shard-key in cache
-    index-cache-->>index-cache: found [shard-loc-commit, ..]
-    index-cache-->>index-cache: filter shard-loc-commits for client
+    index-cache-->>index-cache: found [shard-location-cmt, ..]
+    index-cache-->>index-cache: filter shard-location-cmts for client
     index-cache-->>index-cache: create response with all shard-URLs for all shards
     Note right of index-cache: results sorted by shard-URL
     index-cache-->>Client: [{shard-URL,off,len}, ..]
@@ -143,8 +144,8 @@ sequenceDiagram
     Note right of index-cache: get shard-mh, offset, lenght
     index-cache-->>index-cache: lookup shard-key=mh(dag-mh+shard-mh)
     Note right of index-cache: shard-key in cache
-    index-cache-->>index-cache: found [shard-loc-commit, ..]
-    index-cache-->>index-cache: filter shard-loc-commits for client
+    index-cache-->>index-cache: found [shard-location-cmt, ..]
+    index-cache-->>index-cache: filter shard-location-cmts for client
     index-cache-->>index-cache: create response with all shard-URLs for all shards
     Note right of index-cache: results sorted by shard-URL
     index-cache-->>Client: [{shard-URL,off,len}, ..]
