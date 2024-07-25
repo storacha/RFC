@@ -137,7 +137,7 @@ The [Web3 Storage](https://github.com/web3-storage) SHOULD be downgraded to the 
 - [ ] [ipns-publisher](https://github.com/web3-storage/ipns-publisher)
     - Create your IPNS records in Javascript and publish them on the IPFS network.
     - It SHOULD NOT be archived.
-    - It SHOULD NOT be migrated.
+    - It SHALL be migrated.
 - [ ] [specs](https://github.com/web3-storage/specs)
     - It SHALL NOT be archived.
     - It SHALL be migrated.
@@ -212,7 +212,7 @@ The [Web3 Storage](https://github.com/web3-storage) SHOULD be downgraded to the 
 - [ ] [w3link](https://github.com/web3-storage/w3link)
     - The production deployed worker for w3s.link.
     - It SHOULD NOT be archived.
-    - It SHOULD NOT be migrated.
+    - It SHALL be migrated.
 - [ ] [dagula](https://github.com/web3-storage/dagula)
     - Used by freeway and hoverboard. lib and cli for fetching a DAG from a remote peer.
     - It SHOULD NOT be archived.
@@ -254,7 +254,7 @@ The [Web3 Storage](https://github.com/web3-storage) SHOULD be downgraded to the 
 - [ ] [linkdex](https://github.com/web3-storage/linkdex)
     - Lib for the api.
     - It SHOULD NOT be archived.
-    - It SHOULD NOT be migrated.
+    - It SHALL be migrated.
 - [ ] [linkdex-api](https://github.com/web3-storage/linkdex-api)
     - Indexes and ensures DAGs have the right blocks and if a DAG is complete. Used by pickup.
     - It SHOULD NOT be archived.
@@ -425,7 +425,7 @@ The [Web3 Storage](https://github.com/web3-storage) SHOULD be downgraded to the 
     - It SHALL be migrated.
 - [ ] [content-claims-gql](https://github.com/web3-storage/content-claims-gql)
     - It SHOULD NOT be archived.
-    - It SHOULD NOT be migrated.
+    - It SHALL be migrated.
 - [ ] [sha256it](https://github.com/web3-storage/sha256it)
     - It SHOULD NOT be archived.
     - It SHOULD NOT be migrated.
@@ -463,7 +463,7 @@ The [Web3 Storage](https://github.com/web3-storage) SHOULD be downgraded to the 
     - It SHALL be migrated.
 - [ ] [learnyouw3up](https://github.com/web3-storage/learnyouw3up)
     - It SHOULD NOT be archived.
-    - It SHOULD NOT be migrated.
+    - It SHALL be migrated.
 - [docs](https://github.com/web3-storage/docs)
     - already archived.
 - [ ] [go-w3up](https://github.com/web3-storage/go-w3up)
