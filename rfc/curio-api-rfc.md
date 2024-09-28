@@ -1,75 +1,37 @@
 # Curio API RFC
 
-These are some suggested endpoints for collaboration between Curio and hot storage market software such as Storacha.
+This is a proposed set of APIs to be implemented in Curio to interface with a storacha node.
 
-## Piece Storage & Retrieval
+The proposed flow has three core API endpoints:
+1. Endpoints for manipulating proofs sets
+2. An endpoint for storing pieces + flow for storing pieces
+3. An endpoint for retrieving pieces
 
-These endpoints are simply used for putting arbitrary blobs of bytes that has to a PieceCID of any valid size (i.e. 127/128 * 2^n where n is a positive whole number)
+There are addition considerations we should consider:
+1. Authorization -- In storacha's network, it's important that the original end user maintain control of authorization for any action performed (including retrieval). We accomplish this through UCANs. We should discuss how we can maintain this without forcing curio to implement a full UCAN authorization process.
+2. Aggregation - storacha's data is at times extremely small (<1mb in certain cases). Our understanding is that economically, it makes more sense to do some light aggregation of data before adding it to the proof set. The proposal below outlines a facility for doing this. While storacha would store pieces as it receives them, we would add them to the proof set in a seperate step, with a root that could optionally be an aggregate of several pieces.
+3. IPNI announcements -- we plan to use IPNI announcements in a specific way with our pieces. Our understanding is the curio IPNI flow is in flux. We can try to integrate your IPNI api or just do it ourselves.
 
-### GET /piece/{piece cid v2}
-### HEAD /piece/{piece cid v2 }
+## Basic flow
 
-These can just follow FRC-066: https://github.com/filecoin-project/FIPs/blob/master/FRCs/frc-0066.md (please include the Range parameter!)
+In the proposal below, the basic flow is as follows;
+1. Create a proof set for Storacha on the SP (happens just once)
+2. Upload pieces from storacha with the piece storage API
+   - at this point, the piece is immediately retrievable but not being proven
+3. When enough pieces are received (128MB or more) create an aggregate root and add it to the proof set
+   - at this point, all pieces submitted to the proof set are retrievable AND proven
 
-With the additional stipulation that they should probably ONLY accept v2 Piece CID: https://github.com/filecoin-project/FIPs/blob/master/FRCs/frc-0069.md
+## Proof sets API
 
-### PUT /piece/{piece cid v2}
-
-This is a new API for storing pieces of arbitrary size into Curio's storage. The request body should contain the bytes for the piece. These should be checked internally to verify they match the piece cid specified on put.
-
-TBD: Should a header or query param specify that you intend to use this for PDP proofs later? (instructing curio to cache a proof tree)
-
-Returns:
-200/204 When piece is already there
-201 When a new piece is created
-400 when piece data does not hash to piece cid v2
-
-## PDP Proving
-
-### Approach #1 - Minimal, just prove within a piece
-
-In this approach, we leave things very simple on curio's side, leave most lotus interaction to the market software and curio simply provides proofs within a piece.
-
-This means that market software would need to:
-1. Manage proof sets on chain (via lotus)
-2. Monitor proving epochs
-3. Communicate with DRAND
-4. Produces challenges for a given seed
-5. Translate challenge offsets within an overall proof set as a logical data array to challenge offsets within a single piece
-6. Reassemble challenges against roots and submit the overall proof to the chain
-
-### POST /prove
-
-Request body:
-```json
-{
-  "pieceCid": "~piece~cid~v2~previously~posted~",
-  "offset": "~offset~in~piece~for~this~challenge~"
-}
-```
-
-Response:
-```json
-{
-  "merkleProof": { 
-    // not sure what format this takes
-  }
-}
-```
-
-### Approach #2 -- Curio is a full PDP provider
-
-In this scenario, almost all PDP work is managed by curio itself (which would then need alternate software when running without curio). Essentially curio would provide APIs that mirrored the Create/Add/Remove/Delete functions that will exist on chain for PDP proof sets, and then manage the submission of proofs on a schedule (I hear it's good at scheduling)
+The following API describes how to create, read, update and delete proofsets managed by Curion. Essentially curio ill provide APIs that mirrored the Create/Add/Remove/Delete functions that will exist on chain for PDP proof sets, and then manage the submission of proofs on a schedule (I hear it's good at scheduling)
 
 ### POST /proof-sets
 
+Create a new proof set for a specific 
 Request Body:
 ```json
 {
-  // should this be passed to curio? or is owner address built in to curio already?
-  // should curio check it has signing capabilities for the address?
-   "ownerAddress": "f3...",
-   "challengePeriod": 15
+  // need to drill down on these propoerties
 }
 ```
 
@@ -96,17 +58,34 @@ Body:
 
 ### POST /proof-sets/{set-id}/roots
 
-Append a root to the proof set
+Append a root to the proof set, which may be an aggregation of one or more piece cids.
 
 Request Body:
 ```json
 {
-  "pieceCid": "bafy....",
+  "rootCid": "bafy....root",
+  "pieces": [
+    {
+      "cid": "bafy...piece1",
+      "proof": [
+        "bafy...intermediate1",
+        "bafy...intermediate2"
+      ]
+    },
+    {
+      "cid": "bafy...piece2",
+      "proof": [
+        "bafy...intermediate3",
+        "bafy...intermediate4"
+      ]
+    },
+    //...
+  ],
   "size": 1048576
 }
 ```
 
-This API should fail if the specified piece cid was not previously stored with the PieceCID API
+This API should fail if the all pieces were not previously stored with the Piece Storage API
 
 Response:
 Code: 201
@@ -117,7 +96,24 @@ Location Header: "/proof-sets/{set id}/roots/{root id}
 Response Body:
 ```json
 {
-  "pieceCid": "bafy....",
+  "rootCid": "bafy....root",
+  "pieces": [
+    {
+      "cid": "bafy...piece1",
+      "proof": [
+        "bafy...intermediate1",
+        "bafy...intermediate2"
+      ]
+    },
+    {
+      "cid": "bafy...piece2",
+      "proof": [
+        "bafy...intermediate3",
+        "bafy...intermediate4"
+      ]
+    },
+    //...
+  ],
   "size": 1048576
 }
 ```
@@ -130,4 +126,32 @@ Remove the given root id from the given proof set
 
 Remove the specified proof set entirely
 
-In this scenario, all submission of proofs is handled internally by Curio.
+
+## Piece Storage
+
+
+### POST /piece
+
+This is a new API for storing pieces of arbitrary size into Curio's storage. 
+```json
+{
+  "pieceCid": "{piece cid v2}",
+  "notify": "optional http webhook to call once the data is uploaded"
+}
+```
+
+Returns:
+204 When piece is already there
+201 When a new piece upload is created
+the response should contain a location header with a URL that should be used for the actual upload. This URL should accept a PUT request with the actual bytes of the piece. The request should fail if the bytes do not hash to the correct piece CID.
+
+## Piece Retrieval
+
+These endpoints are simply used for retrieving blobs of any valid size
+
+### GET /piece/{piece cid v2}
+### HEAD /piece/{piece cid v2 }
+
+These can just follow FRC-066: https://github.com/filecoin-project/FIPs/blob/master/FRCs/frc-0066.md (please include the Range parameter!)
+
+With the additional stipulation that they should probably ONLY accept v2 Piece CID: https://github.com/filecoin-project/FIPs/blob/master/FRCs/frc-0069.md
