@@ -79,7 +79,7 @@ The [Web3 Storage](https://github.com/web3-storage) SHOULD be downgraded to the 
 
 - [ ] [ipfs-car](https://github.com/web3-storage/ipfs-car)
     - CAR client for UnixFS dags. It is heavilty used.
-    - It SHOULD be migrated.
+    - It SHALL be migrated.
 - [ ] [web3.storage](https://github.com/web3-storage/web3.storage)
     - Monorepo for the old website. It deploys to Cloudflare Pages.
     - It SHOULD NOT be migrated.
@@ -95,10 +95,10 @@ The [Web3 Storage](https://github.com/web3-storage) SHOULD be downgraded to the 
     - It SHOULD NOT be migrated.
 - [ ] [add-to-web3](https://github.com/web3-storage/add-to-web3)
     - Github action to put websites on web3.storage.It has probably been updated.
-    - It SHOULD be migrated.
+    - It SHALL be migrated.
 - [ ] [files-from-path](https://github.com/web3-storage/files-from-path)
     - A lib for globbing a bunch of files in a dir and returning that as an array of file objects.
-    - It SHOULD be migrated.
+    - It SHALL be migrated.
 - [ ] [multipart-parser](https://github.com/web3-storage/multipart-parser)
     - A simple multipart/form-data parser to use with ReadableStreams. It's being used by a fair number of repos. See [here](https://github.com/search?q=org%3Aweb3-storage+multipart-parser&type=code).
     - It SHOULD be archived.
@@ -137,7 +137,7 @@ The [Web3 Storage](https://github.com/web3-storage) SHOULD be downgraded to the 
 - [ ] [ipns-publisher](https://github.com/web3-storage/ipns-publisher)
     - Create your IPNS records in Javascript and publish them on the IPFS network.
     - It SHOULD NOT be archived.
-    - It SHOULD NOT be migrated.
+    - It SHALL be migrated.
 - [ ] [specs](https://github.com/web3-storage/specs)
     - It SHALL NOT be archived.
     - It SHALL be migrated.
@@ -163,7 +163,7 @@ The [Web3 Storage](https://github.com/web3-storage) SHOULD be downgraded to the 
 - [ ] [ucanto](https://github.com/web3-storage/ucanto)
     - UCAN encoding implication for creating UCANs and sending them to a service and verifying delegations.
     - It SHOULD NOT be archived.
-    - It SHOULD be migrated.
+    - It SHALL be migrated.
 - [ ] [w3up](https://github.com/web3-storage/w3up)
     - Implementation of the protocols and specs repos. The current web3.storage system.
     - It SHALL NOT be archived.
@@ -188,7 +188,7 @@ The [Web3 Storage](https://github.com/web3-storage) SHOULD be downgraded to the 
 - [ ] [workers](https://github.com/web3-storage/workers)
     - In use for the workers for things like loki/logs. Check https://github.com/web3-storage/reads/blob/main/packages/edge-gateway/package.json#L21
     - It SHOULD NOT be archived.
-    - It SHOULD NOT be migrated.
+    - It SHALL be migrated.
 - [ ] [minibus](https://github.com/web3-storage/minibus)
     - There's a deployed service with this but we're not using it in production. A small data service and it works with blocks for CIDs. Works for smaller things and not for big DAGs
     - It SHOULD NOT be archived.
@@ -196,11 +196,11 @@ The [Web3 Storage](https://github.com/web3-storage) SHOULD be downgraded to the 
 - [ ] [w3name](https://github.com/web3-storage/w3name)
     - Used in production for IPNS.
     - It SHOULD NOT be archived.
-    - It SHOULD NOT be migrated.
+    - It SHALL be migrated.
 - [ ] [reads](https://github.com/web3-storage/reads)
     - Frontend for the racing GW system. Also includes a denylist that gets checked before racing. A superset of badbits.
     - It SHOULD NOT be archived.
-    - It SHOULD NOT be migrated.
+    - It SHALL be migrated.
 - [ ] [claudio](https://github.com/web3-storage/claudio)
     - Original MVP for hoverboard.
     - It SHOULD be archived.
@@ -212,11 +212,11 @@ The [Web3 Storage](https://github.com/web3-storage) SHOULD be downgraded to the 
 - [ ] [w3link](https://github.com/web3-storage/w3link)
     - The production deployed worker for w3s.link.
     - It SHOULD NOT be archived.
-    - It SHOULD NOT be migrated.
+    - It SHALL be migrated.
 - [ ] [dagula](https://github.com/web3-storage/dagula)
     - Used by freeway and hoverboard. lib and cli for fetching a DAG from a remote peer.
     - It SHOULD NOT be archived.
-    - It SHOULD NOT be migrated.
+    - It SHALL be migrated.
 - [ ] [dagula-gateway](https://github.com/web3-storage/dagula-gateway)
     - Experiment to back a GW with Elastic IPFS over Bitswap, but it didn't work out with the amount of traffic.
     - It SHOULD be archived.
@@ -250,11 +250,11 @@ The [Web3 Storage](https://github.com/web3-storage) SHOULD be downgraded to the 
 - [ ] [goodbits](https://github.com/web3-storage/goodbits)
     - if your CID got accidentally banned, you can submit an issue and say it's good.
     - It SHOULD NOT be archived.
-    - It SHOULD NOT be migrated.
+    - It SHALL be migrated.
 - [ ] [linkdex](https://github.com/web3-storage/linkdex)
     - Lib for the api.
     - It SHOULD NOT be archived.
-    - It SHOULD NOT be migrated.
+    - It SHALL be migrated.
 - [ ] [linkdex-api](https://github.com/web3-storage/linkdex-api)
     - Indexes and ensures DAGs have the right blocks and if a DAG is complete. Used by pickup.
     - It SHOULD NOT be archived.
@@ -269,13 +269,13 @@ The [Web3 Storage](https://github.com/web3-storage) SHOULD be downgraded to the 
     - It SHOULD NOT be migrated.
 - [ ] [w3ui-website](https://github.com/web3-storage/w3ui-website)
     - It SHOULD NOT be archived.
-    - It SHOULD NOT be migrated.
+    - It SHALL be migrated.
 - [attach-write-to-read](https://github.com/web3-storage/attach-write-to-read)
     - already archived.
 - [ ] [sigv4](https://github.com/web3-storage/sigv4)
     - Used by w3up to generate presigned urls.
     - It SHOULD NOT be archived.
-    - It SHOULD NOT be migrated.
+    - It SHALL be migrated.
 - [ ] [ipfs-path](https://github.com/web3-storage/ipfs-path)
     - It SHOULD be archived.
     - It SHOULD NOT be migrated.
@@ -286,13 +286,13 @@ The [Web3 Storage](https://github.com/web3-storage) SHOULD be downgraded to the 
 - [ ] [freeway](https://github.com/web3-storage/freeway)
     - HTTP GW which reads CAR files and serves data. w3s.link and ntfstorage.link talk to this.
     - It SHOULD NOT be archived.
-    - It SHOULD NOT be migrated.
+    - It SHALL be migrated.
 - [w3console](https://github.com/web3-storage/w3console)
     - already archived.
 - [ ] [gateway-lib](https://github.com/web3-storage/gateway-lib)
     - Used by freeway and by dagula-gw.
     - It SHOULD NOT be archived.
-    - It SHOULD NOT be migrated.
+    - It SHALL be migrated.
 - [ ] [diffusionbee-stable-diffusion-ui](https://github.com/web3-storage/diffusionbee-stable-diffusion-ui)
     - It SHOULD be archived.
     - It SHOULD NOT be migrated.
@@ -330,7 +330,7 @@ The [Web3 Storage](https://github.com/web3-storage) SHOULD be downgraded to the 
     - It SHOULD NOT be migrated.
 - [ ] [pail](https://github.com/web3-storage/pail)
     - It SHOULD NOT be archived.
-    - It SHOULD NOT be migrated.
+    - It SHALL be migrated.
 - [ ] [w3link-csp-report-api](https://github.com/web3-storage/w3link-csp-report-api)
     - Leave behind for CSP.
     - It SHOULD NOT be archived.
@@ -350,18 +350,18 @@ The [Web3 Storage](https://github.com/web3-storage) SHOULD be downgraded to the 
 - [ ] [w3clock](https://github.com/web3-storage/w3clock)
     - Service used in production.
     - It SHOULD NOT be archived.
-    - It SHOULD NOT be migrated.
+    - It SHALL be migrated.
 - [ ] [dagcargo-r2-presigned-download-url-gen](https://github.com/web3-storage/dagcargo-r2-presigned-download-url-gen)
     - It SHOULD be archived.
     - It SHOULD NOT be migrated.
 - [ ] [blake3-multihash](https://github.com/web3-storage/blake3-multihash)
     - We will likely be using in blake3 and bao in the future.
     - It SHOULD NOT be archived.
-    - It SHOULD NOT be migrated.
+    - It SHALL be migrated.
 - [ ] [car-block-validator](https://github.com/web3-storage/car-block-validator)
     - Used in production.
     - It SHOULD NOT be archived.
-    - It SHOULD NOT be migrated.
+    - It SHALL be migrated.
 - [ ] [backup-progress](https://github.com/web3-storage/backup-progress)
     - It SHOULD be archived.
     - It SHOULD NOT be migrated.
@@ -374,7 +374,7 @@ The [Web3 Storage](https://github.com/web3-storage) SHOULD be downgraded to the 
 - [ ] [ipni](https://github.com/web3-storage/ipni)
     - To talk to IPNI.
     - It SHOULD NOT be archived.
-    - It SHOULD NOT be migrated.
+    - It SHALL be migrated.
 - [dealer](https://github.com/web3-storage/dealer)
     - already archived.
 - [ ] [carpark-bucket-diff](https://github.com/web3-storage/carpark-bucket-diff)
@@ -382,7 +382,7 @@ The [Web3 Storage](https://github.com/web3-storage) SHOULD be downgraded to the 
 - [ ] [data-segment](https://github.com/web3-storage/data-segment)
     - This lib is being used.
     - It SHOULD NOT be archived.
-    - It SHOULD NOT be migrated.
+    - It SHALL be migrated.
 - [ ] [gendex](https://github.com/web3-storage/gendex)
     - An experiment.
     - It SHOULD NOT be archived.
@@ -394,11 +394,11 @@ The [Web3 Storage](https://github.com/web3-storage) SHOULD be downgraded to the 
 - [ ] [dag.w3s.link](https://github.com/web3-storage/dag.w3s.link)
     - Trustless GW for Saturn.
     - It SHOULD NOT be archived.
-    - It SHOULD NOT be migrated.
+    - It SHALL be migrated.
 - [ ] [w3admin](https://github.com/web3-storage/w3admin)
     - Admin interface for the new UCAN APIs.
     - It SHOULD NOT be archived.
-    - It SHOULD NOT be migrated.
+    - It SHALL be migrated.
 - [ ] [gendex-consumer](https://github.com/web3-storage/gendex-consumer)
     - It can be archived as it didn't quite work out.
     - It SHOULD be archived.
@@ -408,11 +408,11 @@ The [Web3 Storage](https://github.com/web3-storage) SHOULD be downgraded to the 
     - It SHALL be migrated.
 - [ ] [sync-multihash-sha2](https://github.com/web3-storage/sync-multihash-sha2)
     - It SHOULD NOT be archived.
-    - It SHOULD NOT be migrated.
+    - It SHALL be migrated.
 - [ ] [hoverboard](https://github.com/web3-storage/hoverboard)
     - Bitswap in CF workers used in production.
     - It SHOULD NOT be archived.
-    - It SHOULD NOT be migrated.
+    - It SHALL be migrated.
 - [ ] [access-proxy](https://github.com/web3-storage/access-proxy)
     - It SHOULD be archived.
     - It SHOULD NOT be migrated.
@@ -422,10 +422,10 @@ The [Web3 Storage](https://github.com/web3-storage) SHOULD be downgraded to the 
 - [ ] [loki-tail-worker](https://github.com/web3-storage/loki-tail-worker)
     - Worker to tail logs.
     - It SHOULD NOT be archived.
-    - It SHOULD NOT be migrated.
+    - It SHALL be migrated.
 - [ ] [content-claims-gql](https://github.com/web3-storage/content-claims-gql)
     - It SHOULD NOT be archived.
-    - It SHOULD NOT be migrated.
+    - It SHALL be migrated.
 - [ ] [sha256it](https://github.com/web3-storage/sha256it)
     - It SHOULD NOT be archived.
     - It SHOULD NOT be migrated.
@@ -435,7 +435,7 @@ The [Web3 Storage](https://github.com/web3-storage) SHOULD be downgraded to the 
 - [ ] [fr32-sha2-256-trunc254-padded-binary-tree-multihash](https://github.com/web3-storage/fr32-sha2-256-trunc254-padded-binary-tree-multihash)
     - Lib used for piece CIDs.
     - It SHOULD NOT be archived.
-    - It SHOULD NOT be migrated.
+    - It SHALL be migrated.
 - [ ] [migrate-block-index-infra](https://github.com/web3-storage/migrate-block-index-infra)
     - It SHOULD be archived.
     - It SHOULD NOT be migrated.
@@ -445,36 +445,37 @@ The [Web3 Storage](https://github.com/web3-storage) SHOULD be downgraded to the 
     - It SHOULD NOT be migrated.
 - [ ] [go-ucanto](https://github.com/web3-storage/go-ucanto)
     - It SHOULD NOT be archived.
-    - It SHOULD NOT be migrated.
+    - It SHALL be migrated.
 - [ ] [pieces](https://github.com/web3-storage/pieces)
     - Cli for devs.
     - It SHOULD NOT be archived.
-    - It SHOULD NOT be migrated.
+    - It SHALL be migrated.
 - [ ] [console](https://github.com/web3-storage/console)
     - Web UI for w3up.
     - It SHALL NOT be archived.
     - It SHALL be migrated.
 - [ ] [one-webcrypto](https://github.com/web3-storage/one-webcrypto)
     - Fork which w3up depends upon. See [here](https://github.com/web3-storage/w3up/blob/6fa7797ba6f5c0bbd359c807e257882a7d5d6fb8/packages/access-client/package.json#L113).
+    - It SHALL be migrated
 - [ ] [www](https://github.com/web3-storage/www)
     - Current website.
     - It SHALL NOT be archived.
     - It SHALL be migrated.
 - [ ] [learnyouw3up](https://github.com/web3-storage/learnyouw3up)
     - It SHOULD NOT be archived.
-    - It SHOULD NOT be migrated.
+    - It SHALL be migrated.
 - [docs](https://github.com/web3-storage/docs)
     - already archived.
 - [ ] [go-w3up](https://github.com/web3-storage/go-w3up)
     - It SHOULD NOT be archived.
-    - It SHOULD NOT be migrated.
+    - It SHALL be migrated.
 - [ ] [migrate-to-w3up](https://github.com/web3-storage/migrate-to-w3up)
     - It SHOULD NOT be archived.
-    - It SHOULD NOT be migrated.
+    - It SHALL be migrated.
 - [ ] [piece-compute-worker](https://github.com/web3-storage/piece-compute-worker)
     - We might need this as a worker to compute Filecoin Pieces.
     - It SHOULD NOT be archived.
-    - It SHOULD NOT be migrated.
+    - It SHALL be migrated.
 - [ ] [RFC.staging](https://github.com/web3-storage/RFC.staging)
     - It should be moved to the main RFC repo
     - [ ] Move to main RFC repo.
