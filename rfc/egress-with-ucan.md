@@ -22,54 +22,69 @@ To make content available as on a traditional CDN, an Agent acts on authority of
 
 This process does *not* include making and tracking Location Commitments. A Location Commitment is an attestation by a Storage Node that it holds a particular piece of content on behalf of a particular Space, and that it can provide it. In this proposal, we assume such a system already exists.
 
-## Amend command *(ability)*: Get Blob
+## New command *(ability)*: `/space/content/serve` *(`space/content/serve`)*
 
-We will modify the [Get Blob](https://github.com/storacha/specs/blob/main/w3-blob.md#get-blob) UCAN command *(or in UCAN 0.9, ability)*.
+We add a new command *(UCAN 0.9: ability)* to serve content, named `/space/content/serve` *(`space/content/serve`)*. This command is used to validate the authority to serve content. Notably, it will not (yet) actually *serve* the content, though it may in the future. That is, a successful response will not contain the means to get the content. The Invoker of this command will (for now, at least) always be an entity which *can* get any content in the network (such as the Gateway), but would like to determine whether it *should*.
 
-First, we update the original spec to reality. Where the spec names the command `/space/content/get/blob/0/1`, we have implemented it in UCAN 0.9 as `space/blob/get/0/1`. We will continue to use that name, and use that name in this document, as it provides a better authorization hierarchy—specifically, the Space can grant a Principal `space/blob/*`.
+In the future, this could be invoked from external clients to actually get content, in essence porting the [Gateway spec](https://specs.ipfs.tech/http-gateways/path-gateway/) to UCAN.
 
-Second, we will add an additional argument, `token`. This represents the bearer token when invoked through the Gateway, or something similar. It can be `null` or missing, and will be in existing uses of the command.
-
-Note that the command has a `/0/1` suffix. This appears to be included to mark it as unstable. This proposal does not include removing the suffix, though that will likely make sense to do soon.
+### Invocation
 
 ```ts
-type GetBlob = {
-  /** "Retrieve details about a Blob from a Space." */
-  cmd: "/space/blob/get/0/1" // (0.9: "space/blob/get/0/1")
+type ServeContent = {
+  /**
+   * "Serve content owned by the subject Space."
+   * 
+   * A Principal who may `/space/content/serve` is permitted to serve any
+   * content owned by the Space, in the manner of an [IPFS Gateway]. The
+   * content may be a Blob stored by a Storage Node, or indexed content stored
+   * within such Blobs (ie, Shards).
+   * 
+   * Note that the args do not currently specify *what* content should be
+   * served. Invoking this command does not currently *serve* the content in
+   * any way, but merely validates the authority to do so. Currently, the
+   * entirety of a Space must use the same authorization, thus the content does
+   * not need to be identified. In the future, this command may refer directly
+   * to a piece of content by CID.
+   * 
+   * [IPFS Gateway]: https://specs.ipfs.tech/http-gateways/path-gateway/
+   */
+  cmd: "/space/content/serve" // (0.9: "space/content/serve")
 
   /**
-   * The Space which contains the Blob. This Space will be charged egress fees
-   * if the Blob data is actually retrieved by way of this invocation.
+   * The Space which contains the content. This Space will be charged egress
+   * fees if content is actually retrieved by way of this invocation.
    */
   sub: SpaceDID
 
   args: {
-    /** The multihash digest of the Blob to look up. */
-    digest: Uint8Array
-
-    /** The token, if any, used for this request. */
+    /** The authorization token, if any, used for this request. */
     token?: string | null
   }
 }
 ```
 
-The receipt type remains [unchanged](https://github.com/storacha/specs/blob/main/w3-blob.md#get-blob-receipt).
+### Result
 
-### Existing uses
+```ts
+type ServeContentResult = Result<{}, ServeContentError>
 
-The existing use of this command is to read metadata about the Blob, specifically the size. For instance the Console uses this to display the size of a file Shard in the UI. This use remains unchanged. The `token` should be left missing, or set to `null`.
+type ServeContentError = {
+  message: string
+}
+```
 
 ## Making content retrievable with a token
 
-The Gateway itself will be authorized to `/space/blob/get/0/1` by delegation. This signals that the Gateway may serve the data. Typically, this delegation is performed by an Agent within a Storacha Client, who has received the authority to `/space/blob/get/0/1` from the Space by way of logging into an Account—thus, the delegation chain flows Space → Account → Agent → Gateway.
+The Gateway itself will be authorized to `/space/content/serve` by delegation. This signals that the Gateway may serve the data. Typically, this delegation is performed by an Agent within a Storacha Client, who has received the authority to `/space/content/serve` from the Space by way of logging into an Account—thus, the delegation chain flows Space → Account → Agent → Gateway.
 
 ```json5
 // UCAN 1.0
 {
   "iss": "did:key:zAgent",
-  "aud": "did:web:ipfs.w3s.link",
+  "aud": "did:web:w3s.link",
   "sub": "did:key:zSpace",
-  "cmd": "/space/blob/get/0/1",
+  "cmd": "/space/content/serve",
   "pol": [
     ["==", ".token", "abc123def456"],
   ],
@@ -82,11 +97,11 @@ The Gateway itself will be authorized to `/space/blob/get/0/1` by delegation. Th
 // UCAN 0.9
 {
   "iss": "did:key:zAgent",
-  "aud": "did:web:ipfs.w3s.link",
+  "aud": "did:web:w3s.link",
   "att": [
     {
       "with": "did:key:zSpace",
-      "can": "space/blob/get/0/1",
+      "can": "space/content/serve",
       "nb": {
         "token": "abc123def456"
       },
@@ -98,10 +113,6 @@ The Gateway itself will be authorized to `/space/blob/get/0/1` by delegation. Th
 }
 ```
 
-Such delegations SHOULD NOT specify a `digest`, as this will be the digest of a Shard Blob, not the file which it contains part or all of. We are not (currently) supporting a use case in which the files in a Space have different access permissions from one another: all permissions should apply to an entire Space.
-
-The UCAN 1.0 version of these delegations SHOULD specify a top-level policy of the form `["==", ".token", <string>]`. This prevents customers from shooting themselves in the foot by getting too fancy with their tokens, which is not a supported use case, or one we see value in. Such use cases may be considered for support in the future.
-
 ## Making content retrievable *without* a token
 
 The customer may also authorize the Gateway to serve requests with no token. Separately, the Gateway will treat these requests differently: it will rate-limit them and not charge for egress. However, that has no bearing on the UCAN semantics of the delegation.
@@ -110,9 +121,9 @@ The customer may also authorize the Gateway to serve requests with no token. Sep
 // UCAN 1.0
 {
   "iss": "did:key:zAgent",
-  "aud": "did:web:ipfs.w3s.link",
+  "aud": "did:web:w3s.link",
   "sub": "did:key:zSpace",
-  "cmd": "/space/blob/get/0/1",
+  "cmd": "/space/content/serve",
   "pol": [
     ["==", ".token", null],
   ],
@@ -125,11 +136,11 @@ The customer may also authorize the Gateway to serve requests with no token. Sep
 // UCAN 0.9
 {
   "iss": "did:key:zAgent",
-  "aud": "did:web:ipfs.w3s.link",
+  "aud": "did:web:w3s.link",
   "att": [
     {
       "with": "did:key:zSpace",
-      "can": "space/blob/get/0/1",
+      "can": "space/content/serve",
       "nb": {
         "token": null
       },
@@ -141,34 +152,59 @@ The customer may also authorize the Gateway to serve requests with no token. Sep
 }
 ```
 
-The UCAN 1.0 version of these delegations MUST specify an explicit `null` policy for the token, rather than include no policy. The Gateway MUST refuse to serve a request on the authority of an unchecked `token` field. This prevents a malicious actor from generating unexpected egress-incurring requests by including an invented token which will trigger the egress billing.
+The UCAN 1.0 version of these delegations SHOULD specify an explicit `null` policy for the token, rather than include no policy: no policy would match both a `null`/missing token *and* any token, which almost certainly not intended.
+
+The Gateway MAY refuse to serve a request on the authority of an unchecked `token` field. This prevents a malicious actor from generating unexpected egress-incurring requests by including an invented token which will trigger the egress billing. The primary interface for creating these delegations SHOULD provide no means to create such a delegation; given that, the Gateway does not strictly need to check this, as the customer would have to go through some effort to make such a delegation.
 
 The delegation must be available to the Gateway at request-time, so it must have access to it in a store. The authorizing Client should therefore invoke `access/delegate` (UCAN 1.0 equivalent TBD) to store the delegation with Storacha.
 
 ## The Gateway
 
-To retrieve a piece of content over HTTP, the HTTP client will connect to the existing Storacha Gateway (also known as the web3.storage Gateway). Later, other entities (either Storage Providers or customers themselves, or entirely separate parties) may implement their own Gateways, which may or may not follow the behaviors here. This specification applies only to the Storacha Gateway itself.
+To retrieve a piece of content over HTTP, the HTTP client will connect to the existing [Storacha Gateway](https://w3s.link/) (also known as the web3.storage Gateway). The Gateway offers an HTTP interface which conforms to the [IPFS Subdomain Gateway Spec](https://specs.ipfs.tech/http-gateways/subdomain-gateway/). We extend that spec as follows:
 
-The Gateway will offer an HTTP endpoint. Currently, the Storacha Gateway's endpoint takes the form of `https://<root-cid>.ipfs.w3s.link/<optional-path-and-query-params>`. (Note that any query params are currently ignored by the Gateway, and could only have any effect on the client, such as JavaScript in a served HTML document reading them.) The Gateway will now accept a token as part of the URL, as an `authToken` query param, which may be among any other (ignored) query params. It will also recognize a token provided in the request headers as `Authorization: Bearer <token>`.
+### Request Headers
+
+#### `Authorization` (request header)
+
+Optional. Provides a means of authorizing the content read. Follows the normal [HTTP `Authorization` spec](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Authorization). The authentication scheme must be [`Bearer`](https://datatracker.ietf.org/doc/html/rfc6750). The token is the authorization token the Gateway should use.
+
+```text
+Authorization: Bearer abc123def456
+```
+
+### Request Query Parameters
+
+#### `auth-token` (request query parameter)
+
+Optional. Provides a means of authorizing the content read. The value is the authorization token the Gateway should use.
+
+```text
+https://bafybeidd2gyhagleh47qeg77xqndy2qy3yzn4vkxmk775bg2t5lpuy7pcu.ipfs.w3s.link/?auth-token=abc123def456
+```
+
+Requesting clients SHOULD NOT provide both an `Authorization` header and an `auth-token` query parameter. The Gateway MAY use either token if it does, leading to undefined behavior.
+
+### Serving a request
 
 To serve the request, the Gateway will perform the following steps:
 
 1. Look up the Location Commitment(s) for the given root CID from the Indexing Service.
-   * If not found, fall through to the Gateway's prior retrieval behavior. This is a deprecated branch of behavior to serve data stored before the advent of the Indexing Service, which will launch at the same time as these changes. Only data added after these changes are launched is subject to this authorization scheme.
-2. Get the set of unique Spaces from those Location Commitments. (There will usually be one Location Commitment, with one Space.)
-3. Repeat with each Space in any order, stopping if a successful response is produced:
-   1. Look up delegations in the store where the audience is `did:web:ipfs.w3s.link` and the subject is the Space.
+2. If none are found, respond with `404 Not Found`.
+3. Note if any Location Commitments were found with no Spaces. (If so, these are from before these changes, and mean we should fall back to the previous behavior later.)
+4. Get the set of unique Spaces from those Location Commitments. (There will usually be one Location Commitment, with one Space.)
+5. Repeat with each Space in any order, stopping if a successful response is produced:
+   1. Look up delegations in the store where the audience is `did:web:w3s.link` and the subject is the Space.
    2. Add them to the collection.
    3. Create an invocation:
 
       ```json5
       // Shown as UCAN 1.0
       {
-        "iss": "did:web:ipfs.w3s.link",
-        "aud": "did:web:ipfs.w3s.link",
+        "iss": "did:web:w3s.link",
+        "aud": "did:web:w3s.link",
         // The Space
         "sub": "did:key:zSpace",
-        "cmd": "/space/blob/get/0/1",
+        "cmd": "/space/content/serve",
         "args": {
           // The `authToken` in the HTTP request, or...
           "token": "the-token",
@@ -185,9 +221,11 @@ To serve the request, the Gateway will perform the following steps:
       ```
 
    4. Attempt to execute the invocation.
-      * If the invocation fails to authorize, respond with 401 Unauthorized.
+      * If the invocation fails to authorize,
+        * If any Location Commitments were found with no Spaces attached, Perform the existing Gateway file retrieval *with no token*, responding with the file data.
+        * Otherwise, respond with `404 Not Found`.
       * If authorization succeeds, execute as:
-        1. Perform the existing Gateway file retrieval, responding with the file data.
+        1. Perform the existing Gateway file retrieval, passing along the token, responding with the file data.
         2. Asynchronously, inform the Accounting Service of the egress, to be billed to the Space.
 
 After deciding that a given token may retrieve a certain root CID from a certain Space, the Gateway MAY cache the decision by `(root-cid, token)` for some reasonable duration. The Gateway SHOULD NOT cache authorization *failures*, as the customer may be in the process of storing the delegation.
@@ -196,12 +234,4 @@ After deciding that a given token may retrieve a certain root CID from a certain
 
 Hoverboard does not handle tokens, but must respect the same authorization semantics as the Gateway does with a non-token request. Because there is no shareable service to perform that auth, Hoverboard will need to reimplement a simpler version of the same logic, only caring about the no-token execution path. This may be improved in the future, but some version of this is required to correctly implement private data storage.
 
-## Potential future work
-
-We may eventually create an object-store service. This service will sit between the Gateway and the Storage Nodes. It will speak UCAN, while the Storage Nodes will continue to speak only HTTP byte-range requests. This service will be the Executor of these `/space/blob/get/0/1` invocations, rather than the Gateway. This will allow other Principals to use the same mechanisms to retrieve Blobs, including Hoverboard as well as customers storing and retrieving Blobs directly. It would return a means to fetch the actual data in the receipt for the invocation, such as an HTTP URL.
-
-## Open questions
-
-* When auth fails, should we return 401 Unauthorized, or 404 Not Found to mask that the data exists?
-* Should `token` be `gatewayToken`? Or `authToken`? Is `token` too broad a term to be in the args of that invocation?
-* What if we find a Location Commitment, but it has no Space on it (since [it's optional](https://github.com/storacha/indexing-service/pull/18))?
+The DID representing Hoverboard is TBD.
