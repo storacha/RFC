@@ -8,9 +8,14 @@
 
 - Proposed
 
+## Versions
+
+- v2 - 2024-10-26
+- ~~v1 - 2024-10-25~~
+
 ## Context
 
-Storacha Network aims to implement a scalable and automated mechanism to track egress traffic for customer billing purposes. The objective is to update Stripe’s API with relevant egress data for each customer, ensuring accurate billing. This RFC outlines two potential approaches to achieve this goal, each with its own set of trade-offs.
+Storacha Network aims to implement a scalable and automated mechanism to track egress traffic for customer billing purposes. The objective is to update Stripe’s API with relevant egress data for each customer, ensuring accurate billing. This RFC outlines three potential approaches to achieve this goal, each with its own set of trade-offs.
 
 ## Problem
 
@@ -18,7 +23,7 @@ Currently, there is no established automated process to track and associate egre
 
 ## Proposal
 
-We propose two alternatives for tracking and updating egress billing traffic:
+We propose three alternatives for tracking and updating egress billing traffic:
 
 ### Alternative 1: SQS, Lambda, DynamoDB, and Stripe Integration
 
@@ -71,6 +76,38 @@ graph TD
 - Cloudflare Freeway Worker will need to be updated to interact with the `w3up/upload-api` for each served resource.
 - Delegation mechanisms need to be set up and secured to ensure the worker is authorized to invoke the new API.
 
+### Alternative 3: Freeway Worker invoking `usage/record`, SQS, Lambda with Stripe Integration
+
+1. The Freeway worker will invoke the `usage/record` capability using `ctx.waitUntil` to avoid blocking.
+2. The `usage/record` handler in the `w3infra/upload-api` will receive the request and place the egress data into an SQS queue.
+3. A new Lambda function will consume events from the SQS queue and publish the data to the Stripe Billing Meters API.
+
+```mermaid
+graph TD
+    CF[Cloudflare Freeway Worker] --> w3up[w3up/upload API]
+    w3up --> SQS[SQS Queue]
+    SQS --> Lambda[Lambda Function]
+    Lambda --> Stripe[Stripe Billing Meters API]
+    w3up --> Logs[Logs - Egress Data Receipt]
+```
+
+**Advantages:**
+
+- **Asynchronous execution** using `ctx.waitUntil` ensures that the Freeway worker won’t block while handling egress data.
+- Maintains **clear separation of concerns** by utilizing SQS and Lambda for processing and publishing egress data to Stripe.
+- **Decoupled architecture** similar to Alternative 1, with the added benefit of a **buffer** (SQS queue) to mitigate rate limit issues when publishing events to Stripe.
+- **Generates signed receipts** like Alternative 2, ensuring auditability and traceability of egress data transactions.
+
+**Disadvantages:**
+
+- Similar to Alternative 1, requires additional infrastructure components (SQS, Lambda) to be set up and maintained.
+- Involves updating the Freeway worker to consume the `w3up` client, and has an additional step in the pipeline.
+
+**Deferred Tasks for Future Iterations:**
+
+- Handling transform streams for closed connections.
+- Tailing worker logs due to potential changes in the Cloudflare log structure, which could complicate issue detection. This could be addressed in future iterations by using log annotations as suggested by Alan.
+
 ## Stripe Integration
 
 To implement usage-based billing for Storacha Network, we have two options for integrating with Stripe: **Usage Records (Legacy)** and **Billing Meters (Recommended)**.
@@ -86,8 +123,8 @@ To implement usage-based billing for Storacha Network, we have two options for i
 - **No Subscription Requirement:** Billing Meters allow usage tracking for customers without needing an active subscription, simplifying pre-subscription billing.
 - **Real-Time Reporting:** Automatically tracks and aggregates usage events, ensuring accurate and timely reporting.
 - **Scalability:** Optimized for high-volume usage reporting, making it ideal for Storacha Network’s needs.
-- **No Need for Immediate Migration:** We do not have to migrate existing customers to a new price. We can begin tracking egress traffic with the Billing Meter and create new usage-based prices later.
-- **Adding New Prices for Each Product:** At a future point, we will create new prices for each of our three products (**Starter, Lite, and Business**), based on tiers of egress data usage. Once these new prices are associated with the Billing Meter, Stripe will automatically track usage for billing.
+- **No Need for Immediate Migration:** Start tracking egress traffic with the Billing Meter and create new usage-based prices later.
+- **Adding New Prices for Each Product:** Create new prices for each of the three products (**Starter, Lite, and Business**), based on tiers of egress data usage. Once associated with the Billing Meter, Stripe will automatically track usage for billing.
 
 ### Example Pricing Tiers:
 
@@ -122,7 +159,7 @@ Since **Usage Records** are being deprecated by Stripe and **Billing Meters** of
 
 ### 1. **Operational Complexity:**
 
-- **Question:** Which approach requires less effort to maintain in the long run? Can the additional infrastructure of Alternative 1 be justified given its decoupled architecture?
+- **Question:** Which approach requires less effort to maintain in the long run? Can the additional infrastructure of Alternative 1 or 3 be justified given their decoupled architecture?
 - **Answer:** Alternative 2 requires less effort to maintain in the long run since it leverages existing infrastructure (`w3up/upload-api`), avoiding the need to set up new infrastructure components (SQS, Lambda, DynamoDB).
 
 ### 2. **Security:**
@@ -134,12 +171,13 @@ Since **Usage Records** are being deprecated by Stripe and **Billing Meters** of
 
 ### 3. **Performance Impact:**
 
-- **Question:** Will the real-time nature of API updates in Alternative 2 introduce latency concerns for the Cloudflare Freeway Worker? How does this compare to the event-driven model in Alternative 1?
+- **Question:** Will the real-time nature of API updates in Alternative 2 introduce latency concerns for the Cloudflare Freeway Worker? How does this compare to the event-driven model in Alternatives 1 and 3?
 - **Answer:** By using Cloudflare’s "fire and forget" context calls, the Freeway Worker can avoid blocking while serving the resource. This minimizes latency, allowing the request to complete without waiting for the billing events, making the performance impact negligible.
 
 ### 4. **Logging and Monitoring:**
 
 - **Question:** How can logs and monitoring be effectively implemented in both alternatives? Does Alternative 2’s reliance on signed receipts offer sufficient logging capabilities? Do we really need these signed receipts?
+
 - **Answer:** ???
 
 ### 5. **Stripe Integration:**
@@ -148,8 +186,8 @@ Since **Usage Records** are being deprecated by Stripe and **Billing Meters** of
 - **Answer:** It won't disrupt current customer billing since we are adding a new price flow for egress traffic, separate from existing services. The existing customers will continue using their current plans without changes.
 - **Question:** What are the downsides of integrating with the Billing Meters API?
 - **Answer:** Billing Meters don’t support certain aggregations (`max`, `last_ever`, and `last_during_period`) and lack reporting capabilities directly in the Stripe Dashboard. However, these limitations can be managed through external monitoring tools.
-- **Question:** How we can see the customer egress usage in Stripe if there is no reporting/dashboard for that customer?
-- **Answer:** We will need to query the API and filter by Meter Id, Customer and Date Range, e.g:
+- **Question:** How can customer egress usage be seen in Stripe if there is no reporting/dashboard for that customer?
+- **Answer:** Query the API and filter by Meter Id, Customer, and Date Range, e.g:
 
   ```js
   const meterEventSummaries = await stripe.billing.meters.listEventSummaries(
@@ -162,7 +200,7 @@ Since **Usage Records** are being deprecated by Stripe and **Billing Meters** of
   })
   ```
 
-  Sample response
+  Sample response:
 
   ```json
   {
@@ -184,8 +222,7 @@ Since **Usage Records** are being deprecated by Stripe and **Billing Meters** of
   }
   ```
 
-  We can also retrieve the upcoming invoice to find the total egress usage for the current subscription period - as long as the customer is subscribed to the new usage-based price.
-  Stripe reflects the usage as the quantity of the invoice item for a given subscription item.
+  Retrieve the upcoming invoice to find the total egress usage for the current subscription period:
 
   ```js
   const upcomingInvoice = await stripe.invoices.retrieveUpcoming({
@@ -197,4 +234,5 @@ Since **Usage Records** are being deprecated by Stripe and **Billing Meters** of
 
 ## Recommendation
 
-**Alternative 2** offers a more streamlined architecture by leveraging the existing `w3up/upload-api` and avoids introducing additional infrastructure components like SQS, Lambda, and DynamoDB. While it requires updates to the Freeway Worker and additional delegation controls, the reduced operational overhead makes this approach more sustainable.
+**Alternative 3** offers a more streamlined architecture by leveraging the existing `w3up/upload-api` and adds minimal infrastructure components like SQS, Lambda to prevent rate limiting issues on Stripe API.
+While it requires updates to the Freeway Worker and additional delegation controls, the reduced operational overhead makes this approach more sustainable and easier to extend in the future.
