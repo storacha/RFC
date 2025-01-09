@@ -30,7 +30,7 @@ I believe these changes to be mainly _good_ for the project as a whole and align
 
 ## Proposal
 
-We transition to working on `upload-service`, "forwardporting" any changes made in `w3up` that do not yet exist in `upload-service`.
+We transition to working on `upload-service`, porting any changes made in `w3up` that do not yet exist in `upload-service`.
 
 We _backport_ the relevant infra changes in `upload-service-infra` that were added to support "Routing Blob Protocol" to `w3infra`.
 
