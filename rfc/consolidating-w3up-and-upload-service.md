@@ -36,7 +36,7 @@ We _backport_ the relevant infra changes in `upload-service-infra` that were add
 
 * Change the `w3infra` service DID to `did:web:upload.storacha.network` and URL to `https://upload.storacha.network`.
 * Point `https://up.web3.storage` and `https://up.storacha.network` to `https://upload.storacha.network`.
-* Allow the service to receive invocations to audience `did:web:web.storage` and accept attestations signed by `did:web:web.storage`.
+* Allow the service to receive invocations to audience `did:web:web3.storage` and accept attestations signed by `did:web:web3.storage`.
 * Add the legacy Store Protocol handlers to `upload-service` by importing existing `@web3-storage/upload-api`.
 * Setup and deploy a production storage provider node that writes to carpark.
 * Migrate `allocation` table data to `blob-registry` table - this allows `space/blob/list` capability to work for older spaces.
