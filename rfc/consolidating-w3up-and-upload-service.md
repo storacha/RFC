@@ -40,6 +40,19 @@ We _backport_ the relevant infra changes in `upload-service-infra` that were add
 * Add the legacy Store Protocol handlers to `upload-service` by importing existing `@web3-storage/upload-api`.
 * Setup and deploy a production storage provider node that writes to carpark.
 * Migrate `allocation` table data to `blob-registry` table - this allows `space/blob/list` capability to work for older spaces.
+    * This is a simple copy of all existing rows, with a couple of field renames (`multihash` -> `digest` and `invocation` -> `cause`). For reference, I've listed the current schemas:
+        * `allocation` schema:
+            * `space`: string (e.g. `did:key:space`)
+            * `multihash`: string (e.g. `zQm...`)
+            * `size`: number (e.g. `101`)
+            * `invocation`: string (e.g. `baf...ucan` - CID of invocation UCAN)
+            * `insertedAt`: string (e.g. `2022-12-24T...`)
+        * `blob-registry` schema:
+            * `space`: string
+            * `digest`: string
+            * `size`: number
+            * `cause`: string
+            * `insertedAt`: string
 * Build a maintenance mode switch to existing system allowing migration to take place without writes.
 * In order to prevent confusion over what modules we're continuing to support, we will remove from the repos as much legacy code as possible.
     * Import and re-export `@storacha` equivalents of all modules. Instead of simply deleting the packages this enables us to continue to easily make and track releases (bugfixes etc.) for the legacy packages whilst still removing the majority of the code.
