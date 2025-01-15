@@ -1,5 +1,9 @@
 # RFC: Consolidating `w3up` + `upload-service`
 
+## Authors
+
+- [Alan Shaw](https://github.com/alanshaw), [Storacha Network](https://storacha.network/)
+
 ## Introduction
 
 For the event held in Bangkok, I forked `w3up` and `w3infra` and deployed a new service, and modules, with some changes to allow the w3up service to store data on decentralized storage nodes. I named the new repos `upload-service` and `upload-service-infra`.
