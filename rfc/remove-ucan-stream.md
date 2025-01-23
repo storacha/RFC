@@ -40,6 +40,8 @@ Switch the UCAN stream handler to use `web3.storage/blob/accept` receipts, which
 
 This re-exposes the bug where two uploads of the same item are double counted, but it is categorically better than double counting _every_ upload.
 
+The PR for this change can be found here: https://github.com/storacha/w3infra/pull/456
+
 ### Mid-term
 
 1. Insert space usage deltas directly to DynamoDB table from the `BlobRegistry` at the point where items are added or removed.
