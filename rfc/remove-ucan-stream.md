@@ -48,6 +48,8 @@ The PR for this change can be found here: https://github.com/storacha/w3infra/pu
 2. Remove billing service UCAN stream handler.
 3. Post Store Protocol decommissioning, remove UCAN stream entirely from the code base.
 
+Note: removing the UCAN stream MUST NOT remove the agent message store! We MUST keep the bucket storage associated with this.
+
 ### Long-term
 
 Define a space usage invocation (e.g. `space/usage/record`) and actually invoke it when we receive a `blob/accept` receipt. In the same way we have a [defined invocation for egress events](https://github.com/storacha/upload-service/blob/7fe172465c6692644815a330f677879c4fb616e8/packages/capabilities/src/space.js#L78-L94).
