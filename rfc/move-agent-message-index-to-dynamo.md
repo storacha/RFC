@@ -12,6 +12,6 @@ The symlinks map invocations and receipts to the request/response CARs that they
 
 ## Proposal
 
-S3 write requests are our biggest expense. Lets move the index information to DyanmoDB. It allows batched writes (faster) and cost per write is cheaper $0.625 per million vs $5 per million.
+S3 write requests are our biggest expense. Lets move the index information to DynamoDB. It allows batched writes (faster) and cost per write is cheaper $0.625 per million vs $5 per million.
 
-Note: DyanmoDB storage costs are more expensive than S3, but the cost difference is likely negligable due to the small amount of data being stored.
+Note: DynamoDB storage costs are more expensive than S3, but the cost difference is likely negligible due to the small amount of data being stored.
