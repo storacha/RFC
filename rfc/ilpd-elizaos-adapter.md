@@ -35,6 +35,8 @@ IPLD's content-addressable nature allows for easy data sharing across different 
 - **Shared History**: Agents can share a common root index CID, allowing them to access and update shared collections seamlessly.
 - **Versioning and Provenance**: IPLD's immutable data structures provide a clear history of changes, enabling version control and provenance tracking.
 
+Example of data-sharing in ElizaOS: https://github.com/storacha/elizaos-adapter/blob/main/docs/integration.md#sharing-between-agents
+
 ### IPLD Schema
 
 The idea is to define IPLD schemas for the following data structures:
