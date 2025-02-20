@@ -160,3 +160,17 @@ The integration should be transparent to clients using the Storacha Database Ada
 ## Conclusion
 
 Adopting IPLD for memory storage in the Storacha Database Adapter offers significant benefits, including enhanced data integrity, interoperability, scalability, and seamless data sharing. However, it is important to recognize that write operations may not achieve the same efficiency as inserts and updates in traditional relational databases, which are commonly used as database adapters.
+
+
+### Additional Resources
+
+Docs
+
+- https://elizaos.github.io/eliza/docs/core/agents/#overview
+
+- https://elizaos.github.io/eliza/docs/core/database/
+
+
+Notes
+
+- https://github.com/storacha/elizaos-adapter/blob/main/docs%2Fintegration.md
