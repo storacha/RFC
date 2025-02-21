@@ -13,7 +13,7 @@ This RFC proposes the adoption of IPLD (InterPlanetary Linked Data) for storing 
 The current memory storage system in Storacha relies on traditional JSON-based storage, which lacks the benefits of content addressing and verifiability. By adopting IPLD, we aim to:
 
 - Enable seamless data sharing between different agents and systems.
-- Improve data integrity through content-addressable storage.
+- Ensure data integrity through content-addressable storage.
 - Enable efficient data retrieval and sharing across distributed systems.
 - Facilitate interoperability with other IPLD-compatible systems.
 
