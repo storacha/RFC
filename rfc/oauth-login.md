@@ -43,7 +43,7 @@ const state = base64.encode((await accessAuthorizeDelegation.archive()).ok)
 await fetch(`https://github.com/login/oauth/authorize?scope=read:user,user:email&client_id=XYZ&state=${state}`)
 ```
 
-The OAuth callback URL might be `/oauth/github/callback`. The handler for which will unpack the `access/authorize` delegation, and invoke `access/confirm`, using the primary, verified email address as the `nb.iss` field. As an expected side effect this will create an attestation and allow the delegation to be claimed via `access/claim`.
+The OAuth callback URL might be `/oauth/github/callback`. The handler for which will unpack the `access/authorize` delegation, store it, and invoke `access/confirm`, using the primary, verified email address as the `nb.iss` field. As an expected side effect this will create an attestation and allow the delegation to be claimed via `access/claim`.
 
 When claiming the delegation the client will create a local account using the `did:mailto` in the attestation.
 
