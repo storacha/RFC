@@ -47,6 +47,8 @@ The OAuth callback URL might be `/oauth/github/callback`. The handler for which 
 
 When claiming the delegation the client will create a local account using the `did:mailto` in the attestation.
 
+Note: In order to ensure the request to the OAuth callback is legitimate, the primary verified email address mentioned above MUST be obtained by making an authorized request to the OAuth provider using the `code` communicated to the callback (paired with the OAuth client secret).
+
 ## Appendix
 
 The idea for this is to allow a _trial_ plan to be assumed by new logins. The OAuth callback will, before invoking `access/claim` create a customer in the system, and set their plan to `did:web:trial.storacha.network`.
