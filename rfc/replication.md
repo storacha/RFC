@@ -24,6 +24,8 @@ It is RECOMMENDED that the upload service mandate a minimum _and_ a maximum valu
 
 e.g. `replicas: 2` will ensure 3 copies of the data exist in the network.
 
+The blob to be replicated and the location where the blob may be found are also required.
+
 ```json5
 {
   "iss": "did:key:zAlice",
@@ -35,7 +37,7 @@ e.g. `replicas: 2` will ensure 3 copies of the data exist in the network.
       "nb": {
         /** The blob that MUST be replicated. */
         "blob": {
-          "digest": { "bytes": "..." },
+          "digest": { "/": { "bytes": "..." } },
           "size": 1234
         },
         /** Number of replicas to ensure. */
@@ -50,39 +52,13 @@ e.g. `replicas: 2` will ensure 3 copies of the data exist in the network.
 }
 ```
 
-It is RECOMMENDED that the location commitment be included in the invocation.
+It is RECOMMENDED that the location commitment is included in the invocation.
 
-The receipt for `space/blob/replicate` includes effects (async tasks) for `blob/replica/accept`. Successful completion of the `blob/replica/accept` task indicates the replication target has stored the blob. The number of `blob/replica/accept` tasks corresponds directly to number of replicas requested.
+The receipt for `space/blob/replicate` includes effects (async tasks) for `blob/replica/transfer`. Successful completion of the `blob/replica/transfer` task indicates the replication target has transferred and stored the blob. The number of `blob/replica/transfer` tasks corresponds directly to number of replicas requested.
 
-A `blob/replica/accept` task takes the following form:
+Each replication task MUST target a _different_ storage node and they MUST NOT target the original upload target.
 
-```json5
-{
-  "iss": "did:web:upload.service.example.com",
-  "aud": "did:key:zStorageNode",
-  "att": [
-    {
-      "with": "did:key:zStorageNode",
-      "can": "blob/replica/accept",
-      "nb": {
-        /** The blob that was replicated. */
-        "blob": {
-          "digest": { "bytes": "..." },
-          "size": 1234
-        },
-        /** DID of the space the blob has been allocated to. */
-        "space": { "bytes": "..." },
-      }
-    }
-  ],
-  "prf": [],
-  "sig": "..."
-}
-```
-
-Each `blob/replica/accept` task MUST target a _different_ storage node and they MUST NOT target the original upload target.
-
-The upload service MUST select storage node(s) and allocate replication space when the `space/blob/replicate` invocation is received. The upload service allocates replication space by issuing a `blob/replica/allocate` invocation:
+The upload service MUST select storage node(s) and allocate replication space when the `space/blob/replicate` invocation is received. The upload service allocates replication space on storage nodes by issuing a `blob/replica/allocate` invocation:
 
 ```json5
 {
@@ -95,11 +71,11 @@ The upload service MUST select storage node(s) and allocate replication space wh
       "nb": {
         /** The blob that was must be replicated. */
         "blob": {
-          "digest": { "bytes": "..." },
+          "digest": { "/": { "bytes": "..." } },
           "size": 1234
         },
         /** DID of the space the blob has been allocated to. */
-        "space": { "bytes": "..." },
+        "space": { "/": { "bytes": "..." } },
         /** A location commitment indicating where the blob MUST be fetched from. */
         "location": { "/": "bafy..locationCommitment" },
         /** The `space/blob/replicate` invocation that caused this allocation. */
@@ -112,8 +88,38 @@ The upload service MUST select storage node(s) and allocate replication space wh
 }
 ```
 
-It is RECOMMENDED that the original replicate invocation (the cause) and the location commitment be included in the invocation.
+The `blob/replica/allocate` task receipt includes an async task that will be performed by the storage node - `blob/replica/transfer`. The `blob/replica/transfer` task is completed when the storage node has transferred the blob from its location to the storage node.
 
-A storage node that receives a `blob/replica/allocate` should fetch and store the blob from the specified location. A receipt should be issued for the `blob/replica/accept` task.
+A `blob/replica/transfer` task takes the following form:
 
-Client can poll for `blob/replica/accept` receipt.
+```json5
+{
+  "iss": "did:key:zStorageNode",
+  "aud": "did:key:zStorageNode",
+  "att": [
+    {
+      "with": "did:key:zStorageNode",
+      "can": "blob/replica/transfer",
+      "nb": {
+        /** The blob that will be transferred. */
+        "blob": {
+          "digest": { "/": { "bytes": "..." } },
+          "size": 1234
+        },
+        /** The location the blob will be transferred from. */
+        "location": { "/": "bafy..locationCommitment" },
+        /** The `blob/replica/allocate` invocation that initiated this transfer. */
+        "cause": { "/": "bafy..allocate" }
+      }
+    }
+  ],
+  "prf": [],
+  "sig": "..."
+}
+```
+
+When the `blob/replica/transfer` task is complete a receipt is issued. The receipt is communicated back to the upload service via a `ucan/conclude` invocation.
+
+The receipt for `blob/replica/transfer` includes a new signed location commitment from the storage node the blob has been replicated to.
+
+Client can poll the upload service for the `blob/replica/transfer` receipt.
