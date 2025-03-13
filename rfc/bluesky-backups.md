@@ -38,14 +38,14 @@ The browser client, CLI client, and a new server app all share state in the Spac
     * 📄 Bluesky Backups (← 🔗 `head`)
       * 📄 `did:plc:ewvi7nxzyoun6zhxrhs64oiz`
         * 🪣 Backups
-          * 📄 2025-03-12T15:13:59.958Z
+          * 📄 `2025-03-12T15:13:59.958Z`
             * 🦋 Repo
             * Blobs
-              * 🖼️ bafyfullblobcid1
-              * 🖼️ bafyfullblobcid2
+              * 🖼️ `bafyfullblobcid1`
+              * 🖼️ `bafyfullblobcid2`
               * …
-          * 📄 2025-03-12T14:58:03.530Z
-          * 📄 2025-03-12T13:51:36.993Z
+          * 📄 `2025-03-12T14:58:03.530Z`
+          * 📄 `2025-03-12T13:51:36.993Z`
           * …
 
 #### Legend
