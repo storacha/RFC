@@ -24,7 +24,7 @@ For example:
 1. User authenticates via GitHub, their primary, verified email from GitHub is `user@example.com`
 1. User is logged into Storacha as `user@example.com`
 
-This is possible because we turst GitHub to verify email addresses, and will issue an attestation for this, provided GitHub indicates that they have previously verified `user@example.com`.
+This is possible because we trust GitHub to verify email addresses, and will issue an attestation for this, provided GitHub indicates that they have previously verified `user@example.com`.
 
 Note: this flow allows insertion into our existing email auth flow in a way that allows login with the same email via the non-third party flow possible.
 
