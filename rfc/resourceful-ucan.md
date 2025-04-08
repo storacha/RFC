@@ -114,6 +114,10 @@ There are a couple pros and cons to consider here:
 - 💔 Sending binary data in HTTP headers as UTF-8 strings is fairly non-standard
 - 💔 Custom headers require attention to CORS issues and may get dropped more often by proxy servers (this applies to X-UCAN-Response as well)
 
+## Relationship to UCAN interop RFC
+
+We have a [seperate RFC](./ucan-interop.md) targeted at non-UCAN enabled clients that want to send invocations to UCAN enabled systems. This RFC is related in that it provides an indirect solution for the reverse scenario: a UCAN enabled client that wants to send invocations to a private non-UCAN API via a UCAN enabled proxy. While the approaches outlined in this RFC are not strictly necessary for this scenario, as outlined in the [problem statement](#problem-statement), they provide a simpler solution than a traditional full UCanto HTTP POST endpoint. 
+
 ## Storage Node Retrieval Protocol Proposal
 
 For Storacha warm storage nodes, use HTTP GET requests with UCAN invocations of `space/content/retrieve` encoded to DAG-CBOR, gzipped, and passed as a base64 encoded Bearer token in the HTTP Authorization header. Particularly for warm storage, the client agent will more typically be the original creator of a space, making for a shorter delegation chain. Measure the invocation size GZipped ahead of time, and if larger than three kilobytes, store the delegation chain using access/delegate with the warm storage node, then for subsequent requests create an invocation with the delegation chain listed as a CID. (this will require adding access/delegate to the supported protocols on warm storage nodes, with some sort of hard coded per-space/agent max storage size)
