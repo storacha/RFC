@@ -120,8 +120,8 @@ We have a [seperate RFC](./ucan-interop.md) targeted at non-UCAN enabled clients
 
 ## Storage Node Retrieval Protocol Proposal
 
-For Storacha warm storage nodes, use HTTP GET requests with UCAN invocations of `space/content/retrieve` encoded to DAG-CBOR, gzipped, and passed as a base64 encoded Bearer token in the HTTP Authorization header. Particularly for warm storage, the client agent will more typically be the original creator of a space, making for a shorter delegation chain. Measure the invocation size GZipped ahead of time, and if larger than three kilobytes, store the delegation chain using access/delegate with the warm storage node, then for subsequent requests create an invocation with the delegation chain listed as a CID. (this will require adding access/delegate to the supported protocols on warm storage nodes, with some sort of hard coded per-space/agent max storage size)
+For Storacha warm storage nodes, use HTTP GET requests with UCAN invocations of `space/content/retrieve` encoded to DAG-CBOR, gzipped, and passed as a base64 encoded Bearer token in the HTTP Authorization header. Particularly for warm storage, the client agent will more typically be the original creator of a space, making for a shorter delegation chain. Measure the invocation size GZipped ahead of time, and if larger than three kilobytes, use a POST request instead. (Warm storage handler will have to support both)
 
-Using HTTP GET and resourceful URLs will enable us to implement `space/content/retrieve` with no changes to existing location commitment logic
+Using HTTP GET and resourceful URLs will enable us to implement `space/content/retrieve` with no changes to existing location commitment logic, and we can also use POST with no change to location commitments.
 
 `space/content/retrieve` will be specified in more detail in a PR to https://github.com/storacha/specs
