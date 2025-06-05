@@ -222,6 +222,57 @@ The public `access/fetch` capability introduces new performance and scalability 
 
 - Set reasonable query timeouts to prevent resource exhaustion
 
+### 2.4 DID:PLC Registry Integration
+
+Integration with the DID:PLC public registry requires specific library dependencies and infrastructure setup for DID document resolution and creation.
+
+#### 2.4.1 Registry Interaction Requirements
+
+**PLC Directory Integration**
+
+- **Registry URL**: https://web.plc.directory/ - public registry for DID:PLC documents
+- **DID Resolution**: Fetch DID documents for signature verification during delegation usage
+- **DID Registration**: Create new DID documents for console-based account creation
+- **Caching Layer**: Cache resolved DID documents to improve performance and reduce registry load
+
+**Existing Implementation Reference**
+
+We have prior experience with DID:PLC integration from our Bluesky backup service:
+
+- **Reference Implementation**: [bluesky-backup-webapp-server/src/lib/plc.ts](https://github.com/storacha/bluesky-backup-webapp-server/blob/a1a0eb5b960afdb0f379bf342fa33d1d7cd1a6e6/src/lib/plc.ts)
+- **Proven Approach**: Successfully used in production for Bluesky identity management
+- **Code Reusability**: Implementation patterns can be extracted and generalized
+
+#### 2.4.2 Library Dependencies & Browser Compatibility
+
+**Current State & Opportunity**
+
+The standard [@did-plc/lib](https://github.com/did-method-plc/did-method-plc/tree/main/packages/lib) JavaScript library currently has browser compatibility limitations:
+
+- **Server Dependency**: Currently depends on `@atproto/common` which is server-only
+- **Browser Incompatibility**: Cannot be used in console/web applications
+- **Available Solution**: `@atproto/common-web` provides browser-compatible equivalents
+
+**Open Source Contribution Opportunity**
+
+We have an opportunity to contribute to the broader DID:PLC ecosystem:
+
+1. **Upstream Contribution**: Submit PRs to make `@did-plc/lib` browser-compatible by migrating from `@atproto/common` to `@atproto/common-web`
+2. **Code Cleanup**: Remove custom DID:PLC implementation from Bluesky backup service
+3. **Community Value**: Enable browser-based DID:PLC applications across the ecosystem
+4. **Strategic Positioning**: Build goodwill with AT Protocol development community
+
+**Implementation Options**
+
+- **JavaScript**: Enhanced `@did-plc/lib` (post-browser-compatibility work)
+- **Custom Implementation**: Extract and generalize from existing Bluesky backup service
+
+#### 2.4.3 Integration Architecture
+
+**Server-Side (Upload-API)**: DID document resolution with caching.
+
+**Browser-Side (Console)**: DID creation and registration for console.
+
 ## 3. Client Integration
 
 ### 3.1 Core Functions in w3up-client
@@ -545,7 +596,24 @@ For detailed specifications on implementing encrypted storage with Lit Protocol 
 - Resolve and verify did:plcs in UCAN delegations
 - No additional DID resolution required for `access/fetch` operations
 
-#### 6.1.2 Upload-API Implementation Tasks
+#### 6.1.2 DID:PLC Registry Integration Tasks
+
+**Library Preparation & Open Source Contribution**
+
+- Contribute to `@did-plc/lib` browser compatibility by migrating from `@atproto/common` to `@atproto/common-web`
+- Submit upstream PRs to enable browser-based DID:PLC applications
+- Extract and generalize DID:PLC utilities from existing Bluesky backup service
+
+**Registry Integration Implementation**
+
+- Implement DID document resolution from https://web.plc.directory/
+- Add caching layer for resolved DID documents (1-hour TTL?)
+- Create DID document registration workflow for console-based account creation
+- Add error handling and fallback strategies for registry unavailability
+- Implement retry logic with exponential backoff for registry requests
+- Implement request rate limiting to respect PLC directory policies (if any)
+
+#### 6.1.3 Upload-API Implementation Tasks
 
 **Access/Fetch Capability Handler**
 
@@ -568,7 +636,7 @@ For detailed specifications on implementing encrypted storage with Lit Protocol 
 - Ensure consistent account ID handling across all account types
 - Update account lookup and management endpoints
 
-#### 6.1.3 W3infra Implementation Tasks
+#### 6.1.4 W3infra Implementation Tasks
 
 **Stripe Billing Integration**
 
@@ -588,47 +656,46 @@ For detailed specifications on implementing encrypted storage with Lit Protocol 
 
 - Add did:plc support to customer records and billing tables
 
-#### 6.1.4 Console App Implementation Tasks
+#### 6.1.5 Console App Integration
 
-**Account Creation & Signup Flow**
+**DID:PLC Integration Setup**
 
-- Add did:plc account type selection to existing signup UI
-- Implement did:plc account creation workflow with key generation
-- Integrate PLC directory registration for new did:plc accounts
-- Add secure key backup and recovery guidance UI components
+1. Integrate browser-compatible `@did-plc/lib` for DID document creation
+2. Implement DID registration workflow with https://web.plc.directory/
+3. Add proper error handling for registry interactions
 
-**Authentication Integration**
+**Account Creation & Authentication**
 
-- Update existing authentication flows to handle did:plc accounts
-- Extend account management UI for did:plc account display
-- Update space creation and sharing interfaces for both account types
-- Ensure consistent user experience across email and did:plc authentication
+1. Add did:plc account type selection to signup UI
+2. Implement did:plc account creation workflow with key generation
+3. Integrate PLC directory registration for new accounts
+4. Update existing authentication flows to handle did:plc accounts
 
 **UI/UX Updates**
 
-- Update account selector components to display did:plc identifiers
-- Add did:plc account information and management pages
-- Update billing integration UI to handle did:plc accounts
-- Implement key management and security guidance workflows
+- Update account selector components for did:plc identifiers
+- Update space creation and sharing interfaces for both account types
+- Update billing integration UI for did:plc accounts
 
-**Browser Storage & Security**
+**Security & Key Management**
 
-- Implement secure key storage in IndexedDB for did:plc accounts
 - Add key backup and import/export functionality
 - Update session management for did:plc authentication
-- Ensure proper key lifecycle management and security warnings
+- UI/UX to guide users on how to protect their keys
 
-#### 6.1.5 Client-Side Dependencies
+#### 6.1.6 Client-Side Dependencies
 
 - Updated client libraries with `access/fetch` capability support
 - UCAN delegation creation and signing capabilities for self-delegations
 - User interface for delegation creation and management (nice to have)
 
-#### 6.1.6 Cryptographic Requirements
+#### 6.1.7 Cryptographic Requirements
 
 - Ed25519 signature generation for delegation creation
 - Signature verification when delegations are used (not when fetched)
 - Warn the user about secure private key management for did:plc signers
+
+> **Note**: For advanced encrypted storage features using Lit Protocol PKPs, refer to the dedicated [Lit Protocol PKP Integration RFC](./LIT_PROTOCOL_INTEGRATION_RFC.md) for separate implementation details .
 
 ### 6.2 Security Considerations
 
@@ -672,6 +739,13 @@ All proposed changes maintain complete backward compatibility.
 ### 6.4 Implementation Plan
 
 #### 6.4.1 Phase 1: Backend Infrastructure
+
+**DID:PLC Registry Integration**
+
+1. Contribute to `@did-plc/lib` browser compatibility (migrate from `@atproto/common` to `@atproto/common-web`)
+2. Implement DID document resolution from https://web.plc.directory/ with caching layer
+3. Add error handling, retry logic, and monitoring for PLC directory interactions
+4. Extract and generalize DID:PLC utilities from existing Bluesky backup service
 
 **Upload-API Core Changes**
 
@@ -737,12 +811,18 @@ All proposed changes maintain complete backward compatibility.
 
 #### 6.4.5 Phase 5: Console App Integration
 
+**DID:PLC Integration Setup**
+
+1. Integrate browser-compatible `@did-plc/lib` for DID document creation
+2. Implement DID registration workflow with https://web.plc.directory/
+3. Add proper error handling for registry interactions
+
 **Account Creation & Authentication**
 
-- Add did:plc account type selection to signup UI
-- Implement did:plc account creation workflow with key generation
-- Integrate PLC directory registration for new accounts
-- Update existing authentication flows to handle did:plc accounts
+1. Add did:plc account type selection to signup UI
+2. Implement did:plc account creation workflow with key generation
+3. Integrate PLC directory registration for new accounts
+4. Update existing authentication flows to handle did:plc accounts
 
 **UI/UX Updates**
 
@@ -755,5 +835,3 @@ All proposed changes maintain complete backward compatibility.
 - Add key backup and import/export functionality
 - Update session management for did:plc authentication
 - UI/UX to guide users on how to protect their keys
-
-> **Note**: For advanced encrypted storage features using Lit Protocol PKPs, refer to the dedicated [Lit Protocol PKP Integration RFC](./LIT_PROTOCOL_INTEGRATION_RFC.md) for separate implementation details .
