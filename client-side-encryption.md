@@ -6,9 +6,9 @@
 
 ## Abstract
 
-This RFC proposes enhancements in the client-side encryption library for Storacha uploads using Lit Protocol's Programmable Key Pairs (PKPs) which unlocks social authentication without private key management. The proposal maintains the secure per-file encryption approach while adding improved user experience and backup capabilities. Access control for symmetric key decryption continues to rely on Lit Actions that validate UCAN delegations, ensuring only authorized users can decrypt specific keys within their designated Storacha Spaces.
+This RFC proposes enhancements in the client-side encryption library for Storacha uploads using Lit Protocol's Programmable Key Pairs (PKPs), which unlock social authentication without private key management. The proposal maintains the secure per-file encryption approach while adding improved user experience and backup capabilities. Access control for symmetric key decryption continues to rely on Lit Actions that validate UCAN delegations, ensuring only authorized users can decrypt specific keys within their designated Storacha Spaces.
 
-It also proposes a fallback strategy to decrypt content in case the Lit Protocol becomes prohibitively expensive, experiences network issues or suffers service outages. The proposal covers Lit Protocol's Payment Delegation Database API for streamlined cost management.
+It also proposes a fallback strategy to decrypt content in case the Lit Protocol becomes prohibitively expensive, experiences network issues, or suffers service outages. The proposal covers Lit Protocol's Payment Delegation Database API for streamlined cost management.
 
 The goal is to establish the foundational encryption system for Storacha, prioritizing security through proven cryptographic practices while removing adoption barriers for mainstream users and enterprise customers.
 
@@ -18,7 +18,7 @@ The goal is to establish the foundational encryption system for Storacha, priori
 
 The Storacha stack currently provides client-side encryption through the encrypt-upload-client package, which uses symmetric encryption with Lit Protocol for key management. The existing system employs Lit Actions to validate UCAN (User Controlled Authorization Network) delegations for access control, ensuring users can only decrypt symmetric keys within their authorized Storacha Spaces. Currently, users must manage Ethereum wallets to authenticate with Lit Protocol and individually pay for transaction costs using [capacity credits](<https://developer.litprotocol.com/paying-for-lit/capacity-credits#:~:text=Capacity%20Credits%20are%20a%20key,period%20(e.g.%20one%20week)>).
 
-This RFC proposes extending the encryption system to provide a user-friendly approach using Lit PKPs for social authentication, while maintaining the same security model through client-side encryption and UCAN-based access control. The proposal introduces Lit Protocol's Payment Delegation Database API, enabling Storacha to act as the payer for all user Lit transactions, eliminating the need for users to manage cryptocurrency wallets or capacity credits. Additionally, the RFC introduces flexible backup strategies including Cloud KMS integration and gateway-based fallback decryption.
+This RFC proposes extending the encryption system to provide a user-friendly approach using Lit PKPs for social authentication, while maintaining the same security model through client-side encryption and UCAN-based access control. The proposal introduces Lit Protocol's Payment Delegation Database API, enabling Storacha to act as the payer for all user Lit transactions, eliminating the need for users to manage cryptocurrency wallets or capacity credits. Additionally, the RFC introduces flexible backup strategies, including Cloud KMS integration and gateway-based fallback decryption.
 
 ### 1.1 Current System Overview
 
@@ -114,7 +114,7 @@ The current access control system relies on Lit Actions to validate UCAN delegat
 
 ## 2. Proposed Enhancements
 
-This RFC addresses the identified limitations through a set of enhancements that maintain the security properties of the existing system while improving usability, reliability, and accessibility. The proposal introduces five key improvements:
+This RFC addresses the identified limitations through a set of enhancements that maintain the security properties of the existing system while improving usability, reliability, and accessibility. The proposal introduces six key improvements:
 
 ### 2.1 Lit PKP Integration with Social Authentication
 
@@ -135,7 +135,7 @@ Implement Lit Protocol's Payment Delegation Database API to enable Storacha to a
 
 #### 2.2.1 Payment Delegation Database Architecture
 
-The [Lit Protocol Payment Delegation Database](https://developer.litprotocol.com/paying-for-lit/payment-delegation-db) enables applications to pay for user operations without requiring users to hold capacity credits. The system works through an allowlist-based approach:
+The [Lit Protocol Payment Delegation Database](https://developer.litprotocol.com/paying-for-lit/payment-delegation-db) enables applications to pay for user operations without requiring users to hold capacity credits. The system works through a allowlist-based approach:
 
 - **Storacha as Payer**
 
@@ -151,8 +151,8 @@ The [Lit Protocol Payment Delegation Database](https://developer.litprotocol.com
 
 - **Operation Flow**
   1. User performs PKP-based operation (decryption, signing, etc.)
-  2. Lit Protocol checks if user's PKP address is in Storacha's allowlist
-  3. If authorized, operation proceeds and costs are charged to Storacha's capacity credits
+  2. Lit Protocol checks if the user's PKP address is in Storacha's allowlist
+  3. If authorized, operation proceeds, and costs are charged to Storacha's capacity credits
   4. User receives service without managing cryptocurrency or credits
 
 ### 2.3 Revocation System Implementation
@@ -165,7 +165,7 @@ Extend the encryption library to support browser environments by replacing Node.
 
 ### 2.5 Gateway Fallback Strategy
 
-Implement a backup decryption system through the Storacha IPFS Gateway that can validate UCAN delegations and decrypt content when Lit Protocol is unavailable, expensive, or experiencing performance issues. This reduces external network dependency while maintaining the same security model.
+Implement a backup decryption system through the Storacha IPFS Gateway that can validate UCAN delegations and decrypt content when the Lit Protocol is unavailable, expensive, or experiencing performance issues. This reduces external network dependency while maintaining the same security model.
 
 ### 2.6 Symmetric Key Backup Strategies
 
@@ -190,7 +190,7 @@ Our proposed application-level backup strategy complements Lit Protocol's networ
 
 - **Lit Protocol Backup**: Network-wide disaster recovery (nodes permanently offline)
 - **Storacha Backup**: Application-level availability (network unreachable, expensive, or slow)
-  
+
 This layered approach provides comprehensive resilience across both network infrastructure and application access patterns.
 
 ## 3. Enhanced System Flows
@@ -232,8 +232,10 @@ sequenceDiagram
     participant Gateway
     participant CryptoAdapter
 
-    User->>StorachaClient: Authenticate with social provider
-    StorachaClient->>LitProtocol: Validate social auth & get authMethod
+    User->>StorachaClient: Request authentication
+    StorachaClient->>StorachaClient: Send OTP to user's email via Stytch
+    User->>StorachaClient: Enter OTP code
+    StorachaClient->>LitProtocol: Validate OTP & get authMethod
     LitProtocol-->>StorachaClient: Authorized authMethod
     User->>StorachaClient: Request to retrieve & decrypt file by CID
     StorachaClient->>LitProtocol: fetchPKPsThroughRelayer(authMethod)
@@ -281,8 +283,8 @@ The proposed enhancements transform client-side encryption from a developer-only
 
 - **For End Users**
 
-  - **Zero Crypto Complexity**: Social authentication eliminates the need to manage wallets, private keys, or cryptocurrency
-  - **Familiar Login Experience**: Use existing Google, Discord, or other social accounts for secure file encryption
+  - **Zero Crypto Complexity**: Email OTP and social authentication eliminate the need to manage wallets, private keys, or cryptocurrency
+  - **Familiar Login Experience**: Use email OTP or social accounts (Google, Discord, etc.) for secure file encryption
   - **No Payment Hassles**: Storacha handles all transaction costs transparently through payment delegation
   - **Reliable Access**: Files remain accessible even during external service outages through gateway fallback
   - **True Privacy Control**: Maintain the ability to revoke access and permanently delete encrypted content
@@ -290,7 +292,7 @@ The proposed enhancements transform client-side encryption from a developer-only
 - **For Developers**
 
   - **Browser Compatibility**: Web Crypto API support enables encryption in any modern browser environment
-  - **Simplified Integration**: PKP social authentication reduces onboarding complexity for user applications
+  - **Simplified Integration**: PKP email OTP and social authentication reduce onboarding complexity for user applications
   - **Robust Architecture**: Fallback systems prevent single points of failure in production applications
 
 - **For Enterprises**
@@ -305,6 +307,6 @@ Beyond usability, this proposal significantly strengthens Storacha's security po
 
 - **Closes Revocation Gap**: Implements missing revocation checking that currently allows indefinite access after delegation revocation
 - **Reduces Single Points of Failure**: Gateway fallback ensures access continuity independent of external service availability
-- **Preserves Zero-Knowledge for Primary Path**: The Lit Protocol path maintains zero-knowledge architecture where Storacha never accesses user decrypted data, while the fallback path trades ephemeral server-side access for availability when external services are unavailable
+- **Preserves Zero-Knowledge for Primary Path**: The Lit Protocol path maintains a zero-knowledge architecture where Storacha never accesses user-decrypted data, while the fallback path trades ephemeral server-side access for availability when external services are unavailable
 - **Implements Per-Space Isolation**: Each space maintains independent backup keys, preventing cross-space data exposure during key compromise scenarios
 - **Implements Fallback Strategies**: Multiple backup strategies provide redundant protection against key loss scenarios
