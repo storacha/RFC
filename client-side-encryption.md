@@ -120,13 +120,22 @@ This RFC addresses the identified limitations through a set of enhancements that
 
 Add support for Lit Protocol's Programmable Key Pairs (PKPs) alongside existing wallet-based authentication. PKPs enable social login providers (Google, Discord, WebAuthn, Stytch, etc) for users who prefer not to manage Ethereum wallets and private keys, while maintaining backward compatibility with existing wallet-based workflows.
 
+#### 2.1.1 Email Authentication via Stytch Integration
+
+Since all Storacha users already have email addresses, we can generate PKPs using Stytch with email authentication. The Lit Protocol supports minting PKPs via Stytch's email OTP (one-time password) flow:
+
+1. **Send OTP to User's Email**: Stytch sends a one-time password to the user's registered Storacha email address
+2. **Authenticate the OTP Code**: User enters the OTP code received in their email
+3. **Get the Session Token**: Stytch validates the OTP and returns a session token
+4. **Use LitAuthClient to Mint a PKP**: The session token is used with LitAuthClient to mint a new PKP or authenticate an existing one
+
 ### 2.2 Payment Delegation System
 
 Implement Lit Protocol's Payment Delegation Database API to enable Storacha to act as the payer for all user Lit transactions. This removes the burden of capacity credit management from individual users and simplifies onboarding.
 
 #### 2.2.1 Payment Delegation Database Architecture
 
-The [Lit Protocol Payment Delegation Database](https://developer.litprotocol.com/paying-for-lit/payment-delegation-db) enables applications to pay for user operations without requiring users to hold capacity credits. The system works through a allowlist-based approach:
+The [Lit Protocol Payment Delegation Database](https://developer.litprotocol.com/paying-for-lit/payment-delegation-db) enables applications to pay for user operations without requiring users to hold capacity credits. The system works through an allowlist-based approach:
 
 - **Storacha as Payer**
 
