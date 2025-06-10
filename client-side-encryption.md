@@ -173,6 +173,17 @@ Provide multiple backup options for symmetric keys to ensure content remains acc
 - **Implementation**
   - **Storage Schema**: `{space_did}:{file_cid} → encrypted_symmetric_key`
 
+#### 2.6.2 Relationship to Lit Protocol Network Backup
+
+It's important to note that Lit Protocol itself implements [backup and recovery mechanisms](https://developer.litprotocol.com/security/backup-and-recover) at the network level using verifiable encryption, Recovery Party coordination, and Blinder protection. These network-level backups ensure the Lit Protocol itself can be restored in case of catastrophic node failures.
+
+Our proposed application-level backup strategy complements Lit Protocol's network backup by addressing different failure scenarios:
+
+- **Lit Protocol Backup**: Network-wide disaster recovery (nodes permanently offline)
+- **Storacha Backup**: Application-level availability (network unreachable, expensive, or slow)
+  
+This layered approach provides comprehensive resilience across both network infrastructure and application access patterns.
+
 ## 3. Enhanced System Flows
 
 The following sequence diagrams illustrate how the proposed enhancements integrate with the existing encryption system to provide improved user experience and reliability.
