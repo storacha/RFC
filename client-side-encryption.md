@@ -245,11 +245,11 @@ The specification for this new endpoint is detailed in the following ticket http
 ```mermaid
 sequenceDiagram
     participant User
-    participant Client as "Storacha Client"
-    participant RevocationAPI as "Revocation API"
-    participant LitProtocol as "Lit Protocol"
+    participant Client as Storacha Client
+    participant RevocationAPI as Revocation API
+    participant LitProtocol as Lit Protocol
     participant Gateway
-    participant GoogleKMS as "Google KMS"
+    participant GoogleKMS as Google KMS
 
     Note over User, GoogleKMS: Revocation Check - Lit Implementation
 
