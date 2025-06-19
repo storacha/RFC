@@ -126,7 +126,7 @@ Add support for Lit Protocol's Programmable Key Pairs (PKPs) alongside existing 
 
 Email and SMS authentication provides users with a convenient way to verify their identity using one-time passwords (OTP) sent to their registered email address or phone number.
 
-Since all Storacha users already have email addresses, we can generate PKPs using [Stytch](https://stytch.com/docs/api/send-otp-by-sms) with email authentication.
+Since all Storacha users already have email addresses, we can generate PKPs using [Stytch](https://stytch.com/docs/api/send-otp-by-email) with email authentication.
 
 The Lit Protocol supports minting [PKPs via Stytch's email OTP](https://developer.litprotocol.com/user-wallets/pkps/advanced-topics/auth-methods/email-sms) (one-time password) flow:
 
