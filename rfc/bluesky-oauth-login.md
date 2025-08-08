@@ -26,7 +26,12 @@ allocation the same way we do with GitHub.
 ## Proposal
 
 We propose implementing [OAuth Login](./oauth-login.md) for Bluesky OAuth. We'd like to
-add a new OAuth endpoint using the same techniques that we do for GitHub today. The primary difference between the existing GitHub OAuth callback and the new Bluesky OAuth callback is that we'll use the Bluesky API client rather than the GitHub API client to register and record OAuth access tokens. An existing implementation of a Bluesky OAuth
+add a new OAuth endpoint using the same techniques that we do for GitHub today. The primary difference between the existing GitHub OAuth callback and the new Bluesky OAuth callback is that we'll use the Bluesky API client rather than the GitHub API client to register and record OAuth access tokens. 
+
+Importantly, we will follow the same pattern proposed in [OAuth Login](./oauth-login.md) 
+to give users a small storage allocation if their Bluesky email is "verified".
+
+An existing implementation of a Bluesky OAuth
 callback, in use by our bsky.storage application, can be found here: 
 
 https://github.com/storacha/bluesky-backup-webapp-server/blob/main/src/app/atproto/callback/page.tsx
