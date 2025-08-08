@@ -92,3 +92,4 @@ While (1) is probably more "correct" and in line with the way we build systems, 
 
 We have used Claude to create a rough sketch of the new OAuth callback - it is neither bug-free nor complete, but should help give more context and detail to the proposal above:
 
+https://github.com/storacha/w3infra/pull/505
