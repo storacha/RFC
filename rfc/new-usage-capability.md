@@ -88,8 +88,8 @@ type Period struct {
       "nb": {
           "space": "did:key:z6MkuxVKbEvYzXw89c9ESd3xoZ988MFrCgqT5JF5wtBvuYWe",
           "period": {
-              from: 1740357624,
-              to: 1740357624
+              "from": 1740357624,
+              "to": 1740357624
           }
       }
     }
