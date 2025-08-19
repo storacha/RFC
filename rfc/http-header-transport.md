@@ -12,25 +12,47 @@ The following HTTP header MUST be included when issuing a UCAN invocation via a 
 X-Agent-Message: <agent-message-archive>
 ```
 
-A client MAY use the standard `Authorization` header instead of the `X-Agent-Message` header.
+In the header, `<agent-message-archive>` is a CAR file containing an [Agent Message](https://github.com/storacha/go-ucanto/blob/06a2c2d09f708014bda62aba27bb1a146ebd29eb/core/message/datamodel/agentmessage.ipldsch#L1-L8) block, as well an invocation block, optional proof block(s) and optional receipt block(s). The CAR file bytes MUST be gzipped and multibase encoded (base64 is RECOMMENDED).
 
-In the header, `<agent-message-archive>` is a CAR file containing an [agent message](https://github.com/storacha/go-ucanto/blob/06a2c2d09f708014bda62aba27bb1a146ebd29eb/core/message/datamodel/agentmessage.ipldsch#L1-L8) block, as well as invocation block(s), proof block(s) and receipt block(s). The CAR file bytes are multibase base64 encoded.
+The Agent Message in _requests_ MUST contain a single invocation. Agent Messages with multiple invocations MUST fail since the response body can only be used by one invocation at a time.
 
-The agent message in requests is typically expected to contain an invocation, and a set of proofs.
-
-The _response_ headers MUST include an `X-Agent-Message` header, which is an agent message archive that typically contains receipt(s) for the executed invocation tasks.
+The _response_ headers MUST include an `X-Agent-Message` header, which is an agent message archive that typically contains receipt(s) for the executed invocation tasks. They MUST also include the standard [HTTP `Vary` header](https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/Vary) that includes `X-Agent-Message`.
 
 When sending UCAN invocations via HTTP headers it is important to ensure the total header size does not exceed 8KB, in order to adhere to limits imposed by popular HTTP server software.
 
-It is RECOMMENDED that the `X-Agent-Message` header does not exceed 4KB in size.
+It is RECOMMENDED that the `X-Agent-Message` _value_ does not exceed 4KB in size.
 
 To save space and bandwidth an agent MAY omit proofs from the invocation. Especially if making multiple requests to the service using the same proof(s).
 
 The response headers SHOULD include a `X-UCAN-Cache-Expiry` header, set to the cache expiry time in [Unix time](https://en.wikipedia.org/wiki/Unix_time) for proofs referenced by the invocation.
 
-If proofs are omitted in a request and are not cached, the service MUST respond with a HTTP 510 (Not Extended) response. The `X-Agent-Message` header in the response MUST be an agent message archive with a failed receipt, whose error specifies the CIDs of proofs required in order to execute the invocation. The `X-UCAN-Cache-Expiry` header must also be set to allow the request to be repeated with required proofs, whilst omitting proofs that were already sent.
+If proofs are omitted in a request and are not present in the server cache, the service MUST respond with a [HTTP 510 (Not Extended)](https://www.rfc-editor.org/rfc/rfc2774#section-7) response. The response body MUST be a [DAG-JSON](https://ipld.io/docs/codecs/known/dag-json/) encoded error object that lists the missing proofs required in order to execute the invocation. It MUST comply to the following schema:
 
-Note: the agent message is simply a list of invocation (and receipt) CIDs. A repeat invocation MAY omit the original invocation block since it _should_ be cached by the server.
+```ipldsch
+type MissingProofs struct {
+  name    optional String  # Typically "MissingProofs"
+  message optional String  # Instructions to resubmit the invocation
+  proofs  [UCANLink]       # CIDs of the proofs that were missing
+}
+
+type UCANLink = Link  # Link to a UCAN delegation
+```
+
+e.g.
+
+```json
+{
+  "name": "MissingProofs",
+  "message": "proofs were missing, resubmit the invocation with the requested proofs",
+  "proofs": [
+    { "/": "bafyreibd7iyy74awztb3chw73f6yenasubabghjb7jjgu3wjfxrysm7qv4" }
+  ]
+}
+```
+
+The HTTP `Content-Type` header SHOULD be set to `application/json`. Additionally a `X-UCAN-Cache-Expiry` header SHOULD be set to allow the request to be repeated with required proofs, whilst omitting proofs that were already sent.
+
+Note: A repeat invocation MAY omit the original invocation block since it SHOULD be cached by the server.
 
 ## Intened usage
 
