@@ -40,7 +40,7 @@ type UsageGet struct {
 }
 
 type UsageGetNB struct {
-  space optional DID
+  space optional [SpaceDID]
 
   # Optional time period (Unix timestamps in seconds).
   # If omitted, provider MUST return a current snapshot.
@@ -48,9 +48,9 @@ type UsageGetNB struct {
 }
 
 type Period struct {
-  from Int  # inclusive
-  to   Int  # inclusive
-}
+  from Int # inclusive
+  to Int # inclusive
+} representation tuple
 ```
 >NOTE: Is important to note that the `nb` property for filtering doesn't need to be included in this new capability.
 > - If we decide to keep it, we could gradually deprecate the current `usage/report`, since the same operation would be supported by the new one.
@@ -62,7 +62,7 @@ type Period struct {
 
 ```json
 {
-  "iss": "did:mailto:web.mail:alice",
+  "iss": "did:key:z6MktfnQz8Kcz5nsC65oyXWFXhbbAZQavjg6LYuHOOOagent",
   "aud": "did:web:storacha.network",
   "att": [
     {
@@ -79,18 +79,15 @@ type Period struct {
 
 ```json
 {
-  "iss": "did:mailto:web.mail:alice",
+  "iss": "did:key:z6MktfnQz8Kcz5nsC65oyXWFXhbbAZQavjg6LYuHOOOagent",
   "aud": "did:web:storacha.network",
   "att": [
     {
       "with": "did:mailto:web.mail:alice",
       "can": "usage/get",
       "nb": {
-          "space": "did:key:z6MkuxVKbEvYzXw89c9ESd3xoZ988MFrCgqT5JF5wtBvuYWe",
-          "period": {
-              "from": 1740357624,
-              "to": 1740357624
-          }
+          "spaces": ["did:key:z6MkuxVKbEvYzXw89c9ESd3xoZ988MFrCgqT5JF5wtBvuYWe"],
+          "period": [1740357624, 1740357624]
       }
     }
   ],
@@ -105,7 +102,16 @@ type Period struct {
 
 ```ipldsch
 
-type UsageGetSuccess {
+type UsageGetReceipt = {
+  ran: Link<UsageGet>
+  out: Result<UsageGetOk, UsageGetError>
+}
+
+type UsageGetError {
+    message: string
+}
+
+type UsageGetOk {
     total        Int
     spaces       {String: SpaceUsage}   # key: SpaceDID
 }
@@ -146,6 +152,7 @@ type DID = string
 ```
 
 > example:
+
 ```json
 {
   "total": 5356848797,
