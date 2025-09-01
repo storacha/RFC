@@ -1,4 +1,4 @@
-# Usage
+# Account Usage Get
 
 ![draft](https://img.shields.io/badge/status-draft-yellow.svg?style=flat-square)
 
@@ -29,17 +29,17 @@ This RFC proposes a discussion on better approaches.
 
 A new capability that can be invoked in the context of an Account DID (aggregating usage across all spaces). 
 
-### `usage/get`
+### `account-usage/get`
 
 #### Invocation
 
 ```ipldsch
-type UsageGet struct {
+type AccountUsageGet struct {
   with AccountDID
-  nb optional UsageGetNB
+  nb optional AccountUsageGetNB
 }
 
-type UsageGetNB struct {
+type AccountUsageGetNB struct {
   space optional [SpaceDID]
 
   # Optional time period (Unix timestamps in seconds).
@@ -52,11 +52,6 @@ type Period struct {
   to Int # inclusive
 } representation tuple
 ```
->NOTE: Is important to note that the `nb` property for filtering doesn't need to be included in this new capability.
-> - If we decide to keep it, we could gradually deprecate the current `usage/report`, since the same operation would be supported by the new one.
-> - On the other hand, if we choose to remove it, we can simplify the return type to only provide an overview of the total usage, while leaving the more detailed per-space reporting to the existing `usage/report`.
-> Let's discuss the options.
-
 
 > example: getting the total usage
 
@@ -67,10 +62,13 @@ type Period struct {
   "att": [
     {
       "with": "did:mailto:web.mail:alice",
-      "can": "usage/get"
+      "can": "account-usage/get"
     }
   ],
-  "prf": [],
+  "prf": [
+    { "/": "bafyAccountDelegationCid" }, 
+    { "/": "bafySessionAttestationCid" }
+  ],
   "sig": "..."
 }
 ````
@@ -84,14 +82,17 @@ type Period struct {
   "att": [
     {
       "with": "did:mailto:web.mail:alice",
-      "can": "usage/get",
+      "can": "account-usage/get",
       "nb": {
           "spaces": ["did:key:z6MkuxVKbEvYzXw89c9ESd3xoZ988MFrCgqT5JF5wtBvuYWe"],
           "period": [1740357624, 1740357624]
       }
     }
   ],
-  "prf": [],
+ "prf": [
+    { "/": "bafyAccountDelegationCid" }, 
+    { "/": "bafySessionAttestationCid" }
+  ],
   "sig": "..."
 }
 ```
@@ -102,16 +103,16 @@ type Period struct {
 
 ```ipldsch
 
-type UsageGetReceipt = {
-  ran: Link<UsageGet>
-  out: Result<UsageGetOk, UsageGetError>
+type AccountUsageGetReceipt = {
+  ran: Link<AccountUsageGet>
+  out: Result<AccountUsageGetOk, AccountUsageGetError>
 }
 
-type UsageGetError {
+type AccountUsageGetError {
     message: string
 }
 
-type UsageGetOk {
+type AccountUsageGetOk {
     total        Int
     spaces       {String: SpaceUsage}   # key: SpaceDID
 }
