@@ -50,7 +50,7 @@ type AccountUsageGetNB struct {
 type Period struct {
   from Int # inclusive
   to Int # inclusive
-} representation tuple
+}
 ```
 
 > example: getting the total usage
@@ -85,7 +85,10 @@ type Period struct {
       "can": "account-usage/get",
       "nb": {
           "spaces": ["did:key:z6MkuxVKbEvYzXw89c9ESd3xoZ988MFrCgqT5JF5wtBvuYWe"],
-          "period": [1740357624, 1740357624]
+          "period": {
+            "to": 1758111728,
+            "from": 1754006400
+          },
       }
     }
   ],
