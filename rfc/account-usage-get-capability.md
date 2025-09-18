@@ -20,7 +20,7 @@ This RFC proposes a discussion on better approaches.
 
 <a id="note1"></a>
 > <sub>**Note 1:** Scenarios where we don't have the total view of the users spaces: 
-> -  If a user has lost the private key for a space and didn’t delegate control to us.  
+> - If a user has lost the private key for a space and didn’t delegate control to us.  
 > - If a user didn’t delegate control to us and is using a device without the appropriate delegation from a space. 
 > - If a user logs in to a new agent (B) but creates a new space (2) on the old agent (A), agent B wouldn’t know about space 2.</sub>
 
@@ -53,7 +53,7 @@ type Period struct {
 }
 ```
 
-> example: getting the total usage
+> example: getting the current total usage
 
 ```json
 {
@@ -100,7 +100,18 @@ type Period struct {
 }
 ```
 
+#### Usage Calculation
 
+**Total usage** is the aggregate usage (e.g., total bytes stored) across all spaces for the requested Account DID.
+
+If `period` is omitted; for each space, usage is computed as:
+
+- The most recent snapshot available (typically the beginning of the current billing cycle, e.g., `startOfLastMonth(now)`).
+
+- Plus the sum of all space diff events (deltas) up to the current time (`to`) or "now".
+
+> **Note:**
+> To guarantee reproducible results (idempotency), clients SHOULD specify an explicit `period` when querying.
 
 #### Receipt
 
@@ -117,12 +128,12 @@ type AccountUsageGetError {
 
 type AccountUsageGetOk {
     total        Int
-    spaces       {String: SpaceUsage}   # key: SpaceDID
+    spaces       {String: SpaceUsage}   # key: SpaceDID, keys MUST be sorted
 }
 
 type SpaceUsage {
   total     Int
-  providers {String: ProviderUsage}   # key: ProviderDID
+  providers {String: ProviderUsage}    # key: ProviderDID, keys MUST be sorted
 }
 
 type ProviderUsage {
@@ -154,6 +165,9 @@ type ProviderDID = string
 type DID = string
 
 ```
+
+In all responses, the keys of the `spaces` field in `AccountUsageGetOk` and the `providers` field in `SpaceUsage` **MUST be sorted lexicographically** by their respective key (SpaceDID, ProviderDID). This ensures that the same query produces the same output each time.
+
 
 > example:
 
