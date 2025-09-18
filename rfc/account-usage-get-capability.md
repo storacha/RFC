@@ -29,7 +29,7 @@ This RFC proposes a discussion on better approaches.
 
 A new capability that can be invoked in the context of an Account DID (aggregating usage across all spaces). 
 
-### `account-usage/get`
+### `account/usage/get`
 
 #### Invocation
 
@@ -62,7 +62,7 @@ type Period struct {
   "att": [
     {
       "with": "did:mailto:web.mail:alice",
-      "can": "account-usage/get"
+      "can": "account/usage/get"
     }
   ],
   "prf": [
@@ -82,7 +82,7 @@ type Period struct {
   "att": [
     {
       "with": "did:mailto:web.mail:alice",
-      "can": "account-usage/get",
+      "can": "account/usage/get",
       "nb": {
           "spaces": ["did:key:z6MkuxVKbEvYzXw89c9ESd3xoZ988MFrCgqT5JF5wtBvuYWe"],
           "period": {
