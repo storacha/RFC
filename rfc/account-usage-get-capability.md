@@ -1,7 +1,5 @@
 # Account Usage Get
 
-![draft](https://img.shields.io/badge/status-draft-yellow.svg?style=flat-square)
-
 ## Editors
 
 - Storacha team
@@ -115,28 +113,37 @@ If `period` is omitted; for each space, usage is computed as:
 
 #### Receipt
 
+The capability returns a receipt containing either success or failure information.
+
+##### Authorization Requirements
+
+The invocation MUST verify that the Account DID has proper authorization to access usage data for all requested spaces. If any space is not authorized, the entire invocation SHOULD fail with an appropriate error message indicating which spaces lack authorization.
+
+##### Receipt Structure
+
 ```ipldsch
 
 type AccountUsageGetReceipt = {
   ran: Link<AccountUsageGet>
-  out: Result<AccountUsageGetOk, AccountUsageGetError>
+  out: Result<AccountUsageGetSuccess, AccountUsageGetFailure>
 }
 
-type AccountUsageGetError {
-    message: string
+type AccountUsageGetFailure {
+  message: string
 }
 
-type AccountUsageGetOk {
-    total        Int
-    spaces       {String: SpaceUsage}   # key: SpaceDID, keys MUST be sorted
-}
-
-type SpaceUsage {
-  total     Int
-  providers {String: ProviderUsage}    # key: ProviderDID, keys MUST be sorted
+type AccountUsageGetSuccess {
+  total        Int
+  providers    Record<ProviderDID, ProviderUsage>   # keys MUST be sorted
 }
 
 type ProviderUsage {
+  total     Int
+  spaces    Record<SpaceDID, UsageData>    # keys MUST be sorted
+}
+
+# UsageData is already defined and used by `usage/report`
+type UsageData {
   provider ProviderDID
   space    SpaceDID
   period   PeriodISO
@@ -166,7 +173,7 @@ type DID = string
 
 ```
 
-In all responses, the keys of the `spaces` field in `AccountUsageGetOk` and the `providers` field in `SpaceUsage` **MUST be sorted lexicographically** by their respective key (SpaceDID, ProviderDID). This ensures that the same query produces the same output each time.
+In all responses, the keys of the `providers` field in `AccountUsageGetSuccess` and the `spaces` field in `ProviderUsage` **MUST be sorted lexicographically** by their respective key (ProviderDID, SpaceDID). This ensures that the same query produces the same output each time.
 
 
 > example:
@@ -174,11 +181,11 @@ In all responses, the keys of the `spaces` field in `AccountUsageGetOk` and the 
 ```json
 {
   "total": 5356848797,
-  "spaces": {
-    "did:key:z6MkuxVKbEvYzXw89c9ESd3xoZ988MFrCgqT5JF5wtBvuYWe": {
+  "providers": {
+    "did:web:web3.storage": {
       "total": 5356848797,
-      "providers": {
-        "did:web:web3.storage": {
+      "spaces" {
+        "did:key:z6MkuxVKbEvYzXw89c9ESd3xoZ988MFrCgqT5JF5wtBvuYWe": {
           "provider": "did:web:web3.storage",
           "space": "did:key:z6MkuxVKbEvYzXw89c9ESd3xoZ988MFrCgqT5JF5wtBvuYWe",
           "period": {
@@ -206,7 +213,7 @@ In all responses, the keys of the `spaces` field in `AccountUsageGetOk` and the 
 
 ```
 
-Obs.: The current `usage/report` returns the `ProviderUsage` as a receipt.
+Obs.: The current `usage/report` returns the `UsageData` as a receipt.
 
 
 ## Implementation
