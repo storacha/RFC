@@ -133,13 +133,13 @@ type AccountUsageGetFailure {
 }
 
 type AccountUsageGetSuccess {
-  total        Int
-  providers    Record<ProviderDID, ProviderUsage>   # keys MUST be sorted
+  total       Int
+  spaces      Record<SpaceDID, SpaceUsage>   # keys MUST be sorted
 }
 
-type ProviderUsage {
-  total     Int
-  spaces    Record<SpaceDID, UsageData>    # keys MUST be sorted
+type SpaceUsage {
+  total       Int
+  providers   Record<ProviderDID, UsageData>    # keys MUST be sorted
 }
 
 # UsageData is already defined and used by `usage/report`
@@ -173,7 +173,7 @@ type DID = string
 
 ```
 
-In all responses, the keys of the `providers` field in `AccountUsageGetSuccess` and the `spaces` field in `ProviderUsage` **MUST be sorted lexicographically** by their respective key (ProviderDID, SpaceDID). This ensures that the same query produces the same output each time.
+In all responses, the keys of the `spaces` field in `AccountUsageGetSuccess` and the `providers` field in `SpaceUsage` **MUST be sorted lexicographically** by their respective key (SpaceDID, ProviderDID). This ensures that the same query produces the same output each time.
 
 
 > example:
@@ -181,11 +181,11 @@ In all responses, the keys of the `providers` field in `AccountUsageGetSuccess` 
 ```json
 {
   "total": 5356848797,
-  "providers": {
-    "did:web:web3.storage": {
+  "spaces": {
+    "did:key:z6MkuxVKbEvYzXw89c9ESd3xoZ988MFrCgqT5JF5wtBvuYWe": {
       "total": 5356848797,
-      "spaces" {
-        "did:key:z6MkuxVKbEvYzXw89c9ESd3xoZ988MFrCgqT5JF5wtBvuYWe": {
+      "providers": {
+        "did:web:web3.storage": {
           "provider": "did:web:web3.storage",
           "space": "did:key:z6MkuxVKbEvYzXw89c9ESd3xoZ988MFrCgqT5JF5wtBvuYWe",
           "period": {
