@@ -34,5 +34,5 @@ Storage Nodes delegate a retrieval capability to the upload service, indexing se
 * 🔴 Centralized and privileged access to data that is not directly authorized by the data owner.
 * 🔴 Need to permanently store another delegation per storage node for each service.
 * 🔴 ??? pays for the egress.
-* 🟠 Engineering work to update piri and delegator for new delegation.
+* 🟠 Engineering work to update piri and delegator for new delegation, also new capability definition and handler implementation.
 * 🟢 Would be backwards compatible - no delegation = try regular HTTP retrieval.
