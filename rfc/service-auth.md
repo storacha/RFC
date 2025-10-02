@@ -8,11 +8,11 @@ We've recently deployed UCAN authorized retrievals, which has triggered a number
 
 For example, `space/index/add` causes the Indexing Service to fetch an index and add the hashes to it's IPNI chain (for internal network resolution). It is not authorized to fetch the index, so it can not fetch it!
 
-This is just one of a number of authorizations needed within the network. It is not only authorized data retrievals that this problem affects. We authroize the upload service, indexing service and storage nodes to perform invocation on each other as well. The crux is that in order to execute a UCAN invocation, the issuer needs to prove they are authorized to perform the task. For that they need a delegation.
+This is just one of a number of authorizations needed within the network. It is not only authorized data retrievals that this problem affects. We authorize the upload service, indexing service and storage nodes to perform invocation on each other as well. The crux is that in order to execute a UCAN invocation, the issuer needs to prove they are authorized to perform the task. For that they need a delegation.
 
 Authorizing services to talk to each other is happening more and more often as wel build out the network. Our current approach is to pre-authorize services, storing long lived delegations for use when needed. This is problematic because of a few reasons:
 
-1. Adding additional capabilities requires a service re-deployment or additonal orchestration to distribute new delegations. It can sometimes be a very manual and error prone process to ensure the right DIDs are used and the correct abilities are specified.
+1. Adding additional capabilities requires a service re-deployment or additional orchestration to distribute new delegations. It can sometimes be a very manual and error prone process to ensure the right DIDs are used and the correct abilities are specified.
 1. The only way to prevent access (for example in a security breach) is to use revocations, which is considered a last resort. Ideally UCAN delegations should be issued when needed and be short lived so that we do not need to rely on revocations as heavily as we currently do.
 1. When we do not use pre-authorized delegations, it is cumbersome to attach additional required delegations to an invocation and extract them when the invocation is received.
 
@@ -32,13 +32,15 @@ The caveats for `access/authorize` include the capability(s) requested (`can`, a
 
 ### Add `blob/retrieve` "service" capability
 
-I'm proposing `blob/retrieve` as a new capability that allows retrieving a blob in full. It will be used for internal operations like replication, repair, indexing and filecoin onboarding - egress MUST NOT be recorded for these invocations.
+I'm proposing `blob/retrieve` as a new capability that allows retrieving a blob in full. It will be used for internal operations like replication, repair, indexing and Filecoin onboarding - egress MUST NOT be recorded for these invocations.
+
+Note that unlike `access/authorize` in the Upload Service, this `access/authorize` capability will not involve any attestations: a Storage Node will have the natural authority to `blob/retrieve` itself, and be able to delegate that to whomever it deems necessary, as normal in UCAN.
 
 #### What can use this for?
 
-##### Authroizing Storage Nodes to `blob/retrieve` on Storage Nodes
+##### Authorizing Storage Nodes to `blob/retrieve` on Storage Nodes
 
-This is for replication purposes. The cause field will allow the receipient to validate the retrieval is for the purpose of replication. The cause should be the `blob/replica/allocate` invocation.
+This is for replication purposes. The cause field will allow the recipient to validate the retrieval is for the purpose of replication. The cause should be the `blob/replica/allocate` invocation.
 
 e.g.
 
@@ -66,7 +68,7 @@ e.g.
 }
 ```
 
-##### Authroizing the Upload Service to `blob/allocate`, `blob/accept`, `blob/replica/allocate` on Storage Nodes
+##### Authorizing the Upload Service to `blob/allocate`, `blob/accept`, `blob/replica/allocate` on Storage Nodes
 
 Upload Service just needs the storage node DID and URL. It can optionally store a delegation until it expires.
 
@@ -109,7 +111,7 @@ e.g.
 }
 ```
 
-##### Authroizing Roundabout to `blob/retrieve`🆕 on Storage Nodes
+##### Authorizing Roundabout to `blob/retrieve`🆕 on Storage Nodes
 
 Roundabout is used by Filecoin SPs to fetch data for inclusion in Filecoin deals.
 
@@ -136,7 +138,7 @@ e.g.
 }
 ```
 
-##### Authroizing the Indexing Service to `blob/retrieve`🆕 on Storage Nodes
+##### Authorizing the Indexing Service to `blob/retrieve`🆕 on Storage Nodes
 
 Typically the indexing service requires a delegation to retrieve indexes on behalf of the user, however when content is _first_ uploaded and an index added, the indexing service needs to retrieve the index, cache the hashes and add them to it's own IPNI chain. At this point a `blob/retrieve` invocation might be appropriate.
 
