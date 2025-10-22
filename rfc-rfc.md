@@ -1,6 +1,5 @@
 # RFC: Storacha RFCs
-
-## 
+Status: Informational
 
 ## Authors
 
