@@ -7,7 +7,7 @@ Status: Informational
 
 ## Introduction
 
-The Storacha "Request For Comments" process is modeled after the ["Internet Engineering Task Force" (IETF) process of the same name](https://www.ietf.org/process/rfcs/) both as an homage to this legendary standards body and in recognition of the fact that our team aspires to create open source, standardized protocols for decentralized data storage and retrieval that have the potential to outlast our team and organization. Despite this aspiration, however, our team is both culturally and practically very different from the IETF and as such the customs and practices of the IETF's RFC process are not necessarily well suited to our needs. 
+The Storacha "Request For Comments" process is modeled after the ["Internet Engineering Task Force" (IETF) process of the same name](https://www.ietf.org/process/rfcs/) both as an homage to this legendary standards body and in recognition of the fact that our team aspires to create open source, standardized protocols for decentralized data storage and authorized upload and retrieval that have the potential to outlast our team and organization. Despite this aspiration, however, our team is both culturally and practically very different from the IETF and as such the customs and practices of the IETF's RFC process are not necessarily well suited to our needs. 
 
 This document lays out guidelines for the creation of Storacha RFC documents. We describe the purpose of a Storacha RFC, discuss the various types of RFCs and provide templates and guidelines for RFC authors to both aid in their creation and help provide consistency between them. We also discuss both existing and desired processes for managing RFCs through their lifecycles and building consensus across our team toward the concrete actions RFCs propose.
 
@@ -16,11 +16,14 @@ This document lays out guidelines for the creation of Storacha RFC documents. We
 Storacha RFCs serve a variety of purposes including:
 
 1) Building consensus on courses of actions that could face blocking issues from other team members
-2) To invite brainstorming of ideas that solve underlying issues in a more simpler or more elegant way
-3) To ensure everyone on the team is aware of decisions and techniques so they can apply them in their own work
+2) Inviting brainstorming of ideas that solve underlying issues in a simpler or more elegant way
+3) Ensuring everyone on the team is aware of decisions and techniques so they can apply them in their own work
 4) Laying groundwork for ideas that will eventually become formal specifications
 5) Discussion of decisions that "ripple across our architecture"
 6) Discussion of new patterns we expect to use in more than one service in our system
+7) Documentation of existing patterns and practices in use by our team
+8) Proposing potential externally-facing standards
+9) Documenting "Storacha Standards" - protocols to which our team is committed to maintaining backwards compatibility indefinitely
 
 The bar for these purposes does not need to be high - if you suspect it may serve one or more of the purposes above, please feel free to create an RFC to drive discussion forward.
 
@@ -31,9 +34,10 @@ Some criteria to consider when deciding whether to write an RFC include:
 1) Does this decision commit our work to a path that we may not be able to easily walk back in the future?
 2) Am I proposing a protocol, where once something is in the world we will need to deal with backwards compatibility?
 3) Is this an architectural decision that will impact multiple parts of our system?
-4) Will this work need to be parallelized and therefore require multiple team members to work in close syncrony?
+4) Will this work need to be parallelized and therefore require multiple team members to work in close synchrony?
 5) Is the proposed change too complex for a quick spike that could de-risk the decision?
 6) Is there a large degree of ambiguity, where several different approaches might work?
+7) Is this intended to become a Storacha Standard?
 
 If you answer "yes" to one or more, consider writing an RFC.
 
@@ -45,30 +49,30 @@ https://datatracker.ietf.org/doc/html/rfc1796
 
 Inspired by the IETF, we give RFCs a "status" that helps reviewers contextualize information in the RFC. RFCs can and should change status over time - an Informational RFC may become an Experimental RFC if it has moved into prototyping, and may become "Standards Track" if it becomes widely used and appropriate for external use. Statuses include: 
 
-Informational
-Experimental
-Best Current Practice
-Standards Track
-Historical
+- Informational
+- Experimental
+- Best Current Practice
+- Standards Track
+- Historical
 
 "Standards Track" is broken down into 2 sub-statuses:
 
-Proposed Standard
-Published Standard
+- Proposed Standard
+- Published Standard
 
 With heavy inspiration from https://www.ietf.org/process/rfcs/ the statuses are described below.
 
 ### Informational
 
-Informational RFCs are published for the general information of the Storacha community, and do not represent consensus or recommendations for our team or community.
+Informational RFCs are published for the general information of the Storacha community, and do not represent consensus or recommendations for our team or community, nor any kind of (even potential) process or standard which could be followed. The are simply a statement of facts published to make information more broadly known. As in the IETF's guidelines, "[If it can't be practiced, it's Informational.](https://www.ietf.org/process/process/informational-vs-experimental/#:~:text=If%20it%20can%27t%20be%20practiced%2C%20it%27s%20Informational.)"
 
-### Experimental 
+### Experimental
 
-Experimental RFCs are published as part of some research or development effort. Such a specification is published for the general information of the Storacha community and as an archival record of the work.
+Experimental RFCs are published as part of some research or development effort. Such a specification is published for the general information of the Storacha community and as an archival record of the work. As in the IETF's guidelines, "[If the IETF may publish something based on this on the standards track once we know how well this one works, it's Experimental.](https://www.ietf.org/process/process/informational-vs-experimental/#:~:text=If%20the%20IETF%20may%20publish%20something%20based%20on%20this%20on%20the%20standards%20track%20once%20we%20know%20how%20well%20this%20one%20works%2C%20it%27s%20Experimental.)"
 
 ### Best Current Practice
 
-Best Current Practice RFCs document Storacha processes as agreed to by our community and are intended to help our team and community members to follow some common guidelines for policies and operations.
+Best Current Practice RFCs document *existing* Storacha processes as agreed to by our community and are intended to help our team and community members follow some common guidelines for policies and operations.
 
 ### Proposed Standard
 
@@ -96,7 +100,7 @@ Developers SHOULD indicate their signoff on an RFC by "approving" the PR.
 
 ### Stakeholder Notifications
 
-Developers SHOULD configure GitHub PR notifications so they receive updates about PRs they care about. Developers MAY mute discussions they are not interested in particupating in.
+Developers SHOULD configure GitHub PR notifications so they receive updates about PRs they care about. Developers MAY mute discussions they are not interested in participating in.
 
-Developers MAY opt to receive notifications about Pull Requests in Discord (TODO how?). Additionally, we maintain a channel in Discord where notifications about activity in the https://github.com/storacha/rfc repository are posted. (TODO also how?)
+We maintain an [#rfcs](https://discord.com/channels/1247475892435816553/1431314866475634739) channel in Discord where notifications about activity in the https://github.com/storacha/rfc repository are posted. Developers MAY opt to receive notifications about Pull Requests in Discord by configuring their Discord notifications for that channel.
 
