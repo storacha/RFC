@@ -7,7 +7,7 @@ The Storacha Network is not setup well to deal with failure cases. We have imple
 * Replication failure
     * What happens when a replication does not succeed? Currently nothing.
 * Data deletion
-    * Long standing problem. We have a better story for this on storage nodes but no implementation. There is also data stored on the IPNI chain on the indexer that needs to be cleaned up. Or consider implementing [RFC #52](https://github.com/storacha/RFC/pull/52)
+    * Long standing problem. We have a better story for this on storage nodes but no implementation. An interesting/difficult problem is how to deal with deletion in the context of our PDP root aggregates as well as our Filecoin deal aggregations. There is also data stored on the IPNI chain on the indexer that needs to be cleaned up. Or consider implementing [RFC #52](https://github.com/storacha/RFC/pull/52)
 * Data loss
     * If a node loses some data, what happens? How do we know? We should probably be less inclined to use them for storing data. How do we ensure minimum replicas are maintained? This is linked to proving failure.
 * Proving failure
