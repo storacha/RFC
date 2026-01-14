@@ -115,11 +115,8 @@ The additional cost is acceptable, especially since older diffs can be safely de
    * Correct PK design
    * `cause` as SK
    * GSI for timestamp-based queries
-2. Export data from the existing table
-3. Deduplicate and transform records
-4. Import data into the new table
-5. Update application code to use the new schema
-6. Decommission the old table after validation is complete
+2. Enable dual-writes: on each diff event, write to both the existing table and the new table. Keep all readers (usage, reporting, billing) pointed at the existing table during January.
+3. Cut over in February: switch usage reporting and billing reads to the new table; keep the existing table as read-only historical storage.
 
 ### Fix for problem 2: Usage calculation timeouts
 
@@ -163,10 +160,4 @@ Maintain a running usage accumulator instead of scanning historical diffs.
 
 **Considerations**
 
-- The accumulator MUST process diffs for a space in **ascending** `receiptAt` order. If the write path can deliver out-of-order events and strict ordering cannot be guaranteed, this solution SHOULD be revisited. Pragmatic mitigations include:
-  - Buffer within a small window and sort incoming diffs.
-  - Recompute a localized suffix by reading recent diffs via the time GSI and re-applying from the last stable checkpoint.
-
-- Alternative when strict ordering is infeasible:
-  - Use time-bucketed diffs (hour/day): persist per-bucket, order-independent aggregates (e.g., Σdelta and Σ(delta × (bucketEnd − receiptAt))). At billing time, iterate buckets in chronological order to compute exact monthly usage, where no event sorting required.
-  - Maintain a size-only monthly state (track `lastSize` and `lastChangeAt`) to accelerate space usage report. Note: this does NOT remove the need to iterate diffs for the billing run.
+To avoid potential race conditions when two diffs for the same space read the current total at the same time, one option is to process diffs through a queue. This would also help preserve the correct ordering of diffs.
