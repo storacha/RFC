@@ -6,23 +6,73 @@
 
 ## Introduction
 
-Node operators in the warm storage network need visibility into their egress usage - how much data has been retrieved from their nodes over time. This information is critical for understanding costs and revenue, and also useful to plan capacity.
+We need to offer a window the different actors in the Storacha Forge Network can use to get the metrics and stats they need. The etracker/billing service will be offering such window in the form of a dashboard, which will provide different information to different roles in the network.
 
-This RFC proposes different implementation approaches for exposing billing statistics to node operators, starting with a simple scope: bytes egressed over predefined time periods (previous month, current month, current week, current day).
+## Personas
 
-The solution must address:
-- **Authentication**: How operators prove their identity
-- **Authorization**: How operators prove they control specific nodes
-- **Data access**: How operators retrieve egress statistics from the etracker/billing service
+### Customers (aka Clients)
 
-## Scope
+Users that pay for a (reserved) storage capacity and the egress of that data from their spaces.
 
-This initial implementation focuses on:
+### Node operators
+
+These users add storage capacity to the network by provisioning and maintaining piri (storage) nodes. They get paid for the amount of data they store and also for the data egressed from their nodes. A single node operator can operate more than one piri node.
+
+### Storacha (aka Admins)
+
+We (the Storacha team) need visibility on billing metrics so that we can charge customers for storage capacity and egress, and compensate node operators for the storage and egress provided by the nodes they operate.
+
+## Current state: admin dashboard
+
+There is an initial implementation of the admin dashboard that satisfies the needs of the Storacha team as admins of the network. This initial implementation focuses on:
 - **Single metric**: Egressed bytes only (no other billing dimensions)
 - **Fixed periods**: Previous month, current month, current week, current day. No ability to configure periods or thresholds (future enhancement)
 - **Node-level stats**: Total egress for the node (not broken down by space for now)
 
-## Alternatives
+The admin dashboard was implemented as a template rendered server-side with pre-configured credentials for a single admin user as the fastest way to deliver value.
+
+## Customer dashboard
+
+The next step in the billing dashboard implementation will be to deliver a customer view. The [Hybrid Approach](#alternative-3-hybrid-approach) will be used to make it consistent with how the hot storage console application works.
+
+### Requirements
+- **Accounting considerations**:
+  - Invoices (calendar monthly): as a client of the service I can see egress fees and storage fees for the calendar month (amount in TiB as well as total price). Example:
+  ```
+    Storage Use for month: 5 TiB
+    Price of Storage: 5 TiB x 5.99 per TiB per Month
+    Egress for the month: 2 TiB
+    Price for Egress: 2 TiB x 10 per TiB (in the calendar month)
+  ```
+  - We don’t need the dashboard to produce these invoices, just allow for the data to be displayed in this manner so we can produce the invoices manually AND the customer can see how much they owe and why.
+
+- **Monitoring considerations**:
+  1. As a client of the service, I can see how much data has been stored in my account (daily)
+  1. As a client of the service, I can see how much data has been served from my account (daily)
+  1. As a client, I can see how much storage capacity I have reserved, used, and remaining
+
+### Implementation details
+- Implement the Storacha Forge console application equivalent. This implies using UCANs for auth and APIs. Note that this approach is different from the one used for the admin dashboard, which is not ideal, but they serve different purposes after all. We may consider merging the two later.
+- Daily egress data is readily available from the etracker/billing service (monitoring requirement 2). A new capability will be added to the etracker/billing service to expose this data.
+- Storage data is available from the upload service. However, we need to take care of the following:
+  - We need the storage capacity reserved by the customer in order to fulfill the monitoring requirement 3. In the hot network, storage capacity is not an arbitrary number. It is given by the subscribed plan. In the forge network, however, clients can reserve any amount of storage capacity they want, in multiples of 1 TiB. The proposal is to add a new attribute (which will be populated manually for now) to the upload service's customers table. It is likely that plan information is not meaningful in the forge network.
+  - Monitoring requirement 1 requires daily storage data. The upload service exposes this data via the `account/usage/get` capability. It will require some client-side logic to roll up the data into daily totals.
+
+### Proposal
+
+- Daily egress data via a new `account/egress/get` capability in the etracker/billing service.
+- Daily storage data via the existing `account/usage/get` capability in the upload service.
+- New attribute in the upload service's customers table to store the storage capacity reserved by the customer.
+- Do not break down by space for now. The data is there, so it should be easy to add later.
+
+## Future Considerations
+
+- **Custom date ranges**: Allow specifying arbitrary time periods
+- **Space-level granularity**: Break down stats by individual spaces
+- **Additional metrics**: Request counts, earnings
+- **CSV export**: Enable data export for analysis
+
+## Appendix A: Implementation Alternatives
 
 ### Alternative 1: Web Application
 
@@ -186,21 +236,3 @@ Build a UCAN-based API that can be consumed by both CLI and web interfaces.
 
 **❌ Cons**:
 - **Two interfaces to maintain**: Must develop both CLI and web UI
-
-## Proposal
-
-**Start with Alternative 2 (CLI Subcommand)**, with the option to evolve to Alternative 3 (Hybrid) based on user feedback/needs.
-
-**Rationale**:
-1. ✅ **Fastest time to value**: CLI implementation is straightforward and leverages existing piri infrastructure
-2. ✅ **Architectural alignment**: Maintains UCAN patterns throughout the entire stack
-3. ✅ **Target audience**: Node operators are technical users already using piri CLI
-4. ✅ **Incremental path**: Can add web UI later without changing API or authentication model
-5. ✅ **Proven pattern**: Similar to how `usage/report` and other capabilities work today
-
-## Future Considerations
-
-- **Custom date ranges**: Allow specifying arbitrary time periods
-- **Space-level granularity**: Break down stats by individual spaces
-- **Additional metrics**: Storage usage, request counts, earnings
-- **CSV export**: Enable data export for analysis
