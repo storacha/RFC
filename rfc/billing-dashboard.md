@@ -25,6 +25,7 @@ We (the Storacha team) need visibility on billing metrics so that we can charge 
 ## Current state: admin dashboard
 
 There is an initial implementation of the admin dashboard that satisfies the needs of the Storacha team as admins of the network. This initial implementation focuses on:
+
 - **Single metric**: Egressed bytes only (no other billing dimensions)
 - **Fixed periods**: Previous month, current month, current week, current day. No ability to configure periods or thresholds (future enhancement)
 - **Node-level stats**: Total egress for the node (not broken down by space for now)
@@ -36,14 +37,17 @@ The admin dashboard was implemented as a template rendered server-side with pre-
 The next step in the billing dashboard implementation will be to deliver a customer view. The [Hybrid Approach](#alternative-3-hybrid-approach) will be used to make it consistent with how the hot storage console application works.
 
 ### Requirements
+
 - **Accounting considerations**:
   - Invoices (calendar monthly): as a client of the service I can see egress fees and storage fees for the calendar month (amount in TiB as well as total price). Example:
+
   ```
     Storage Use for month: 5 TiB
     Price of Storage: 5 TiB x 5.99 per TiB per Month
     Egress for the month: 2 TiB
     Price for Egress: 2 TiB x 10 per TiB (in the calendar month)
   ```
+
   - We don’t need the dashboard to produce these invoices, just allow for the data to be displayed in this manner so we can produce the invoices manually AND the customer can see how much they owe and why.
 
 - **Monitoring considerations**:
@@ -83,6 +87,7 @@ The next step in the billing dashboard implementation will be to deliver a custo
 Implement a traditional web application where the etracker/billing service provides both an HTTP API and a frontend UI.
 
 **Architecture**:
+
 ```
 ┌─────────────┐
 │   Browser   │
@@ -98,6 +103,7 @@ Implement a traditional web application where the etracker/billing service provi
 ```
 
 **Authentication Flow**:
+
 1. Operator creates account with email/password (or OAuth)
 2. Operator logs in and receives session token/JWT
 3. Operator associates nodes with their account by proving ownership
@@ -105,11 +111,13 @@ Implement a traditional web application where the etracker/billing service provi
 
 **Node Ownership Verification**:
 Operators must prove they control a node (identified by its DID). Options include:
+
 - **Challenge-response**: Service issues a challenge, operator signs with node key, submits signature
 - **Delegation proof**: Operator provides a UCAN delegation from the node DID to their account
 - **Pre-registration**: Node DID is linked to user account during onboarding
 
 **✅ Pros**:
+
 - **Rich UI**: Beautiful charts, graphs, and trend visualizations
 - **Familiar UX**: Users are accustomed to username/password authentication
 - **Accessible**: Works from any device with a browser, no installation needed
@@ -117,6 +125,7 @@ Operators must prove they control a node (identified by its DID). Options includ
 - **Lower barrier**: Non-technical users can access stats without CLI knowledge
 
 **❌ Cons**:
+
 - **Centralized authentication**: Requires building user account system (passwords, sessions, resets)
 - **Node ownership complexity**: Must implement additional mechanism to prove node ownership
 - **Security surface**: Password storage, session management, CSRF protection required
@@ -125,9 +134,10 @@ Operators must prove they control a node (identified by its DID). Options includ
 
 ### Alternative 2: CLI Subcommand in Piri
 
-Define a new `billing/stats` capability. Implement billing statistics as a subcommand in the piri CLI, with the etracker/billing service exposing a UCAN-based API. 
+Define a new `billing/stats` capability. Implement billing statistics as a subcommand in the piri CLI, with the etracker/billing service exposing a UCAN-based API.
 
 **Architecture**:
+
 ```
 ┌─────────────────────┐
 │   Piri CLI          │
@@ -143,6 +153,7 @@ Define a new `billing/stats` capability. Implement billing statistics as a subco
 ```
 
 **Authentication Flow**:
+
 1. Operator invokes piri CLI command
 2. Piri creates UCAN invocation signed by node key
 3. Invocation includes delegation proofs as needed
@@ -150,6 +161,7 @@ Define a new `billing/stats` capability. Implement billing statistics as a subco
 5. Service returns receipt with billing statistics
 
 **Example UCAN Invocation**:
+
 ```json
 {
   "iss": "did:key:zNodeOperator",
@@ -166,6 +178,7 @@ Define a new `billing/stats` capability. Implement billing statistics as a subco
 ```
 
 **Example Receipt**:
+
 ```json
 {
   "ran": { "/": "bafy...statsInvocation" },
@@ -187,12 +200,14 @@ Define a new `billing/stats` capability. Implement billing statistics as a subco
 ```
 
 **CLI Usage**:
+
 ```bash
 piri billing                    # Show egress stats
 piri billing --format json      # JSON output for scripting
 ```
 
 **✅ Pros**:
+
 - **Decentralized authentication**: Uses existing UCAN delegations, no centralized user database
 - **Automatic node ownership**: Invocation signed by node key proves ownership
 - **Architectural consistency**: Aligned with how other parts of the system operate
@@ -200,6 +215,7 @@ piri billing --format json      # JSON output for scripting
 - **Auditable**: Every request is a signed UCAN invocation
 
 **❌ Cons**:
+
 - **Limited visualization**: CLI output is text-based, charts are ASCII art
 - **Less discoverable**: Features aren't as discoverable as GUI menus
 - **Device-specific**: Tied to the device running piri
@@ -209,6 +225,7 @@ piri billing --format json      # JSON output for scripting
 Build a UCAN-based API that can be consumed by both CLI and web interfaces.
 
 **Architecture**:
+
 ```
 ┌─────────────┐         ┌─────────────────┐
 │   Browser   │         │   Piri CLI      │
@@ -223,20 +240,24 @@ Build a UCAN-based API that can be consumed by both CLI and web interfaces.
 ```
 
 **Authentication Flow**:
+
 1. Auth via web frontend could be similar to how console works
 2. Auth via CLI is straightforward (UCAN invocation)
 
 **Implementation Strategy**:
+
 - Build UCAN API first (enables CLI immediately)
 - Add static web frontend later that uses same UCAN API
 - Web UI uses JavaScript UCAN libraries (@ucanto/client)
 - No server-side session state required
 
 **✅ Pros**:
+
 - **Incremental delivery**: Ship CLI support first, add web UI later
 - **Consistent API**: Both CLI and web use identical UCAN-based API
 - **Decentralized auth**: Even web UI uses UCAN delegations
 - **Flexible UX**: Operators choose CLI for automation, web for visualization
 
 **❌ Cons**:
+
 - **Two interfaces to maintain**: Must develop both CLI and web UI
