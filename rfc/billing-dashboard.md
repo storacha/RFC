@@ -52,7 +52,11 @@ The next step in the billing dashboard implementation will be to deliver a custo
   1. As a client, I can see how much storage capacity I have reserved, used, and remaining
 
 ### Implementation details
-- Implement the Storacha Forge console application equivalent. This implies using UCANs for auth and APIs. Note that this approach is different from the one used for the admin dashboard, which is not ideal, but they serve different purposes after all. We may consider merging the two later.
+
+- Implement the Storacha Forge console application equivalent. This implies using UCANs for auth and APIs. Authentication will be done via Storacha's email login flow, same as the hot network's console app.
+
+  Note that this approach is different from the one used for the admin dashboard, which is not ideal, but they serve different purposes after all. We may consider merging the two later.
+
 - Daily egress data is readily available from the etracker/billing service (monitoring requirement 2). A new capability will be added to the etracker/billing service to expose this data.
 - Storage data is available from the upload service. However, we need to take care of the following:
   - We need the storage capacity reserved by the customer in order to fulfill the monitoring requirement 3. In the hot network, storage capacity is not an arbitrary number. It is given by the subscribed plan. In the forge network, however, clients can reserve any amount of storage capacity they want, in multiples of 1 TiB. The proposal is to add a new attribute (which will be populated manually for now) to the upload service's customers table. It is likely that plan information is not meaningful in the forge network.
