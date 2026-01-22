@@ -120,44 +120,18 @@ The additional cost is acceptable, especially since older diffs can be safely de
 
 ### Fix for problem 2: Usage calculation timeouts
 
-Introduce a new table (e.g. `space-usage-month`) keyed by `provider#space#YYYY-MM` that is updated atomically on each diff write, making billing reads **O(1)**.
+Generate snapshots more frequently.
 
-#### Core idea
+One option is to move snapshot generation to a daily cadence. There are two possible approaches:
 
-Maintain a running usage accumulator instead of scanning historical diffs.
+1. **Decouple snapshot generation from the billing cron**
 
-**Algorithm**
+  * Generate snapshots independently, without running the full billing pipeline
 
-1. Track `lastSize` and `lastChangeAt` per `(provider, space, month)`
-2. On each incoming diff:
-   * `usage += lastSize × (receiptAt - lastChangeAt)`
-   * `lastSize += delta`
-   * `lastChangeAt = receiptAt`
-3. At end-of-month billing:
-   * `usage += lastSize × (periodEnd - lastChangeAt)`
-   * Finalize and snapshot
+2. **Run the full billing process daily**
 
-**Additional fields**
+  * This would naturally produce more snapshots and also push usage reports to Stripe more frequently
 
-* `sizeStart`
-* `sizeEnd`
-* `lastReceiptAt`
-* `subscription` 
+Since both approaches are pretty similar and would need to iterate over all customers and spaces to generate snapshots anyway, the main extra work with running the full billing flow is the usage calculation, writing usage records, and reporting to Stripe.
 
-**Behavior**
-
-* `space-diff` remains for audit and idempotency
-* Billing reads exclusively from `space-usage-month`
-* `calculatePeriodUsage`:
-  * First tries the aggregator
-  * Falls back to a GSI scan if missing
-* Aggregator becomes the canonical source for the billing month
-
-**Retention**
-
-* Keep `space-diff` entries for N months using TTL
-* Archive older diffs to S3 (TBD)
-
-**Considerations**
-
-To avoid potential race conditions when two diffs for the same space read the current total at the same time, one option is to process diffs through a queue. This would also help preserve the correct ordering of diffs.
+Given the upside of reporting to Stripe more frequently and the fact that this is simpler than setting up separate infra just for snapshot generation, we’ll move forward with option two.
