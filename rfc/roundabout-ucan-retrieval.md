@@ -46,6 +46,8 @@ At the point the manifest is returned the SP is authenticated via the `FIL-SPID-
 
 It will be necessary for Spade to do the mapping that roundabout currently does, as it needs the blob digest in order to create the `blob/retrieve` invocation. _This process will allow roundabout to be skipped entirely._ as determining the blob digest will also yield the location URL.
 
+The advantage here is that the Spade agent does not need to know how to speak UCAN at all i.e. there is no additional auth needed outside of the existing Spade `FIL-SPID-V0` auth.
+
 ## Other options considered
 
 ### Signed retrieval URLs
