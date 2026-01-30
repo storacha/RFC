@@ -12,7 +12,7 @@ Roundabout currently just redirects to the found URL. There is no provision for 
 
 The Spade API provides agents (clients) a [frc58 "manifest"](https://github.com/filecoin-project/FIPs/blob/master/FRCs/frc-0058.md) from which they can build an aggregate piece from.
 
-It contains the aggregate piece CID, a list of _segment_ piece CIDs, and a URL (multiple supported, in practice only 1). It has the structure:
+It contains the aggregate piece CID, a list of _segment_ piece CIDs, and for each segment, a URL (multiple supported, in practice only 1) the data can be retrieved from. It has the structure:
 
 ```go
 type ResponsePieceManifestFR58 struct {
