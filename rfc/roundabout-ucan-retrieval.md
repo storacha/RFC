@@ -26,7 +26,7 @@ type Segment struct {
 }
 ```
 
-We will augment `Segment` with header(s) that should be added to all HTTP requests:
+We will augment `Segment` sources with header(s) that should be added to HTTP requests:
 
 ```go
 type Segment struct {
@@ -44,23 +44,9 @@ The Spade agent (client) would then add the provided headers to the request to f
 
 At the point the manifest is returned the SP is authenticated via the `FIL-SPID-v0` auth scheme used by Spade. Spade will add a UCAN authorization header (e.g. `X-Agent-Message`) for each segment - a `blob/retrieve` invocation for the specific blob to be retrieved.
 
-It will be necessary for Spade to do the mapping that roundabout currently does, as it needs the blob digest in order to create the `blob/retrieve` delegation. _This process will allow roundabout to be skipped entirely._ as determining the blob digest will also yield the location URL.
+It will be necessary for Spade to do the mapping that roundabout currently does, as it needs the blob digest in order to create the `blob/retrieve` invocation. _This process will allow roundabout to be skipped entirely._ as determining the blob digest will also yield the location URL.
 
 ## Other options considered
-
-### Spade agent knows how to talk UCAN
-
-Each Spade agent has a DID.
-
-...but how do we know who is allowed to fetch data?
-
-### Roundabout response includes invocation
-
-How to do? Response is a redirect which is just a URL.
-
-Can we put auth in query string? Probably no.
-
-...but how do we know who is allowed to fetch data?
 
 ### Signed retrieval URLs
 
@@ -74,5 +60,19 @@ This is cached by roundabout.
 When a request comes in, roundabout invokes `blob/retrieve/url/sign` on the storage node, which returns a time restricted signed URL for accessing a blob. This URL is used as the redirect.
 
 The advantage is that Spade does not need to know about UCAN at all.
+
+...but how do we know who is allowed to fetch data?
+
+### Roundabout response includes invocation
+
+How to do? Response is a redirect which is just a URL.
+
+Can we put auth in query string? Probably no.
+
+...but how do we know who is allowed to fetch data?
+
+### Spade agent knows how to talk UCAN
+
+Each Spade agent has a DID.
 
 ...but how do we know who is allowed to fetch data?
