@@ -1,4 +1,4 @@
-# RFC: Space Diff Refactoring
+# RFC: Space Diff Deduplication
 
 ## Authors
 
@@ -10,27 +10,13 @@ The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT", "SHOULD", "S
 
 ## Introduction
 
-The current `space-diff` table has accumulated some structural and operational issues that impact billing, usage calculation, and system reliability. This RFC proposes structural changes to make usage calculation efficient, prevent duplicate diffs, and simplify long-term maintenance.
+The current `space-diff` table has accumulated structural issues that impact billing and system reliability due to duplicate entries. This RFC proposes changes to prevent duplicate diffs and simplify long-term maintenance.
 
 ### Problem Statement
 
-### 1. Duplicate space diffs
-
-Past bugs caused multiple diffs to be written for the same cause (e.g. failed uploads). This resulted in duplicated diffs that inflate usage, slow down queries and create “ghost” usage for spaces that should be empty after deletion.
+Past bugs caused multiple diffs to be written for the same cause (e.g. failed uploads). This resulted in duplicated diffs that inflate usage, slow down queries and create "ghost" usage for spaces that should be empty after deletion.
 
 This behavior should be **structurally impossible** going forward.
-
-### 2. Usage calculation timeouts
-
-A single space can generate a very large number of diff entries within the current month. When this happens, usage record calculation often times out because the system needs to aggregate too many records.
-
-**Current mitigation (temporary):**
-
-* A *space diff compaction* script that:
-  * Aggregates many diffs into a single “summary” diff.
-  * Archives the original diffs into a separate table.
-
-This is an ad-hoc workaround and not a long-term solution.
 
 ## Current `space-diff` usage model
 
@@ -61,34 +47,33 @@ store/add OR store/remove receipt → UCAN stream → ucan-stream-handler → sp
 
 - **Location**: `billing/functions/ucan-stream.js`
 
-### How usage is calculated today
-
-This flow is used during billing runs for each space:
-
-**Initial state**
-
-* Load the space snapshot from `space-snapshot` for the `from` date
-* If no snapshot exists, assume the space was empty (`size = 0`)
-
-**Usage calculation**
-
-* Base usage = `initialSize × periodDurationMs`
-* Fetch all space diffs for the billing period
-* Iterate diffs in chronological order:
-  * `size += diff.delta`
-  * `usage += size × timeSinceLastChange`
-    * where `timeSinceLastChange = diff.receiptAt - lastReceiptAt`
-
-**Storage**
-
-* Store final space size in `space-snapshot` with `recordedAt = to`
-* Store total usage in `usage` (byte-milliseconds)
-
 ## Proposal
 
-### Fix for problem 1: Duplicate diffs
+### Short-term solution: Deduplicate on write using a GSI
 
-To guarantee uniqueness and prevent future duplication:
+Add a **GSI on `cause`** to the existing `space-diff` table. Before inserting a new diff, query the GSI to check whether a diff with the same `cause` already exists. If it does, skip the write.
+
+This approach:
+
+* Prevents new duplicates without changing the table schema
+* Can be deployed quickly with minimal risk
+* Does not require a migration or dual-write strategy
+
+**Limitation:** This is a best-effort guard — it adds a read-before-write cost and does not structurally prevent duplicates (a race condition is still theoretically possible).
+
+### Medium-term solution: TTL-based archival to Glacier
+
+Add a **TTL attribute** to the `space-diff` table so that items older than 1 year are automatically expired by DynamoDB. Before expiration, use a **DynamoDB Streams + Lambda** pipeline to archive expired items to S3 Glacier.
+
+This approach:
+
+* Keeps the table lean over time, improving query performance
+* Reduces storage costs for historical data
+* Supports retention policies without manual cleanup
+
+### Long-term solution: New table with structural uniqueness
+
+To guarantee uniqueness and prevent future duplication at the schema level:
 
 * Use **`cause` as the sort key (SK)** of the `space-diff` table
 * This makes it impossible to insert two diffs for the same `(space, cause)` pair
@@ -116,22 +101,4 @@ The additional cost is acceptable, especially since older diffs can be safely de
    * `cause` as SK
    * GSI for timestamp-based queries
 2. Enable dual-writes: on each diff event, write to both the existing table and the new table. Keep all readers (usage, reporting, billing) pointed at the existing table during January.
-3. Cut over in February: switch usage reporting and billing reads to the new table; keep the existing table as read-only historical storage.
-
-### Fix for problem 2: Usage calculation timeouts
-
-Generate snapshots more frequently.
-
-One option is to move snapshot generation to a daily cadence. There are two possible approaches:
-
-1. **Decouple snapshot generation from the billing cron**
-
-  * Generate snapshots independently, without running the full billing pipeline
-
-2. **Run the full billing process daily**
-
-  * This would naturally produce more snapshots and also push usage reports to Stripe more frequently
-
-Since both approaches are pretty similar and would need to iterate over all customers and spaces to generate snapshots anyway, the main extra work with running the full billing flow is the usage calculation, writing usage records, and reporting to Stripe.
-
-Given the upside of reporting to Stripe more frequently and the fact that this is simpler than setting up separate infra just for snapshot generation, we’ll move forward with option two.
+3. Cut over later: switch usage reporting and billing reads to the new table; keep the existing table as read-only historical storage.
