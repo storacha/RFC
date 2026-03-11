@@ -63,7 +63,7 @@ Building on a single platform (amd64) is sufficient here — the goal is fast fe
 All runtime stages should use `alpine:latest` as the default base.
 Alpine is roughly 5MB, ships with `wget` and CA certificates pre-installed, includes a shell for Docker Compose healthchecks, and requires no package installation in the runtime stage — which means no `RUN apt-get` and, consequently, no QEMU emulation for runtime layers during cross-platform builds.
 
-This single choice resolves several concerns simultaneously: healthchecks work out of the box (via `wget`), the image is minimal, and multi-architecture builds are fast because the runtime stage contains no emulated commands beyond `adduser`.
+This single choice resolves several concerns simultaneously: healthchecks work out of the box (via `wget`), the image is minimal, and multi-architecture builds are fast because the runtime stage contains no emulated commands.
 
 For services where `wget` as a runtime dependency is undesirable, an alternative is to compile a small, statically-linked Go binary whose only job is to HTTP GET an endpoint and exit with the appropriate status code. 
 Copy it into the image at build time alongside the service binary. 
@@ -103,12 +103,14 @@ Most scripts work unchanged; those that don't are usually easy to fix.
 
 Production images should use the `USER` directive to run as a non-root user.
 Running as root inside a container is the default, and like most defaults, it optimizes for the wrong thing.
-The cost is a couple of lines; the benefit is a smaller blast radius when something goes sideways.
+The cost is a single line; the benefit is a smaller blast radius when something goes sideways.
 
 ```dockerfile
-RUN adduser -D -H appuser
-USER appuser
+USER nobody
 ```
+
+Alpine ships with a pre-existing `nobody` user (UID 65534), the standard unprivileged user for exactly this purpose.
+Using `nobody` instead of creating a custom user with `adduser` eliminates the only `RUN` command in the runtime stage, which means multi-platform builds require no QEMU emulation at all — the runtime stage becomes pure metadata operations (`COPY`, `USER`, `ENTRYPOINT`, etc.) that don't execute binaries.
 
 One thing to be aware of: a non-root user cannot bind to ports below 1024 by default. 
 The simplest fix is setting `net.ipv4.ip_unprivileged_port_start=0` via `sysctls` in your Compose file or orchestrator.
@@ -179,8 +181,7 @@ COPY . .
 RUN CGO_ENABLED=0 GOOS=${TARGETOS} GOARCH=${TARGETARCH} go build -ldflags="-s -w" -o /app .
 
 FROM alpine:latest AS prod
-RUN adduser -D -H appuser
-USER appuser
+USER nobody
 COPY --from=build /app /usr/bin/app
 ENTRYPOINT ["/usr/bin/app"]
 ```
@@ -188,8 +189,8 @@ ENTRYPOINT ["/usr/bin/app"]
 The key insight: `$BUILDPLATFORM` is the CI runner's architecture (x86_64), and `$TARGETPLATFORM` is the final image's architecture.
 Go handles cross-compilation natively, so the compiler runs fast while producing binaries for whatever architecture you need.
 
-Because Alpine ships with everything the prod image needs — CA certificates, `wget`, a shell — the runtime stage requires no `RUN` commands that execute on the target architecture (apart from `adduser`, which writes to `/etc/passwd` and is trivial under emulation).
-This eliminates QEMU as a meaningful factor in production image builds.
+Because Alpine ships with everything the prod image needs — CA certificates, `wget`, a shell, and the `nobody` user — the runtime stage requires no `RUN` commands at all.
+This eliminates QEMU entirely from production image builds.
 
 ## CI/CD Considerations
 
@@ -205,9 +206,9 @@ Three jobs cover the necessary cases:
 
 A few things worth getting right:
 
-**Multi-architecture builds** rely on QEMU for ARM64 emulation and Buildx for parallel builds.
-The publish jobs need both; PR builds can skip QEMU since they only target amd64.
-With Alpine as the runtime base and Go cross-compilation in the build stage, QEMU does very little work — `adduser` is the only emulated command in the production image.
+**Multi-architecture builds** rely on Buildx for parallel builds.
+With Alpine as the runtime base, the `nobody` user, and Go cross-compilation in the build stage, the runtime stage contains no `RUN` commands — only metadata operations like `COPY`, `USER`, and `ENTRYPOINT`.
+This means QEMU is not required for multi-platform builds; the CI workflow needs only Buildx.
 
 **Caching** should use GitHub Actions cache (`type=gha`) with `mode=max` to export all layers.
 PR builds should read from cache but not write to it.
