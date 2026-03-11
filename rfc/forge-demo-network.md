@@ -10,7 +10,7 @@ We MUST ensure the demo network is kept in sync with the production network at a
 
 ## Difference between the demo network and the staging network
 
-The _staging_ network (warm-staging) is updated on every commit to main. It ensures builds pass and infrastructure remains in a deployable state. It does not however, guarantee all systems in the network integrate well together. It may also contain partial functionality or breaking API changes that clients do not yet account for.
+The _staging_ network (warm-staging) is updated on every commit to main. It ensures builds pass and infrastructure remains in a deployable state. It does not, however, guarantee all systems in the network integrate well together. It may also contain partial functionality or breaking API changes that clients do not yet account for.
 
 ## Storage nodes
 
