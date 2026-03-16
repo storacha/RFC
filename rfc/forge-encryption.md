@@ -389,13 +389,14 @@ Access revocation is handled by the `ucan-kms` service:
 guppy delegation revoke <delegation-cid>
 ```
 
-**Note:** Revocation only prevents future decryption. If a user already has the DEK in memory, they can still decrypt. For full revocation, combine with DEK rotation.
+**Note:** Revocation only prevents future decryption. If a user already has the DEK in memory, they can still decrypt. For full revocation, combine with DEK rotation. *(This behavior should be documented in user-facing docs)*
 
 ## Implementation Requirements
 
 | Component | Change |
 |-----------|--------|
-| `@storacha/capabilities` | Add `prefix` field to `space/content/decrypt` schema |
+| `@storacha/capabilities` (TS) | Add `prefix` field to `space/content/decrypt` schema |
+| `go-libstoracha` (Go) | Port `prefix` field to Go capabilities |
 | `ucan-kms` | Validate prefix in decrypt handler |
 | `guppy` | CLI command to mint scoped delegations |
 
