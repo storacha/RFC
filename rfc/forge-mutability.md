@@ -1,6 +1,6 @@
 # RFC: Mutability for Forge (Guppy/Piri)
 
-**Status: Draft — Pending Alignment**
+**Status: Draft - Pending Alignment**
 
 ## Authors
 
@@ -21,9 +21,9 @@ The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT", "SHOULD", "S
 This RFC proposes the implementation of mutability features for Forge enterprise customers using the Guppy client. These features enable:
 
 1. **Mutable References**: Stable pointers that update to the latest version of uploaded content
-2. **Content Catalog**: Track uploaded content (path → CID mappings) across clients
+2. **Content Catalog**: Track uploaded content (path to CID mappings) across clients
 
-**Related:** [forge-encryption.md](./forge-encryption.md) — Encryption key rotation depends on mutability to track metadata CID changes.
+**Related:** [forge-encryption.md](./forge-encryption.md) - Encryption key rotation depends on mutability to track metadata CID changes.
 
 ## Motivation
 
@@ -33,133 +33,182 @@ Enterprise Forge customers need:
 - **Cross-client sync**: Multiple Guppy instances should be able to resolve the same reference
 - **On-network state**: Track what has been uploaded without relying on local-only databases
 
-## Approaches Under Consideration
+## Out of Scope
 
-### Option A: Simple Catalog (Alex's Proposal)
+- **All-file-paths indexing**: Storing every individual file path in Pail (e.g., `/backups/mydir/file1.txt`, `/backups/mydir/subdir/file2.txt`). This RFC only tracks the source root path to root CID mapping. Internal file structure remains in UnixFS.
 
-**How it works**
+## Approach: UCN + Pail
 
-- **Namespace:** Use the Space DID directly, no new naming system needed
-- **Catalog:** A simple CBOR file with sorted entries mapping `path → CID`. Chunked for large spaces.
-- **Mutability:** Use `clock/head` / `clock/advance` to point to current catalog CID (needs Go impl)
-- **Multi-writer:** Optimistic retry: if conflict, re-read catalog and retry
+Forge will use **UCN** + **Pail** for mutable content tracking:
 
-**What to build**
-- Catalog format (CBOR, sorted entries, chunked for large spaces)
-- `guppy upload` builds/updates catalog after uploading files
-- `guppy ls` resolves catalog, lists entries
-- `guppy gateway <path>` resolves catalog, finds entry, fetches content
+- **UCN**: Lightweight wrapper around `clock/head` and `clock/advance` for publishing/resolving names
+- **Pail**: Sharded Merkle trie for `path -> CID` mappings (scales to millions of files)
+- **Clock service**: Already exists at `clock.web3.storage`
 
-**What NOT to build**
-- Pail
-- UCN (not needed, space DID is the namespace)
-- Merkle clock CRDT merge (not needed for CLI tool)
-- Go port of any TS package (build Forge-native)
+### Why Pail?
 
-**Catalog Format**
+Forge directories can contain thousands to millions of files. Pail's sharded structure means only changed shards are uploaded when a file is added or updated.
 
-The catalog is a CBOR-encoded block with sorted entries:
+**Note:** Guppy continues to upload content as UnixFS (for traditional retrieval patterns). Pail stores the mapping from source path to the UnixFS root CID, enabling path-based lookups without changing the upload format.
 
-```typescript
-interface Catalog {
-  version: 1
-  entries: CatalogEntry[]
-}
+### Architecture
 
-interface CatalogEntry {
-  path: string           // File path (e.g., "/backups/server1/backup.tar")
-  root: CID              // Entry point CID:
-                         //   - Encrypted files: metadata block CID (contains wrapped DEK + link to encrypted content)
-                         //   - Plaintext files: content root CID
-  size: number           // File size in bytes
-  encrypted?: boolean    // True if content is encrypted
-  updated: number        // Unix timestamp of last update
-}
+```mermaid
+graph LR
+    subgraph Guppy
+        A[Upload file] --> B[Update Pail]
+        B --> C[Publish via UCN]
+    end
+    
+    C -->|clock/advance| D[Clock Service]
+    B -->|store blocks| E[Storage Network]
+    
+    subgraph Resolve
+        F[name.Resolve] -->|clock/head| D
+        F --> G[crdt.Root]
+        G --> H[pail.Get]
+    end
 ```
 
-**Chunking for large catalogs**
-- If catalog exceeds 1MB, split into chunks
-- Root catalog block contains links to chunk blocks
-- Each chunk contains a sorted subset of entries
+### What to Build
 
-```typescript
-interface ChunkedCatalog {
-  version: 1
-  chunks: CID[]          // Links to CatalogChunk blocks
-  totalEntries: number
-}
+| Component | Status |
+|-----------|--------|
+| UCN wrapper (`clock/head`, `clock/advance`) | Needs Go impl (~few hundred lines) |
+| Pail integration | Library exists: `github.com/storacha/go-pail` |
+| Guppy commands | Update `upload`, `ls`, `retrieve` |
 
-interface CatalogChunk {
-  entries: CatalogEntry[]
-  startPath: string      // First path in this chunk (for binary search)
-  endPath: string        // Last path in this chunk
-}
+## Integration with Guppy Flows
+
+### Current Guppy Upload Pipeline
+
+Guppy's `ExecuteUpload` runs a pipeline of workers:
+
+1. **Scan Worker** - Walks filesystem, creates FSEntry records
+2. **DAG Scan Worker** - Creates DAG nodes from files, sets rootCID
+3. **Sharding Worker** - Packs nodes into CAR shards
+4. **Indexing Worker** - Creates indexes for shards
+5. **Shard Upload Worker** - Uploads shards via `space/blob/add`
+6. **Index Upload Worker** - Uploads indexes via `space/blob/add`
+7. **Post-Process Workers** - Finalizes shards/indexes, calls `upload/add`
+
+Returns: `rootCID` (the content root)
+
+### Upload with Mutability (Proposed)
+
+```mermaid
+sequenceDiagram
+    participant User
+    participant Guppy
+    participant Workers
+    participant Storacha
+    participant Pail
+    participant UCN
+    
+    User->>Guppy: guppy upload <space> <source-path>
+    Guppy->>Workers: ExecuteUpload(uploadID, spaceDID)
+    Workers->>Workers: Scan FS entries
+    Workers->>Workers: Create DAG nodes
+    Workers->>Workers: Pack into CAR shards
+    Workers->>Storacha: space/blob/add (shards)
+    Workers->>Storacha: space/blob/add (indexes)
+    Workers->>Storacha: upload/add
+    Workers-->>Guppy: rootCID
+    
+    Note over Guppy,UCN: NEW: Mutability integration
+    Guppy->>Pail: crdt.Put(sourcePath, rootCID)
+    Pail-->>Guppy: eventCID
+    Guppy->>UCN: name.Publish(eventCID)
+    UCN-->>Guppy: OK
+    Guppy-->>User: Uploaded (rootCID)
 ```
 
-**Capabilities needed**
+### Encrypted Upload with Mutability (Proposed)
 
-| Capability | Status | Notes |
-|------------|--------|-------|
-| `clock/head` | Needs Go impl | Read catalog pointer (exists in TS, not in go-libstoracha) |
-| `clock/advance` | Needs Go impl | Update catalog pointer (exists in TS, not in go-libstoracha) |
-| `blob/add` | Exists | Upload catalog + content |
+```mermaid
+sequenceDiagram
+    participant User
+    participant Guppy
+    participant Workers
+    participant Storacha
+    participant KMS
+    participant Pail
+    participant UCN
+    
+    User->>Guppy: guppy upload --encrypt <space> <source-path>
+    Guppy->>Guppy: Generate DEK
+    Guppy->>Workers: ExecuteUpload with encryption
+    Workers->>Workers: Encrypt blocks with DEK
+    Workers->>Storacha: space/blob/add (encrypted shards)
+    Workers->>Storacha: space/blob/add (indexes)
+    Workers->>Storacha: upload/add
+    Workers-->>Guppy: encryptedRootCID
+    
+    Guppy->>KMS: Wrap DEK with KEK
+    KMS-->>Guppy: wrappedDEK
+    Guppy->>Guppy: Create metadata block (wrappedDEK + encryptedRootCID)
+    Guppy->>Storacha: space/blob/add (metadata block)
+    Storacha-->>Guppy: metadataCID
+    
+    Note over Guppy,UCN: Mutability stores metadataCID
+    Guppy->>Pail: crdt.Put(sourcePath, metadataCID)
+    Pail-->>Guppy: eventCID
+    Guppy->>UCN: name.Publish(eventCID)
+    UCN-->>Guppy: OK
+    Guppy-->>User: Uploaded (encrypted)
+```
 
-**Trade-offs**
+### Retrieve with Mutability - Unified Flow (Proposed)
 
-| Aspect | Option A (Simple Catalog) | Option B (CRDT) |
-|--------|---------------------------|-----------------|
-| **Concurrency** | Last write wins | Automatic merge |
-| **Use case** | Single writer (CLI) | Multi-writer (teams) |
-| **Complexity** | Low (CBOR list) | High (Pail + CRDT) |
-| **Implementation** | Native Go | Port TS libraries |
-| **Catalog size** | Works for 100k+ files | Optimized for millions |
-| **Conflict resolution** | Manual (user re-uploads) | Automatic (CRDT merge) |
-
-**Recommendation:** Start with Option A for Guppy CLI (single-user tool). Option B becomes valuable when enabling team collaboration with concurrent uploads from multiple clients.
-
-### Option B: Go Ports (Hannah's Proposal)
-
-**How it works**
-
-- **Namespace:** UCN Names - ed25519 keypairs that can be delegated and shared
-- **State Index:** Pail - sharded Merkle trie for `path → CID` mappings  
-- **Concurrency:** Merkle clock CRDT enables automatic merge of concurrent writes
-
-**What to build**
-- UCN Go port (Name creation, publish, resolve, grant)
-- Pail Go port (put, get, del, entries, diff, merge)
-
-**What NOT to build**
-- Service layer (all CID generation must happen on client)
-
-**Capabilities needed**
-
-| Capability | Status | Notes |
-|------------|--------|-------|
-| `clock/head` | Needs Go impl | Read current value of a Name (exists in TS) |
-| `clock/advance` | Needs Go impl | Publish new value to a Name (exists in TS) |
-| `blob/add` | Exists | Upload content |
-
-## Comparison
-
-| Aspect | Option A | Option B |
-|--------|-----------------|-------------------|
-| **Namespace** | Space DID (already exists) | UCN Name (new keypair per name) |
-| **State Index** | CBOR catalog file | Pail trie (content-addressed KV) |
-| **Mutability** | `clock/head` + `clock/advance` | UCN + Merkle clock |
-| **Multi-writer** | Last-writer-wins + retry | CRDT merge (concurrent edits merge) |
-| **TS ecosystem compat** | No | Yes |
-| **Go ports needed** | None | UCN + Pail |
-
-## Key Questions for Alignment
-
-1. **Do Forge customers need fine-grained multi-writer?**
-   - If yes (real-time collaboration), then Option B
-   - If no (backup/archival, single writer), then Option A
-
-2. **Do we need TypeScript client compatibility?**
-   - If yes (Console, w3up-client interop), then Option B
-   - If no (Forge is standalone), then Option A
+```mermaid
+sequenceDiagram
+    participant User
+    participant Guppy
+    participant UCN
+    participant Pail
+    participant Locator
+    participant Storage
+    participant KMS
+    
+    User->>Guppy: guppy retrieve <space> <path> <output>
+    
+    alt Path is CID (e.g. bafy...)
+        Guppy->>Guppy: Use CID directly as rootCID
+    else Path is file path (e.g. /backups/db.tar)
+        Note over Guppy,Pail: NEW: Resolve path via UCN + Pail
+        Guppy->>UCN: name.Resolve(spaceDID)
+        UCN-->>Guppy: head events
+        Guppy->>Storage: Fetch Pail blocks for head
+        Storage-->>Guppy: Pail blocks
+        Guppy->>Pail: crdt.Root(head, blocks)
+        Pail-->>Guppy: pailRoot
+        Guppy->>Pail: pail.Get(pailRoot, path)
+        Pail-->>Guppy: rootCID
+    end
+    
+    Guppy->>Locator: Query indexer for rootCID
+    Locator-->>Guppy: provider locations
+    Guppy->>Storage: Fetch root block
+    Storage-->>Guppy: block data
+    
+    alt Block is EncryptedMetadata format
+        Note over Guppy,KMS: Encrypted content detected
+        Guppy->>Guppy: Extract wrappedDEK + encryptedRootCID
+        Guppy->>KMS: Unwrap DEK with KEK
+        KMS-->>Guppy: DEK
+        Guppy->>Locator: Query indexer for encryptedRootCID
+        Locator-->>Guppy: provider locations
+        Guppy->>Storage: Fetch encrypted blocks
+        Storage-->>Guppy: encrypted blocks
+        Guppy->>Guppy: Decrypt with DEK
+    else Block is plaintext UnixFS
+        Note over Guppy,Storage: Plaintext content
+        Guppy->>Storage: Fetch remaining blocks
+        Storage-->>Guppy: file blocks
+    end
+    
+    Guppy-->>User: Write file to output
+```
 
 ## References
 
