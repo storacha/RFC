@@ -22,6 +22,8 @@ This RFC proposes the implementation of content encryption for Forge enterprise 
 1. **Encryption at Rest**: Client-side encryption of file content before upload
 2. **UCAN-Gated Decryption**: Access control via delegations
 
+**Scope:** File-level encryption only. Directory/folder encryption is not supported (each file is encrypted individually with its own DEK).
+
 ## Motivation
 
 Enterprise Forge customers need:
@@ -58,6 +60,27 @@ Based on Alan's POC ([storacha/guppy#376](https://github.com/storacha/guppy/pull
 | UCAN delegation | ❌ Pending | `space/content/decrypt` handling |
 | Folder access control | ❌ Pending | `nb.prefix` validation |
 
+## Terminology
+
+| Term | Description |
+|------|-------------|
+| **DEK** | Data Encryption Key 256-bit AES key used to encrypt file content |
+| **KEK** | Key Encryption Key space-level RSA key managed by KMS, used to wrap DEKs |
+| **IV** | Initialization Vector 16-byte random value, unique per content block |
+| **Content block** | A chunk of encrypted file data (e.g., 1MB), contains IV inline |
+| **Encrypted metadata block** | CBOR block containing wrapped DEK, path, KMS info. One per file, its CID is the "metadataCID" |
+| **Wrapping** | Encrypting a DEK with the space's KEK (RSA-OAEP) |
+
+## Encryption vs Access Control Granularity
+
+| Aspect | Granularity | Description |
+|--------|-------------|-------------|
+| **Encryption (DEK)** | Per file | Each file has its own DEK |
+| **Key wrapping (KEK)** | Per space | All DEKs in a space are wrapped with the same KEK |
+| **Access control** | Per file OR per folder | CID-based (`nb.resource`) or path-based (`nb.path`) |
+
+**Key insight:** Even though encryption is file-level, access control can be folder-level. A delegation with `nb.path: "/backups/"` grants access to decrypt **all files** whose path starts with `/backups/`, each with their own DEK.
+
 ## Encryption Approach: Block-Level
 
 ### How It Works
@@ -84,9 +107,10 @@ For each file to upload:
         │
         ▼
 3. Wrap DEK with space's public key (RSA-OAEP)
+   - "Wrapping" = encrypting the DEK with the space's KEK (Key Encryption Key)
         │
         ▼
-4. Store wrapped DEK in file metadata block
+4. Store wrapped DEK in encrypted metadata block
         │
         ▼
 5. Upload encrypted blocks + metadata
@@ -106,26 +130,30 @@ For each file to upload:
 
 These requirements apply to all encryption operations, including initial uploads and incremental re-uploads.
 
+**Storage overhead:** Each block stores a 16-byte IV. For 1MB blocks, this is ~0.0015% overhead, negligible in practice.
+
 ### Why Block-Level (vs File-Level)
 
-| Approach | Incremental Uploads | KMS Calls | Metadata |
-|----------|---------------------|-----------|----------|
-| **File-level** | ❌ Re-upload entire file | 1 per file | 1 per file |
-| **Block-level** | ✅ Only changed blocks | 1 per session | IV per block |
+| Approach | Incremental Uploads | KMS Calls | DEK | IV |
+|----------|---------------------|-----------|-----|-----|
+| **File-level** | ❌ Re-upload entire file | 1 per file | 1 per file | 1 per file |
+| **Block-level** | ✅ Only changed blocks | 1 per session | 1 per file | 1 per block |
 
-Block-level enables Guppy's existing incremental upload capability to work with encrypted content.
+Block-level encryption uses a single DEK per file (stored in the encrypted metadata block), but each block has its own IV (stored inline with the block). This enables Guppy's existing incremental upload capability to work with encrypted content.
 
 
 ## Metadata Format
 
-Encrypted content MUST include a metadata block compatible with `@storacha/encrypt-upload-client`:
+Each encrypted **file** has its own encrypted metadata block (1 per file, not per upload). This allows file-level access control and independent key rotation.
+
+Encrypted content MUST include an encrypted metadata block compatible with `@storacha/encrypt-upload-client`:
 
 ```typescript
 interface EncryptedMetadata {
   encryptedDataCID: CID        // CID of encrypted content
-  encryptedSymmetricKey: string // Base64-encoded wrapped DEK
+  encryptedSymmetricKey: string // Base64-encoded wrapped blob (contains path + DEK)
   space: SpaceDID              // Space the content belongs to
-  path?: string                // File path (e.g., "/backups/server1/backup.tar")
+  path?: string                // File path for client display (e.g., "/backups/db.tar")
   kms: {
     provider: string           // e.g., "storacha"
     keyId: string              // KMS key identifier
@@ -134,7 +162,13 @@ interface EncryptedMetadata {
 }
 ```
 
-The `path` field is RECOMMENDED for all new uploads. It enables folder-level access control via `nb.prefix` delegations (see Folder-Level Access Control section).
+**Wrapped blob format:** The `encryptedSymmetricKey` contains:
+- `wrap(KEK, { path, dek })` — if path is provided
+- `wrap(KEK, { dek })` — if no path (backward compatible)
+
+**Note:** When `path` is provided, it appears in two places:
+- **In encrypted metadata block** (plaintext CBOR): For client display and Pail indexing
+- **In wrapped blob** (encrypted): For KMS validation, the client can't lie about the path
 
 ## Streaming Support
 
@@ -163,7 +197,7 @@ Go's standard library provides native support via:
       - Store IV in block metadata
    c. Build UnixFS DAG from encrypted blocks
    d. Wrap DEK with space public key (RSA-OAEP)
-   e. Create metadata block with wrapped DEK + file path
+   e. Create encrypted metadata block with wrapped DEK + file path
         │
         ▼
 4. Upload encrypted blocks + metadata (blob/add)
@@ -175,7 +209,7 @@ Go's standard library provides native support via:
 - Step 3b (IV + encryption): ✅ Done
 - Step 3c (UnixFS DAG): ✅ Done
 - Step 3d (DEK wrapping): ❌ Pending
-- Step 3e (metadata block): ❌ Pending
+- Step 3e (encrypted metadata block): ❌ Pending
 - Step 4 (upload): ✅ Existing Guppy functionality
 
 ## Decryption Flow
@@ -209,23 +243,23 @@ guppy gateway serve --decryption-key /path/to/key.bin
 
 ### Option B: Client-Side Decryption (KMS Mode)
 
-For production with access control, decryption happens client-side:
+For production with access control, decryption happens client-side via `guppy retrieve`:
 
 ```
-1. Fetch encrypted content via gateway
-   - Public: https://w3s.link/ipfs/<CID>
-   - Local: guppy gateway serve → http://localhost:3000/ipfs/<CID>
+1. guppy retrieve <space> <path> <output>
+   - Fetches encrypted content via gateway or directly from network
         │
         ▼
-2. Extract file metadata block
+2. Extract encrypted metadata block
         │
         ▼
 3. Extract wrapped DEK from metadata
         │
         ▼
 4. Unwrap DEK via KMS (space/encryption/key/decrypt)
+   → Client sends wrapped DEK to KMS (KMS does NOT fetch content)
    → Provide UCAN proof with space/content/decrypt delegation
-   → KMS validates nb.prefix against file path
+   → KMS validates nb.resource matches the metadata CID
         │
         ▼
 5. For each encrypted block:
@@ -244,36 +278,47 @@ For production with access control, decryption happens client-side:
 
 ## Folder-Level Access Control
 
-Access control is enforced via the `nb.prefix` caveat on `space/content/decrypt` delegations:
+The existing `space/content/decrypt` capability uses `nb.resource` (CID-based). We propose enhancing it with an optional `nb.path` field for path-based access control:
 
 ```typescript
-// Grant access to all files under /backups/server1/
 space/content/decrypt
   with: did:key:zSpace
-  nb: { prefix: "/backups/server1/" }
+  nb: { 
+    resource: CID,              // Required: CID of the encrypted metadata block
+    path: "/backups/"           // Optional: directory path (must end with /)
+  }
   audience: did:key:zRecipient
 ```
 
 **Validation flow**
 
-1. User requests decryption with delegation containing `nb.prefix`
-2. KMS extracts `path` from encrypted metadata block
-3. KMS validates: `path.startsWith(delegation.nb.prefix)`
-4. If valid → unwrap DEK; if invalid → reject
+1. User requests decryption with `nb.resource` (the metadata CID)
+2. KMS validates `nb.resource`:
+   - `invocation.nb.resource === delegation.nb.resource`
+3. KMS unwraps the encrypted blob to get `{ path, dek }`
+   - The `path` is cryptographically bound to the DEK at encryption time
+   - KMS doesn't need to fetch content — path is embedded in the wrapped blob
+4. If `nb.path` present in delegation, KMS validates:
+   - Check: `path.startsWith(delegation.nb.path)`
+   - `nb.path` MUST end with `/` to ensure directory matching (e.g., `/priv/` not `/priv`)
+5. If all validations pass → return DEK; otherwise → reject
 
 **Access control examples**
 
-| Delegation `nb.prefix` | File `path` | Access |
-|------------------------|-------------|--------|
-| `/backups/` | `/backups/server1/backup.tar` | ✅ Allowed |
-| `/backups/server1/` | `/backups/server1/backup.tar` | ✅ Allowed |
-| `/backups/server2/` | `/backups/server1/backup.tar` | ❌ Denied |
-| (none) | `/backups/server1/backup.tar` | ✅ Space-level access |
+| `nb.resource` | `nb.path` | File `path` | Access |
+|---------------|-----------|-------------|--------|
+| `bafy...abc` | (none) | `/backups/db.tar` | ✅ CID-only access |
+| `bafy...abc` | `/backups/` | `/backups/db.tar` | ✅ Path under directory |
+| `bafy...abc` | `/priv/` | `/priv/secret.txt` | ✅ Path under directory |
+| `bafy...abc` | `/priv/` | `/priv.txt` | ❌ Not under /priv/ directory |
+| `bafy...abc` | `/logs/` | `/backups/db.tar` | ❌ Path mismatch |
+| `bafy...abc` | `/backups/` | (none) | ❌ No path in file metadata |
 
 **Backward compatibility**
 
-- Delegations without `nb.prefix` grant space-level access (all files)
-- Files uploaded without `path` field are treated as root (`/`) and accessible with any space-level delegation
+If a delegation specifies `nb.path`, the file's metadata MUST contain a `path` field to validate against. Old files without `path` in metadata cannot be accessed using path-scoped delegations, so use a CID-only delegation instead (like we already do today).
+
+**Design decision:** `nb.path` is a single string, not an array. To grant access to multiple paths, create separate delegations. This enables granular revocation. Revoking access to one path doesn't affect others.
 
 ## Capabilities Needed
 
@@ -342,12 +387,18 @@ guppy encryption rotate-kek --space <space-did>
 
 **Process:**
 1. Generate new KEK in KMS
-2. For each encrypted file in space:
+2. List encrypted files using `pail.Entries()` (see [go-pail](https://github.com/storacha/go-pail))
+   - Each encrypted file has one Pail entry: `path → metadataCID`
+   - Since encryption is file-level only, each entry corresponds to one encrypted file
+3. For each encrypted file in space:
    - Unwrap DEK with old KEK
    - Re-wrap DEK with new KEK
-   - Create new metadata block (new CID)
-   - Update catalog entry to point to new metadata CID
-3. Content blocks remain unchanged
+   - Create new encrypted metadata block (new CID)
+   - Update Pail entry to point to new metadata CID
+4. Delete old KEK from KMS
+5. Content blocks remain unchanged
+
+**Security note:** Old encrypted metadata blocks remain on the network (IPFS is immutable), but the old wrapped DEKs inside them are useless. The old KEK is deleted from KMS, so they cannot be unwrapped.
 
 **Use case:** Regular security hygiene, suspected KEK compromise
 
@@ -363,7 +414,7 @@ guppy encryption rotate-dek --file <path>
 1. Download and decrypt file with old DEK
 2. Generate new DEK
 3. Re-encrypt all blocks with new DEK + new IVs
-4. Create new metadata block with new wrapped DEK
+4. Create new encrypted metadata block with new wrapped DEK
 5. Upload encrypted blocks + new metadata
 6. Update catalog entry to point to new root CID
 
