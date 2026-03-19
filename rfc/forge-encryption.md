@@ -89,7 +89,7 @@ Block-level encryption combines file-scoped DEKs with block-scoped IVs:
 
 - **1 DEK per file**: Each file gets a unique 256-bit AES key, generated randomly
 - **Random IV per block**: Each block within the file gets a unique 16-byte IV
-- **AES-256-CTR**: Counter mode encryption with unique keystream per block
+- **AES-256-CTR**: Counter mode encryption with unique keystream per block. AES-256-CTR doesn't provide authenticated encryption on its own, but in our case its fine since we use CIDs. Any tampering with the encrypted data changes the block's CID, which propagates up and changes the root CID, so it won't go unnoticed.
 - **Incremental uploads**: Only changed blocks need re-encryption
 
 ### DEK Lifecycle (Per File)
