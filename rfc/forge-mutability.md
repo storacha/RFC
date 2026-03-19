@@ -76,163 +76,143 @@ graph LR
 |-----------|--------|
 | UCN wrapper (`clock/head`, `clock/advance`) | Needs Go impl (~few hundred lines) |
 | Pail integration | Library exists: `github.com/storacha/go-pail` |
-| Guppy commands | New `bucket` subcommand (`create`, `put`, `get`, `ls`) |
+| Guppy changes | Extend existing `upload source add`, `upload`, `retrieve` commands |
 
 ## CLI Command Reference
 
-The `bucket` subcommand provides a **mutable storage interface** using Pail + UCN. It tracks `path → CID` mappings and enables path-based content resolution. Encryption is **optional** and controlled via the `--encrypt` flag.
+Mutability and encryption are integrated into existing Guppy commands with minimal changes. This approach leverages the existing `upload source add` → `upload` → `retrieve` flow.
 
 **Reference:** [w3cli-plugin-bucket](https://github.com/alanshaw/w3cli-plugin-bucket) - Alan's CLI extension that inspired this design.
 
-### `guppy bucket create`
+### `guppy upload source add` (Extended)
 
-Create a bucket by linking a local folder to a space.
+Register a source and initialize a Pail bucket. The `--name` flag becomes the bucket name in Pail.
 
 ```
-guppy bucket create <space> <name> <local-folder> [--encrypt] [--local-key <path>]
+guppy upload source add <space> <path> [--name <alias>] [--encrypt] [--local-key <path>]
 ```
 
 **Arguments:**
 | Argument | Description |
 |----------|-------------|
 | `<space>` | Space DID (e.g., `did:key:z6Mk...`) |
-| `<name>` | Bucket name in Pail (e.g., `backups`, `db-snapshots`) |
-| `<local-folder>` | Local filesystem folder to track |
+| `<path>` | Local filesystem folder to track |
 
 **Flags:**
 | Flag | Description |
 |------|-------------|
+| `--name <alias>` | Bucket name in Pail (defaults to folder basename) |
 | `--encrypt` | Enable encryption using KMS (requires KMS config in `config.yaml`) |
 | `--local-key <path>` | Enable encryption using a standalone key file (dev/testing, no access control) |
 
 **Example:**
 ```bash
-# Create plaintext bucket (mutability only)
-guppy bucket create did:key:z6MkExample backups /Users/alice/my-backups
+# Register source with mutability (plaintext)
+guppy upload source add did:key:z6MkExample /Users/alice/my-backups --name backups
 
-# Create encrypted bucket with KMS (production)
-guppy bucket create did:key:z6MkExample secrets /Users/alice/secrets --encrypt
+# Register source with mutability + encryption (KMS)
+guppy upload source add did:key:z6MkExample /Users/alice/secrets --name secrets --encrypt
 
-# Create encrypted bucket with local key (dev/testing)
-guppy bucket create did:key:z6MkExample dev-secrets /Users/alice/test-data --local-key ./dev-key.bin
+# Register source with mutability + encryption (local key, dev/testing)
+guppy upload source add did:key:z6MkExample /Users/alice/test-data --name dev-secrets --local-key ./dev-key.bin
 ```
 
 **Behavior:**
-1. Links bucket `<name>` to `<local-folder>` in local config
-2. If `--encrypt`: reads KMS config from `~/.storacha/guppy/config.yaml` and calls `space/encryption/setup` to get/create KEK (see [forge-encryption.md](./forge-encryption.md#key-management))
-3. If `--local-key`: uses the provided key file directly (no KMS, no access control - see [guppy#376](https://github.com/storacha/guppy/pull/376))
-4. Stores bucket settings locally (including encryption mode)
+1. Register source locally (existing behavior)
+2. Initialize Pail bucket using `--name` (or folder basename)
+3. If `--encrypt`: read KMS config from `~/.storacha/guppy/config.yaml` and call `space/encryption/setup` to get/create KEK (see [forge-encryption.md](./forge-encryption.md#key-management))
+4. If `--local-key`: use the provided key file directly (no KMS, no access control - see [guppy#376](https://github.com/storacha/guppy/pull/376))
+5. Store source settings locally (including encryption mode)
 
-### `guppy bucket put`
+### `guppy upload` (Extended)
 
-Upload files to the bucket. If the bucket has encryption enabled, each file is encrypted individually.
+Upload sources and store path→CID mappings in Pail.
 
 ```
-guppy bucket put <space> <name> [<file-path>]
+guppy upload <space> [source-path-or-name...]
 ```
 
-**Arguments:**
-| Argument | Description |
-|----------|-------------|
-| `<space>` | Space DID |
-| `<name>` | Bucket name (from `bucket create`) |
-| `<file-path>` | Optional. Specific file to upload. If omitted, uploads all files in bucket folder. |
+**Existing behavior preserved.** After upload completes, adds:
 
-**Example:**
-```bash
-# Upload a single file
-guppy bucket put did:key:z6MkExample backups ./db.tar
+**Post-upload behavior (per source):**
 
-# Upload all files in bucket folder
-guppy bucket put did:key:z6MkExample backups
-```
+*Plaintext source:*
+1. After `ExecuteUpload()` returns `rootCID`
+2. Store `<name>` → `rootCID` in Pail
+3. Publish updated Pail head via UCN (`clock/advance`)
 
-**Behavior (per file):**
-
-*Plaintext bucket:*
-1. Build UnixFS DAG from file blocks
-2. Upload via `space/blob/add`
-3. Store `<name>/<filename>` → `rootCID` in Pail
+*Encrypted source:*
+1. During upload: generate DEK, encrypt blocks, wrap DEK with KEK
+2. Create encrypted metadata block → `metadataCID`
+3. Store `<name>` → `metadataCID` in Pail
 4. Publish updated Pail head via UCN (`clock/advance`)
 
-*Encrypted bucket:*
-1. Generate random DEK (256-bit AES key)
-2. For each block: generate IV, encrypt with DEK+IV (AES-256-CTR)
-3. Build UnixFS DAG from encrypted blocks
-4. Wrap DEK with KEK (RSA-OAEP), include file path in wrapped blob
-5. Create encrypted metadata block → `metadataCID`
-6. Upload encrypted blocks + metadata via `space/blob/add`
-7. Store `<name>/<filename>` → `metadataCID` in Pail
-8. Publish updated Pail head via UCN (`clock/advance`)
+### `guppy retrieve` (Extended)
 
-### `guppy bucket get`
-
-Retrieve a file from the bucket. For encrypted buckets, decryption requires a delegation.
+Retrieve content by CID or by path (via Pail resolution).
 
 ```
-guppy bucket get <space> <name>/<file-path> <output> [--delegation <file>]
+guppy retrieve <space> <content-path> <output-path> [--delegation <file>]
 ```
 
 **Arguments:**
 | Argument | Description |
 |----------|-------------|
 | `<space>` | Space DID |
-| `<name>/<file-path>` | Full path in bucket (e.g., `backups/db.tar`) |
-| `<output>` | Local filesystem path to write output |
+| `<content-path>` | CID or path (e.g., `backups` or `bafyRootCID`) |
+| `<output-path>` | Local filesystem path to write output |
 
 **Flags:**
 | Flag | Description |
 |------|-------------|
-| `--delegation <file>` | Path to delegation file authorizing decryption (required for encrypted buckets) |
+| `--delegation <file>` | Path to delegation file authorizing decryption (required for encrypted content) |
 
 **Example:**
 ```bash
-# Retrieve from plaintext bucket
-guppy bucket get did:key:z6MkExample backups/db.tar ./restored-db.tar
+# Retrieve by CID (existing behavior)
+guppy retrieve did:key:z6MkExample bafyRootCID ./output
 
-# Retrieve and decrypt from encrypted bucket
-guppy bucket get did:key:z6MkExample secrets/config.tar ./config.tar --delegation ./my-delegation.ucan
+# Retrieve by path (new - resolves via Pail)
+guppy retrieve did:key:z6MkExample backups ./restored-backups
+
+# Retrieve and decrypt encrypted content
+guppy retrieve did:key:z6MkExample secrets ./decrypted-secrets --delegation ./my-delegation.ucan
 ```
 
 **Behavior:**
 
-*Plaintext bucket:*
-1. Resolve `<name>/<file-path>` via UCN + Pail → get `rootCID`
-2. Fetch content blocks
-3. Write file to `<output>`
+*If `<content-path>` is a CID:*
+1. Existing behavior (fetch by CID)
 
-*Encrypted bucket:*
-1. Resolve `<name>/<file-path>` via UCN + Pail → get `metadataCID`
-2. Fetch encrypted metadata block
-3. Send delegation + `metadataCID` to KMS (`space/encryption/key/decrypt`)
-4. KMS validates delegation, unwraps DEK
-5. Fetch encrypted blocks, decrypt with DEK+IV
-6. Write decrypted file to `<output>`
+*If `<content-path>` is a path:*
+1. Resolve via UCN + Pail → get CID (rootCID or metadataCID)
+2. If `--delegation` provided (encrypted content):
+   - Fetch encrypted metadata block
+   - Send delegation + metadataCID to KMS (`space/encryption/key/decrypt`)
+   - KMS validates delegation, unwraps DEK
+   - Fetch encrypted blocks, decrypt with DEK+IV
+3. Else (plaintext):
+   - Fetch content blocks directly
+4. Write to `<output-path>`
 
-### `guppy bucket ls`
+### `guppy upload source ls` (New)
 
-List files in the bucket.
+List sources and their current CIDs from Pail.
 
 ```
-guppy bucket ls <space> <name>
+guppy upload source ls <space>
 ```
-
-**Arguments:**
-| Argument | Description |
-|----------|-------------|
-| `<space>` | Space DID |
-| `<name>` | Bucket name |
 
 **Example:**
 ```bash
-guppy bucket ls did:key:z6MkExample backups
+guppy upload source ls did:key:z6MkExample
 ```
 
 **Output:**
 ```
-FILE                    CID                                          UPDATED
-backups/db.tar          bafyMeta1...                                 2026-03-19T10:00:00Z
-backups/config.json     bafyMeta2...                                 2026-03-19T09:30:00Z
+NAME                    CID                                          ENCRYPTED
+backups                 bafyRoot1...                                 no
+secrets                 bafyMeta2...                                 yes
 ```
 
 ## Multi-Writer Behavior
@@ -260,7 +240,7 @@ Guppy's `ExecuteUpload` runs a pipeline of workers:
 
 Returns: `rootCID` (the content root)
 
-### Bucket Put Flow
+### Upload Flow (with Mutability + Optional Encryption)
 
 ```mermaid
 sequenceDiagram
@@ -271,36 +251,35 @@ sequenceDiagram
     participant Pail
     participant UCN
     
-    User->>Guppy: guppy bucket put <space> <name> [<file-path>]
+    User->>Guppy: guppy upload <space> [source-name...]
     
-    loop For each file in bucket
-        alt Encrypted bucket
+    loop For each source
+        alt Encrypted source (--encrypt was set on source add)
             Guppy->>Guppy: Generate random DEK (256-bit)
             Guppy->>Guppy: For each block: generate IV, encrypt with DEK+IV
             Guppy->>Guppy: Build UnixFS DAG from encrypted blocks
             Guppy->>Storacha: space/blob/add (encrypted shards)
             
-            Guppy->>KMS: Wrap DEK with KEK (include file path)
+            Guppy->>KMS: Wrap DEK with KEK
             KMS-->>Guppy: wrappedDEK
             Guppy->>Guppy: Create metadata block
             Guppy->>Storacha: space/blob/add (metadata block)
             Storacha-->>Guppy: metadataCID
-            Guppy->>Pail: crdt.Put(name/filename, metadataCID)
-        else Plaintext bucket
-            Guppy->>Guppy: Build UnixFS DAG from blocks
-            Guppy->>Storacha: space/blob/add (shards)
+            Guppy->>Pail: crdt.Put(source-name, metadataCID)
+        else Plaintext source
+            Guppy->>Guppy: ExecuteUpload (existing pipeline)
             Storacha-->>Guppy: rootCID
-            Guppy->>Pail: crdt.Put(name/filename, rootCID)
+            Guppy->>Pail: crdt.Put(source-name, rootCID)
         end
         Pail-->>Guppy: eventCID
     end
     
-    Guppy->>UCN: name.Publish(eventCID)
+    Guppy->>UCN: clock/advance(eventCID)
     UCN-->>Guppy: OK
     Guppy-->>User: Uploaded
 ```
 
-### Bucket Get Flow
+### Retrieve Flow (with Path Resolution + Optional Decryption)
 
 ```mermaid
 sequenceDiagram
@@ -311,19 +290,23 @@ sequenceDiagram
     participant Storage
     participant KMS
     
-    User->>Guppy: guppy bucket get <space> <name>/<file-path> <output> [--delegation]
+    User->>Guppy: guppy retrieve <space> <path-or-cid> <output> [--delegation]
     
-    Note over Guppy,Pail: Resolve path via UCN + Pail
-    Guppy->>UCN: name.Resolve(spaceDID)
-    UCN-->>Guppy: head events
-    Guppy->>Storage: Fetch Pail blocks for head
-    Storage-->>Guppy: Pail blocks
-    Guppy->>Pail: crdt.Root(head, blocks)
-    Pail-->>Guppy: pailRoot
-    Guppy->>Pail: pail.Get(pailRoot, name/file-path)
-    Pail-->>Guppy: CID (rootCID or metadataCID)
+    alt content-path is a path (not CID)
+        Note over Guppy,Pail: Resolve path via UCN + Pail
+        Guppy->>UCN: clock/head(spaceDID)
+        UCN-->>Guppy: head events
+        Guppy->>Storage: Fetch Pail blocks for head
+        Storage-->>Guppy: Pail blocks
+        Guppy->>Pail: crdt.Root(head, blocks)
+        Pail-->>Guppy: pailRoot
+        Guppy->>Pail: pail.Get(pailRoot, path)
+        Pail-->>Guppy: CID (rootCID or metadataCID)
+    else content-path is a CID
+        Note over Guppy: Use CID directly
+    end
     
-    alt Encrypted bucket (--delegation provided)
+    alt --delegation provided (encrypted content)
         Guppy->>Storage: Fetch metadata block
         Storage-->>Guppy: EncryptedMetadata (wrappedDEK + encryptedRootCID)
         Guppy->>KMS: space/encryption/key/decrypt (delegation + metadataCID)
@@ -331,7 +314,7 @@ sequenceDiagram
         Guppy->>Storage: Fetch encrypted blocks
         Storage-->>Guppy: encrypted blocks
         Guppy->>Guppy: Decrypt with DEK+IV
-    else Plaintext bucket
+    else Plaintext content
         Guppy->>Storage: Fetch content blocks (rootCID)
         Storage-->>Guppy: file blocks
     end

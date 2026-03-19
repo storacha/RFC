@@ -181,10 +181,10 @@ Go's standard library provides native support via:
 
 ## Encryption Flow
 
-For encrypted buckets, the flow is triggered by `guppy bucket put` (see [forge-mutability.md](./forge-mutability.md#guppy-bucket-put)):
+For encrypted sources, the flow is triggered by `guppy upload` after a source was registered with `--encrypt` (see [forge-mutability.md](./forge-mutability.md#guppy-upload-extended)):
 
 ```
-1. guppy bucket put <space> <name> [<file-path>]
+1. guppy upload <space> [source-name...]
         │
         ▼
 2. Get space public key from KMS (space/encryption/setup)
@@ -245,10 +245,10 @@ guppy gateway serve --decryption-key /path/to/key.bin
 
 ### Option B: Client-Side Decryption (KMS Mode)
 
-For production with access control, decryption happens client-side via `guppy bucket get` (see [forge-mutability.md](./forge-mutability.md#guppy-bucket-get)):
+For production with access control, decryption happens client-side via `guppy retrieve` (see [forge-mutability.md](./forge-mutability.md#guppy-retrieve-extended)):
 
 ```
-1. guppy bucket get <space> <name>/<file-path> <output> --delegation <file>
+1. guppy retrieve <space> <path-or-cid> <output> --delegation <file>
    - Fetches encrypted content via gateway or directly from network
         │
         ▼
@@ -338,9 +338,9 @@ Guppy SHOULD support two key management modes.
 
 For development and testing, Guppy MAY use a locally-provided key. This can be configured either:
 
-**Via `bucket create` flag:**
+**Via `upload source add` flag:**
 ```bash
-guppy bucket create <space> <name> <local-folder> --local-key ./dev-key.bin
+guppy upload source add <space> <path> --name <alias> --local-key ./dev-key.bin
 ```
 
 **Or via config.yaml:**
