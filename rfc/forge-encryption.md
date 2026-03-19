@@ -181,8 +181,10 @@ Go's standard library provides native support via:
 
 ## Encryption Flow
 
+For encrypted buckets, the flow is triggered by `guppy bucket put` (see [forge-mutability.md](./forge-mutability.md#guppy-bucket-put)):
+
 ```
-1. guppy upload <source>
+1. guppy bucket put <space> <name> [<file-path>]
         │
         ▼
 2. Get space public key from KMS (space/encryption/setup)
@@ -243,10 +245,10 @@ guppy gateway serve --decryption-key /path/to/key.bin
 
 ### Option B: Client-Side Decryption (KMS Mode)
 
-For production with access control, decryption happens client-side via `guppy retrieve`:
+For production with access control, decryption happens client-side via `guppy bucket get` (see [forge-mutability.md](./forge-mutability.md#guppy-bucket-get)):
 
 ```
-1. guppy retrieve <space> <path> <output>
+1. guppy bucket get <space> <name>/<file-path> <output> --delegation <file>
    - Fetches encrypted content via gateway or directly from network
         │
         ▼
@@ -334,8 +336,14 @@ Guppy SHOULD support two key management modes.
 
 ### Local Key Mode (Development/Testing)
 
-For development and testing, Guppy MAY use a locally-provided key:
+For development and testing, Guppy MAY use a locally-provided key. This can be configured either:
 
+**Via `bucket create` flag:**
+```bash
+guppy bucket create <space> <name> <local-folder> --local-key ./dev-key.bin
+```
+
+**Or via config.yaml:**
 ```yaml
 # ~/.storacha/guppy/config.yaml
 encryption:
@@ -345,6 +353,8 @@ encryption:
 ```
 
 This mode does NOT provide access control — anyone with the key can decrypt.
+
+See [guppy#376](https://github.com/storacha/guppy/pull/376) for the POC implementation.
 
 ### KMS Mode (Production/Enterprise)
 
@@ -372,8 +382,8 @@ KMS mode enables:
 
 Key rotation requires the **Mutability** feature (see [forge-mutability.md](./forge-mutability.md)) because:
 - Rotation creates new metadata CIDs (wrapped DEK changes)
-- The catalog/UCN must be updated to point to the new metadata CID
-- Without mutability, clients cannot discover the rotated metadata
+- Pail entries must be updated to point to the new metadata CID
+- UCN publishes the updated Pail head so clients can discover the rotated metadata
 
 Guppy SHOULD support two types of key rotation via CLI commands (KMS mode only):
 
