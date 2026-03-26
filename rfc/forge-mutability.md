@@ -76,91 +76,85 @@ graph LR
 |-----------|--------|
 | UCN wrapper (`clock/head`, `clock/advance`) | Needs Go impl (~few hundred lines) |
 | Pail integration | Library exists: `github.com/storacha/go-pail` |
-| Guppy changes | Extend existing `upload source add`, `upload`, `retrieve` commands |
+| Guppy changes | New bucket commands: `put`, `get`, `ls`, `rm` |
 
 ## CLI Command Reference
 
-Mutability and encryption are integrated into existing Guppy commands with minimal changes. This approach leverages the existing `upload source add` → `upload` → `retrieve` flow.
+This RFC adopts **bucket semantics** for mutable content, inspired by [Alan Shaw's proposal](https://github.com/storacha/RFC/pull/84#issuecomment-4097051650) and [w3cli-plugin-bucket](https://github.com/alanshaw/w3cli-plugin-bucket).
 
-**Reference:** [w3cli-plugin-bucket](https://github.com/alanshaw/w3cli-plugin-bucket) - Alan's CLI extension that inspired this design.
+### Design Rationale
 
-### `guppy upload source add` (Extended)
+The bucket model (`put`/`get`/`ls`/`rm`) is preferred over extending `upload`/`retrieve` because:
 
-Register a source and initialize a Pail bucket. The `--name` flag becomes the bucket name in Pail.
+1. **Clear semantics**: "put" implies key-value storage with overwrite behavior
+2. **Single command**: `put` combines source registration + upload + Pail update in one action
+3. **Key not name**: The key is an explicit identifier, not a passive attribute
+4. **Familiar pattern**: Matches AWS S3, GCS, and other object storage CLIs
+5. **Mutability first-class**: Every `put` creates/updates a mutable reference
+
+### `guppy put`
+
+Upload content and store a mutable reference (key → CID) in Pail.
 
 ```
-guppy upload source add <space> <path> [--name <alias>] [--encrypt] [--local-key <path>]
+guppy put <space> <key> <path> [--encrypt] [--local-key <file>]
 ```
 
 **Arguments:**
 | Argument | Description |
 |----------|-------------|
 | `<space>` | Space DID (e.g., `did:key:z6Mk...`) |
-| `<path>` | Local filesystem folder to track |
+| `<key>` | Mutable reference key (e.g., `backups`, `photos/2026`) |
+| `<path>` | Local filesystem path to upload |
 
 **Flags:**
 | Flag | Description |
 |------|-------------|
-| `--name <alias>` | Bucket name in Pail (defaults to folder basename) |
 | `--encrypt` | Enable encryption using KMS (requires KMS config in `config.yaml`) |
-| `--local-key <path>` | Enable encryption using a standalone key file (dev/testing, no access control) |
+| `--local-key <file>` | Enable encryption using a standalone key file (dev/testing, no access control) |
 
 **Example:**
 ```bash
-# Register source with mutability (plaintext)
-guppy upload source add did:key:z6MkExample /Users/alice/my-backups --name backups
+# Upload and create mutable reference (plaintext)
+guppy put did:key:z6MkExample backups /Users/alice/my-backups
 
-# Register source with mutability + encryption (KMS)
-guppy upload source add did:key:z6MkExample /Users/alice/secrets --name secrets --encrypt
+# Upload with encryption (KMS)
+guppy put did:key:z6MkExample secrets /Users/alice/secrets --encrypt
 
-# Register source with mutability + encryption (local key, dev/testing)
-guppy upload source add did:key:z6MkExample /Users/alice/test-data --name dev-secrets --local-key ./dev-key.bin
+# Upload with encryption (local key, dev/testing)
+guppy put did:key:z6MkExample dev-data /Users/alice/test-data --local-key ./dev-key.bin
+
+# Hierarchical keys are supported
+guppy put did:key:z6MkExample backups/daily/2026-03-25 /Users/alice/daily-backup
 ```
 
 **Behavior:**
-1. Register source locally (existing behavior)
-2. Initialize Pail bucket using `--name` (or folder basename)
-3. If `--encrypt`: read KMS config from `~/.storacha/guppy/config.yaml` and call `space/encryption/setup` to get/create KEK (see [forge-encryption.md](./forge-encryption.md#key-management))
-4. If `--local-key`: use the provided key file directly (no KMS, no access control - see [guppy#376](https://github.com/storacha/guppy/pull/376))
-5. Store source settings locally (including encryption mode)
+1. If `<path>` is not already a registered source, create one automatically
+2. Upload content via existing pipeline → `rootCID`
+3. If `--encrypt`:
+   - Generate DEK, encrypt blocks, wrap DEK with KEK
+   - Create metadata block → `metadataCID`
+   - Store `<key>` → `metadataCID` in Pail
+4. Else (plaintext):
+   - Store `<key>` → `rootCID` in Pail
+5. Publish updated Pail head via UCN (`clock/advance`)
 
-### `guppy upload` (Extended)
+**Note:** If the key already exists, its value is **overwritten** with the new CID.
 
-Upload sources and store path→CID mappings in Pail.
+### `guppy get`
 
-```
-guppy upload <space> [source-path-or-name...]
-```
-
-**Existing behavior preserved.** After upload completes, adds:
-
-**Post-upload behavior (per source):**
-
-*Plaintext source:*
-1. After `ExecuteUpload()` returns `rootCID`
-2. Store `<name>` → `rootCID` in Pail
-3. Publish updated Pail head via UCN (`clock/advance`)
-
-*Encrypted source:*
-1. During upload: generate DEK, encrypt blocks, wrap DEK with KEK
-2. Create encrypted metadata block → `metadataCID`
-3. Store `<name>` → `metadataCID` in Pail
-4. Publish updated Pail head via UCN (`clock/advance`)
-
-### `guppy retrieve` (Extended)
-
-Retrieve content by CID or by path (via Pail resolution).
+Retrieve content by key (resolves via Pail) or by CID.
 
 ```
-guppy retrieve <space> <content-path> <output-path> [--delegation <file>]
+guppy get <space> <key-or-cid> [output] [--delegation <file>]
 ```
 
 **Arguments:**
 | Argument | Description |
 |----------|-------------|
 | `<space>` | Space DID |
-| `<content-path>` | CID or path (e.g., `backups` or `bafyRootCID`) |
-| `<output-path>` | Local filesystem path to write output |
+| `<key-or-cid>` | Pail key (e.g., `backups`) or CID (e.g., `bafyRootCID`) |
+| `[output]` | Local filesystem path to write output (optional, defaults to current dir) |
 
 **Flags:**
 | Flag | Description |
@@ -169,60 +163,117 @@ guppy retrieve <space> <content-path> <output-path> [--delegation <file>]
 
 **Example:**
 ```bash
-# Retrieve by CID (existing behavior)
-guppy retrieve did:key:z6MkExample bafyRootCID ./output
+# Retrieve by key (resolves via Pail)
+guppy get did:key:z6MkExample backups ./restored-backups
 
-# Retrieve by path (new - resolves via Pail)
-guppy retrieve did:key:z6MkExample backups ./restored-backups
+# Retrieve by CID (direct, no Pail lookup)
+guppy get did:key:z6MkExample bafyRootCID ./output
 
 # Retrieve and decrypt encrypted content
-guppy retrieve did:key:z6MkExample secrets ./decrypted-secrets --delegation ./my-delegation.ucan
+guppy get did:key:z6MkExample secrets ./decrypted-secrets --delegation ./my-delegation.ucan
 ```
 
 **Behavior:**
 
-*If `<content-path>` is a CID:*
-1. Existing behavior (fetch by CID)
+*If `<key-or-cid>` is a key:*
+1. Resolve via UCN (`clock/head`) + Pail (`crdt.Get`) → get CID
+2. Fetch and write content
 
-*If `<content-path>` is a path:*
-1. Resolve via UCN + Pail → get CID (rootCID or metadataCID)
-2. If `--delegation` provided (encrypted content):
-   - Fetch encrypted metadata block
-   - Send delegation + metadataCID to KMS (`space/encryption/key/decrypt`)
-   - KMS validates delegation, unwraps DEK
-   - Fetch encrypted blocks, decrypt with DEK+IV
-3. Else (plaintext):
-   - Fetch content blocks directly
-4. Write to `<output-path>`
+*If `<key-or-cid>` is a CID:*
+1. Fetch content directly by CID
 
-### `guppy upload source ls` (New)
+*If `--delegation` provided (encrypted content):*
+1. Fetch encrypted metadata block
+2. Send delegation + metadataCID to KMS (`space/encryption/key/decrypt`)
+3. KMS validates delegation, unwraps DEK
+4. Fetch encrypted blocks, decrypt with DEK+IV
+5. Write to output
 
-List sources and their current CIDs from Pail.
+### `guppy ls`
+
+List all keys and their current CIDs from Pail.
 
 ```
-guppy upload source ls <space>
+guppy ls <space> [prefix]
 ```
+
+**Arguments:**
+| Argument | Description |
+|----------|-------------|
+| `<space>` | Space DID |
+| `[prefix]` | Optional key prefix to filter results |
 
 **Example:**
 ```bash
-guppy upload source ls did:key:z6MkExample
+# List all keys
+guppy ls did:key:z6MkExample
+
+# List keys with prefix
+guppy ls did:key:z6MkExample backups/
 ```
 
 **Output:**
 ```
-NAME                    CID                                          ENCRYPTED
+KEY                     CID                                          ENCRYPTED
 backups                 bafyRoot1...                                 no
-secrets                 bafyMeta2...                                 yes
+backups/daily/2026-03-25 bafyRoot2...                                no
+secrets                 bafyMeta3...                                 yes
 ```
+
+### `guppy rm`
+
+Remove a key from Pail (does not delete the underlying content from storage).
+
+```
+guppy rm <space> <key>
+```
+
+**Arguments:**
+| Argument | Description |
+|----------|-------------|
+| `<space>` | Space DID |
+| `<key>` | Key to remove |
+
+**Example:**
+```bash
+guppy rm did:key:z6MkExample backups/daily/2026-03-25
+```
+
+**Behavior:**
+1. Remove `<key>` from Pail (`crdt.Del`)
+2. Publish updated Pail head via UCN (`clock/advance`)
+
+**Note:** This only removes the mutable reference. The content remains in storage and can still be accessed by CID.
+
+### Source Management (Optional)
+
+Sources are created automatically by `guppy put`. For power users who want to manage sources explicitly:
+
+```bash
+# List local sources
+guppy source ls
+
+# Remove a local source (cleanup)
+guppy source rm <path>
+```
+
+### Legacy Commands
+
+The following commands remain available for backward compatibility and direct CID-based operations:
+
+| Command | Use Case |
+|---------|----------|
+| `guppy upload <space> <path>` | Upload without mutable reference |
+| `guppy retrieve <space> <cid> <output>` | Retrieve by CID directly |
 
 ## Multi-Writer Behavior
 
 When multiple Guppy clients write to the same space concurrently:
 
-- **Source-level granularity**: Pail tracks `sourcePath -> CID` mappings. Concurrent updates to *different* source paths merge cleanly via CRDT.
-- **Same source path**: If two clients update the same source path simultaneously, **last-writer-wins** applies to the CID value. The directory structure within each UnixFS root is not merged.
+- **Key-level granularity**: Pail tracks `key -> CID` mappings. Concurrent updates to *different* keys merge cleanly via CRDT.
+- **Same key**: If two clients update the same key simultaneously, **last-writer-wins** applies to the CID value. The directory structure within each UnixFS root is not merged.
 
-This is acceptable for Forge's backup use case where each client typically owns distinct source paths.
+This is acceptable for Forge's backup use case where each client typically owns distinct keys.
 
 ## Integration with Guppy Flows
 
@@ -240,7 +291,7 @@ Guppy's `ExecuteUpload` runs a pipeline of workers:
 
 Returns: `rootCID` (the content root)
 
-### Upload Flow (with Mutability + Optional Encryption)
+### Put Flow (with Optional Encryption)
 
 ```mermaid
 sequenceDiagram
@@ -251,35 +302,33 @@ sequenceDiagram
     participant Pail
     participant UCN
     
-    User->>Guppy: guppy upload <space> [source-name...]
+    User->>Guppy: guppy put <space> <key> <path> [--encrypt]
     
-    loop For each source
-        alt Encrypted source (--encrypt was set on source add)
-            Guppy->>Guppy: Generate random DEK (256-bit)
-            Guppy->>Guppy: For each block: generate IV, encrypt with DEK+IV
-            Guppy->>Guppy: Build UnixFS DAG from encrypted blocks
-            Guppy->>Storacha: space/blob/add (encrypted shards)
-            
-            Guppy->>KMS: Wrap DEK with KEK
-            KMS-->>Guppy: wrappedDEK
-            Guppy->>Guppy: Create metadata block
-            Guppy->>Storacha: space/blob/add (metadata block)
-            Storacha-->>Guppy: metadataCID
-            Guppy->>Pail: crdt.Put(source-name, metadataCID)
-        else Plaintext source
-            Guppy->>Guppy: ExecuteUpload (existing pipeline)
-            Storacha-->>Guppy: rootCID
-            Guppy->>Pail: crdt.Put(source-name, rootCID)
-        end
-        Pail-->>Guppy: eventCID
+    alt --encrypt flag provided
+        Guppy->>Guppy: Generate random DEK (256-bit)
+        Guppy->>Guppy: For each block: generate IV, encrypt with DEK+IV
+        Guppy->>Guppy: Build UnixFS DAG from encrypted blocks
+        Guppy->>Storacha: space/blob/add (encrypted shards)
+        
+        Guppy->>KMS: Wrap DEK with KEK
+        KMS-->>Guppy: wrappedDEK
+        Guppy->>Guppy: Create metadata block
+        Guppy->>Storacha: space/blob/add (metadata block)
+        Storacha-->>Guppy: metadataCID
+        Guppy->>Pail: crdt.Put(key, metadataCID)
+    else Plaintext
+        Guppy->>Guppy: ExecuteUpload (existing pipeline)
+        Storacha-->>Guppy: rootCID
+        Guppy->>Pail: crdt.Put(key, rootCID)
     end
+    Pail-->>Guppy: eventCID
     
     Guppy->>UCN: clock/advance(eventCID)
     UCN-->>Guppy: OK
-    Guppy-->>User: Uploaded
+    Guppy-->>User: Put complete: <key> -> <CID>
 ```
 
-### Retrieve Flow (with Path Resolution + Optional Decryption)
+### Get Flow (with Key Resolution + Optional Decryption)
 
 ```mermaid
 sequenceDiagram
@@ -290,19 +339,19 @@ sequenceDiagram
     participant Storage
     participant KMS
     
-    User->>Guppy: guppy retrieve <space> <path-or-cid> <output> [--delegation]
+    User->>Guppy: guppy get <space> <key-or-cid> [output] [--delegation]
     
-    alt content-path is a path (not CID)
-        Note over Guppy,Pail: Resolve path via UCN + Pail
+    alt key-or-cid is a key (not CID)
+        Note over Guppy,Pail: Resolve key via UCN + Pail
         Guppy->>UCN: clock/head(spaceDID)
         UCN-->>Guppy: head events
         Guppy->>Storage: Fetch Pail blocks for head
         Storage-->>Guppy: Pail blocks
         Guppy->>Pail: crdt.Root(head, blocks)
         Pail-->>Guppy: pailRoot
-        Guppy->>Pail: pail.Get(pailRoot, path)
+        Guppy->>Pail: crdt.Get(pailRoot, key)
         Pail-->>Guppy: CID (rootCID or metadataCID)
-    else content-path is a CID
+    else key-or-cid is a CID
         Note over Guppy: Use CID directly
     end
     
@@ -324,6 +373,7 @@ sequenceDiagram
 
 ## References
 
+- [Alan Shaw's Bucket Semantics Proposal](https://github.com/storacha/RFC/pull/84#issuecomment-4097051650) - Design rationale for `put`/`get`/`ls`/`rm` commands
 - [Mutability & Privacy in Storacha — Strategy Document](https://www.notion.so/storacha/Mutability-Privacy-in-Storacha-Strategy-Document-3125305b5524807fb4a1ce6a3c9201e8) (internal)
 - [Storacha UCN Package](https://github.com/storacha/upload-service/tree/main/packages/ucn)
 - [Storacha Pail Package](https://github.com/storacha/pail)
